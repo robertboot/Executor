@@ -8,9 +8,12 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  View,
 } from 'react-native';
 import Disclaimer from '../components/Disclaimer';
+import Logo from '../components/Logo';
 import { useAuth } from '../lib/auth';
+import { colors, radius, shadows } from '../lib/theme';
 
 export default function Signup() {
   const { signUp } = useAuth();
@@ -36,69 +39,86 @@ export default function Signup() {
 
   if (done) {
     return (
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Check your email</Text>
-        <Text style={styles.subtitle}>
-          We sent a confirmation link to {email}. Click it to activate your account, then come
-          back here and sign in.
-        </Text>
-        <Pressable style={styles.button} onPress={() => router.replace('/login')}>
-          <Text style={styles.buttonText}>Back to sign in</Text>
-        </Pressable>
+      <ScrollView
+        style={{ backgroundColor: colors.cream, flex: 1 }}
+        contentContainerStyle={styles.scroll}
+      >
+        <View style={styles.crest}>
+          <Logo />
+        </View>
+        <View style={styles.card}>
+          <Text style={styles.title}>Check your email</Text>
+          <Text style={styles.subtitle}>
+            We sent a confirmation link to {email}. Click it to activate your account,
+            then come back here and sign in.
+          </Text>
+          <Pressable style={styles.button} onPress={() => router.replace('/login')}>
+            <Text style={styles.buttonText}>Back to sign in</Text>
+          </Pressable>
+        </View>
       </ScrollView>
     );
   }
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: colors.cream }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Create your account</Text>
-        <Text style={styles.subtitle}>Just an email and password to get started.</Text>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <View style={styles.crest}>
+          <Logo />
+        </View>
 
-        <Text style={styles.label}>Your name</Text>
-        <TextInput
-          style={styles.input}
-          value={displayName}
-          onChangeText={setDisplayName}
-          placeholder="Jane Doe"
-        />
+        <View style={styles.card}>
+          <Text style={styles.title}>Create your account</Text>
+          <Text style={styles.subtitle}>Just an email and password to get started.</Text>
 
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          autoComplete="email"
-          keyboardType="email-address"
-          placeholder="you@example.com"
-        />
+          <Text style={styles.label}>Your name</Text>
+          <TextInput
+            style={styles.input}
+            value={displayName}
+            onChangeText={setDisplayName}
+            placeholder="Jane Doe"
+            placeholderTextColor={colors.mutedSoft}
+          />
 
-        <Text style={styles.label}>Password</Text>
-        <TextInput
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          placeholder="At least 8 characters"
-        />
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            autoComplete="email"
+            keyboardType="email-address"
+            placeholder="you@example.com"
+            placeholderTextColor={colors.mutedSoft}
+          />
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            placeholder="At least 8 characters"
+            placeholderTextColor={colors.mutedSoft}
+          />
 
-        <Pressable
-          style={[styles.button, busy && { opacity: 0.6 }]}
-          onPress={onSubmit}
-          disabled={busy}
-        >
-          <Text style={styles.buttonText}>{busy ? 'Creating…' : 'Create account'}</Text>
-        </Pressable>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <Link href="/login" style={styles.link}>
-          <Text>Already have an account? Sign in</Text>
-        </Link>
+          <Pressable
+            style={[styles.button, busy && { opacity: 0.6 }]}
+            onPress={onSubmit}
+            disabled={busy}
+          >
+            <Text style={styles.buttonText}>{busy ? 'Creating…' : 'Create account'}</Text>
+          </Pressable>
+
+          <Link href="/login" style={styles.link}>
+            <Text style={styles.linkText}>Already have an account? Sign in</Text>
+          </Link>
+        </View>
 
         <Disclaimer />
       </ScrollView>
@@ -107,26 +127,38 @@ export default function Signup() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, paddingTop: 48, gap: 8 },
-  title: { fontSize: 26, fontWeight: '700', color: '#111827' },
-  subtitle: { color: '#4b5563', marginBottom: 16 },
-  label: { color: '#374151', fontWeight: '500', marginTop: 12, marginBottom: 6 },
+  scroll: { padding: 20, paddingTop: 32, gap: 16 },
+  crest: { alignItems: 'center', marginVertical: 16 },
+  card: {
+    backgroundColor: colors.paper,
+    padding: 20,
+    borderRadius: radius.lg,
+    borderColor: colors.hairline,
+    borderWidth: 1,
+    gap: 6,
+    ...shadows.card,
+  },
+  title: { fontSize: 22, fontWeight: '700', color: colors.ink },
+  subtitle: { color: colors.muted, marginBottom: 8 },
+  label: { color: colors.inkSoft, fontWeight: '500', marginTop: 12, marginBottom: 6 },
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
+    borderColor: colors.hairline,
+    borderRadius: radius.md,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.cream,
+    color: colors.ink,
   },
   button: {
-    backgroundColor: '#111827',
-    borderRadius: 8,
+    backgroundColor: colors.forest,
+    borderRadius: radius.md,
     padding: 14,
     alignItems: 'center',
     marginTop: 20,
   },
-  buttonText: { color: 'white', fontWeight: '600', fontSize: 16 },
+  buttonText: { color: colors.onForest, fontWeight: '700', fontSize: 16, letterSpacing: 0.5 },
   link: { marginTop: 16, alignSelf: 'center' },
-  error: { color: '#b91c1c', marginTop: 12 },
+  linkText: { color: colors.gold, fontWeight: '600' },
+  error: { color: colors.danger, marginTop: 12 },
 });

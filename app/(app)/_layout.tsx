@@ -1,13 +1,21 @@
 import { Redirect, Tabs } from 'expo-router';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { useAuth } from '../../lib/auth';
+import { colors } from '../../lib/theme';
 
 export default function AppLayout() {
   const { session, loading } = useAuth();
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: colors.cream,
+        }}
+      >
+        <ActivityIndicator color={colors.forest} />
       </View>
     );
   }
@@ -16,39 +24,44 @@ export default function AppLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: '#ffffff' },
-        headerTintColor: '#111827',
-        headerTitleStyle: { fontWeight: '600' },
-        tabBarActiveTintColor: '#111827',
-        tabBarInactiveTintColor: '#9ca3af',
+        headerStyle: { backgroundColor: colors.cream },
+        headerShadowVisible: false,
+        headerTintColor: colors.ink,
+        headerTitleStyle: { fontWeight: '700', color: colors.ink },
+        tabBarStyle: {
+          backgroundColor: colors.forest,
+          borderTopColor: colors.forestDeep,
+          paddingTop: 6,
+          height: 64,
+        },
+        tabBarActiveTintColor: colors.gold,
+        tabBarInactiveTintColor: colors.onForestMuted,
+        tabBarLabelStyle: { fontWeight: '600', fontSize: 11, marginBottom: 4 },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarLabel: 'Home',
-          tabBarIcon: ({ color }) => <TabIcon glyph="⌂" color={color} />,
+          tabBarIcon: ({ color }) => <Glyph color={color}>⌂</Glyph>,
         }}
       />
       <Tabs.Screen
         name="collections"
         options={{
           title: 'Collections',
-          tabBarLabel: 'Collections',
-          tabBarIcon: ({ color }) => <TabIcon glyph="◇" color={color} />,
+          tabBarIcon: ({ color }) => <Glyph color={color}>◇</Glyph>,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
-          tabBarLabel: 'Settings',
-          tabBarIcon: ({ color }) => <TabIcon glyph="⚙" color={color} />,
+          tabBarIcon: ({ color }) => <Glyph color={color}>⚙</Glyph>,
         }}
       />
 
-      {/* Non-tab routes — accessible but hidden from the tab bar. */}
+      {/* Hidden but addressable routes. */}
       <Tabs.Screen name="new-inventory" options={{ href: null, title: 'New inventory' }} />
       <Tabs.Screen name="invites" options={{ href: null, title: 'Invites' }} />
       <Tabs.Screen name="scan" options={{ href: null, title: 'Scan QR' }} />
@@ -62,14 +75,8 @@ export default function AppLayout() {
         name="inventory/[id]/labels"
         options={{ href: null, title: 'Print labels' }}
       />
-      <Tabs.Screen
-        name="inventory/[id]/export"
-        options={{ href: null, title: 'Export' }}
-      />
-      <Tabs.Screen
-        name="inventory/[id]/item/new"
-        options={{ href: null, title: 'New item' }}
-      />
+      <Tabs.Screen name="inventory/[id]/export" options={{ href: null, title: 'Export' }} />
+      <Tabs.Screen name="inventory/[id]/item/new" options={{ href: null, title: 'New item' }} />
       <Tabs.Screen
         name="inventory/[id]/item/[itemId]/index"
         options={{ href: null, title: 'Item' }}
@@ -90,8 +97,6 @@ export default function AppLayout() {
   );
 }
 
-function TabIcon({ glyph, color }: { glyph: string; color: string }) {
-  return (
-    <Text style={{ color, fontSize: 22, marginTop: 2 }}>{glyph}</Text>
-  );
+function Glyph({ children, color }: { children: string; color: string }) {
+  return <Text style={{ color, fontSize: 22, marginTop: 2 }}>{children}</Text>;
 }

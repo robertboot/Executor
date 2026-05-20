@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { colors, radius } from '../lib/theme';
 
 export default function Disclaimer({ compact = false }: { compact?: boolean }) {
   return (
@@ -16,15 +17,15 @@ export default function Disclaimer({ compact = false }: { compact?: boolean }) {
 
 const styles = StyleSheet.create({
   box: {
-    backgroundColor: '#fef3c7',
-    borderColor: '#fcd34d',
+    backgroundColor: colors.warningSoft,
+    borderColor: colors.gold,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radius.md,
     padding: 12,
     marginTop: 16,
   },
   boxCompact: { padding: 8, marginTop: 8 },
-  title: { fontWeight: '700', color: '#78350f', marginBottom: 4 },
-  body: { color: '#78350f', fontSize: 13, lineHeight: 18 },
+  title: { fontWeight: '700', color: colors.warning, marginBottom: 4 },
+  body: { color: colors.warning, fontSize: 13, lineHeight: 18 },
   bold: { fontWeight: '700' },
 });

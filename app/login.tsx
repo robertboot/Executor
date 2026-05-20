@@ -10,8 +10,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useAuth } from '../lib/auth';
 import Disclaimer from '../components/Disclaimer';
+import Logo from '../components/Logo';
+import { useAuth } from '../lib/auth';
+import { colors, radius, shadows } from '../lib/theme';
 
 export default function Login() {
   const { signIn } = useAuth();
@@ -35,47 +37,57 @@ export default function Login() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: colors.cream }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Welcome back</Text>
-        <Text style={styles.subtitle}>Sign in to your Heirloom inventory.</Text>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.crest}>
+          <Logo />
+        </View>
 
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          autoComplete="email"
-          keyboardType="email-address"
-          placeholder="you@example.com"
-        />
-        <Text style={styles.label}>Password</Text>
-        <TextInput
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          placeholder="••••••••"
-        />
+        <View style={styles.card}>
+          <Text style={styles.title}>Welcome back</Text>
+          <Text style={styles.subtitle}>Sign in to your Heirloom inventory.</Text>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            autoComplete="email"
+            keyboardType="email-address"
+            placeholder="you@example.com"
+            placeholderTextColor={colors.mutedSoft}
+          />
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            placeholder="••••••••"
+            placeholderTextColor={colors.mutedSoft}
+          />
 
-        <Pressable
-          style={[styles.button, busy && { opacity: 0.6 }]}
-          onPress={onSubmit}
-          disabled={busy}
-        >
-          <Text style={styles.buttonText}>{busy ? 'Signing in…' : 'Sign in'}</Text>
-        </Pressable>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <Link href="/signup" style={styles.link}>
-          <Text>No account yet? Create one</Text>
-        </Link>
+          <Pressable
+            style={[styles.button, busy && { opacity: 0.6 }]}
+            onPress={onSubmit}
+            disabled={busy}
+          >
+            <Text style={styles.buttonText}>{busy ? 'Signing in…' : 'Sign in'}</Text>
+          </Pressable>
 
-        <View style={{ height: 24 }} />
+          <Link href="/signup" style={styles.link}>
+            <Text style={styles.linkText}>No account yet? Create one</Text>
+          </Link>
+        </View>
+
         <Disclaimer />
       </ScrollView>
     </KeyboardAvoidingView>
@@ -83,26 +95,38 @@ export default function Login() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, paddingTop: 48, gap: 8 },
-  title: { fontSize: 26, fontWeight: '700', color: '#111827' },
-  subtitle: { color: '#4b5563', marginBottom: 16 },
-  label: { color: '#374151', fontWeight: '500', marginTop: 12, marginBottom: 6 },
+  scroll: { padding: 20, paddingTop: 32, gap: 16 },
+  crest: { alignItems: 'center', marginVertical: 16 },
+  card: {
+    backgroundColor: colors.paper,
+    padding: 20,
+    borderRadius: radius.lg,
+    borderColor: colors.hairline,
+    borderWidth: 1,
+    gap: 6,
+    ...shadows.card,
+  },
+  title: { fontSize: 22, fontWeight: '700', color: colors.ink },
+  subtitle: { color: colors.muted, marginBottom: 8 },
+  label: { color: colors.inkSoft, fontWeight: '500', marginTop: 12, marginBottom: 6 },
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
+    borderColor: colors.hairline,
+    borderRadius: radius.md,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.cream,
+    color: colors.ink,
   },
   button: {
-    backgroundColor: '#111827',
-    borderRadius: 8,
+    backgroundColor: colors.forest,
+    borderRadius: radius.md,
     padding: 14,
     alignItems: 'center',
     marginTop: 20,
   },
-  buttonText: { color: 'white', fontWeight: '600', fontSize: 16 },
+  buttonText: { color: colors.onForest, fontWeight: '700', fontSize: 16, letterSpacing: 0.5 },
   link: { marginTop: 16, alignSelf: 'center' },
-  error: { color: '#b91c1c', marginTop: 12 },
+  linkText: { color: colors.gold, fontWeight: '600' },
+  error: { color: colors.danger, marginTop: 12 },
 });
