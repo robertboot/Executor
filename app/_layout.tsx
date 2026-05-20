@@ -2,9 +2,19 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import SetupNeeded from '../components/SetupNeeded';
 import { AuthProvider } from '../lib/auth';
+import { SUPABASE_CONFIGURED } from '../lib/supabase';
 
 export default function RootLayout() {
+  if (!SUPABASE_CONFIGURED) {
+    return (
+      <SafeAreaProvider>
+        <StatusBar style="auto" />
+        <SetupNeeded />
+      </SafeAreaProvider>
+    );
+  }
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

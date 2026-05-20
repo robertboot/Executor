@@ -14,10 +14,17 @@ const supabaseAnonKey =
   (Constants.expoConfig?.extra?.supabaseAnonKey as string | undefined) ||
   '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
+function looksLikeValidConfig(url: string, key: string): boolean {
+  // Real Supabase URLs end in .supabase.co and anon keys are long JWTs.
+  return /^https:\/\/.+\.supabase\.co$/.test(url) && key.length > 40;
+}
+
+export const SUPABASE_CONFIGURED = looksLikeValidConfig(supabaseUrl, supabaseAnonKey);
+
+if (!SUPABASE_CONFIGURED) {
   console.warn(
-    'Supabase URL / anon key not set. Add EXPO_PUBLIC_SUPABASE_URL and ' +
-      'EXPO_PUBLIC_SUPABASE_ANON_KEY to your .env file.',
+    'Supabase URL / anon key look wrong or missing. Set EXPO_PUBLIC_SUPABASE_URL and ' +
+      'EXPO_PUBLIC_SUPABASE_ANON_KEY in your hosting provider and redeploy.',
   );
 }
 
@@ -25,14 +32,21 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const storage =
   Platform.OS === 'web' ? undefined : (AsyncStorage as unknown as Storage);
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    storage,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: Platform.OS === 'web',
+// Fall back to a syntactically-valid placeholder so createClient doesn't throw
+// at module load. The app will detect missing config and render a setup screen
+// instead of attempting auth.
+export const supabase = createClient(
+  SUPABASE_CONFIGURED ? supabaseUrl : 'https://placeholder.supabase.co',
+  SUPABASE_CONFIGURED ? supabaseAnonKey : 'placeholder-anon-key-not-real',
+  {
+    auth: {
+      storage,
+      autoRefreshToken: SUPABASE_CONFIGURED,
+      persistSession: SUPABASE_CONFIGURED,
+      detectSessionInUrl: Platform.OS === 'web' && SUPABASE_CONFIGURED,
+    },
   },
-});
+);
 
 export const QR_LANDING_BASE_URL =
   process.env.EXPO_PUBLIC_QR_LANDING_BASE_URL ||
