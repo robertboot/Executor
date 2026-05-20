@@ -1,4 +1,5 @@
 import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { CONFIG_PREVIEW } from '../lib/supabase';
 
 export default function SetupNeeded() {
   return (
@@ -35,6 +36,26 @@ export default function SetupNeeded() {
           {' '}<Text style={styles.bold}>"Use existing Build Cache"</Text> turned off.
           Env vars are baked in at build time, so a redeploy is required.
         </Step>
+
+        <Text style={styles.h2}>What this build actually saw</Text>
+        <View style={styles.diagBox}>
+          <Text style={styles.diagLabel}>EXPO_PUBLIC_SUPABASE_URL</Text>
+          <Text style={styles.diagValue}>
+            length: {CONFIG_PREVIEW.urlLength}
+            {CONFIG_PREVIEW.urlLength > 0
+              ? `\nstarts: "${CONFIG_PREVIEW.urlStart}…"\nends:   "…${CONFIG_PREVIEW.urlEnd}"`
+              : '\n(empty — not set on the host)'}
+          </Text>
+          <Text style={[styles.diagLabel, { marginTop: 10 }]}>
+            EXPO_PUBLIC_SUPABASE_ANON_KEY
+          </Text>
+          <Text style={styles.diagValue}>
+            length: {CONFIG_PREVIEW.keyLength}
+            {CONFIG_PREVIEW.keyLength > 0
+              ? `\nstarts: "${CONFIG_PREVIEW.keyStart}…"`
+              : '\n(empty — not set on the host)'}
+          </Text>
+        </View>
 
         <Text style={styles.h2}>Why am I seeing this?</Text>
         <Text style={styles.body}>
@@ -90,6 +111,22 @@ const styles = StyleSheet.create({
   },
   help: { color: '#6b7280', fontSize: 13 },
   muted: { color: '#6b7280', marginTop: 16, fontStyle: 'italic' },
+  diagBox: {
+    backgroundColor: '#f8fafc',
+    borderColor: '#e2e8f0',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 6,
+  },
+  diagLabel: { fontFamily: 'Courier', fontWeight: '700', color: '#0f172a', fontSize: 13 },
+  diagValue: {
+    fontFamily: 'Courier',
+    color: '#334155',
+    fontSize: 12,
+    marginTop: 2,
+    lineHeight: 18,
+  },
   step: { flexDirection: 'row', gap: 10, marginTop: 12 },
   stepNum: {
     width: 26,

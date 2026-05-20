@@ -15,11 +15,27 @@ const supabaseAnonKey =
   '';
 
 function looksLikeValidConfig(url: string, key: string): boolean {
-  // Real Supabase URLs end in .supabase.co and anon keys are long JWTs.
-  return /^https:\/\/.+\.supabase\.co$/.test(url) && key.length > 40;
+  // Be permissive — we only want to catch "empty / clearly fake" values.
+  // Real Supabase URLs vary (e.g. custom domains, trailing slashes).
+  // Real anon keys can be JWTs (eyJ…) or the new sb_publishable_… format.
+  if (!url || !key) return false;
+  if (!/^https?:\/\//i.test(url)) return false;
+  if (url === 'https://placeholder.supabase.co') return false;
+  if (key.length < 20) return false;
+  if (key === 'placeholder-anon-key-not-real') return false;
+  return true;
 }
 
 export const SUPABASE_CONFIGURED = looksLikeValidConfig(supabaseUrl, supabaseAnonKey);
+
+// Diagnostic preview surfaced by the setup screen.
+export const CONFIG_PREVIEW = {
+  urlLength: supabaseUrl.length,
+  urlStart: supabaseUrl ? supabaseUrl.slice(0, 8) : '(empty)',
+  urlEnd: supabaseUrl ? supabaseUrl.slice(-15) : '(empty)',
+  keyLength: supabaseAnonKey.length,
+  keyStart: supabaseAnonKey ? supabaseAnonKey.slice(0, 6) : '(empty)',
+};
 
 if (!SUPABASE_CONFIGURED) {
   console.warn(
