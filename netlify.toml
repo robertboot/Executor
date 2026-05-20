@@ -1,0 +1,10 @@
+[build]
+  command = "npx expo export --platform web --output-dir dist"
+  publish = "dist"
+
+# Single-page-app: every route falls back to index.html so Expo Router can
+# handle /i/<public_id> on the client.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

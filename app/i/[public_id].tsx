@@ -3,6 +3,7 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import Disclaimer from '../../components/Disclaimer';
+import { photoPublicUrl } from '../../lib/api';
 import { formatDate, formatMoney } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
 
@@ -33,10 +35,15 @@ interface UnlockedItem {
   public_id: string;
 }
 
+interface PhotoRow {
+  caption: string | null;
+  storage_path: string;
+}
+
 interface UnlockResponse {
   item: UnlockedItem;
   inventory: { id: string; name: string; description: string | null } | null;
-  photos: { url: string; caption: string | null }[];
+  photos: PhotoRow[];
   sibling_items: {
     id: string;
     name: string;
@@ -60,12 +67,17 @@ export default function QRLanding() {
     setBusy(true);
     setError(null);
     try {
-      const { data: resp, error: fnErr } = await supabase.functions.invoke('executor-unlock', {
-        body: { public_id, code: code.trim() },
+      const userAgent =
+        Platform.OS === 'web' && typeof navigator !== 'undefined' ? navigator.userAgent : Platform.OS;
+      const { data: resp, error: rpcErr } = await supabase.rpc('unlock_item_for_executor', {
+        p_public_id: public_id,
+        p_code: code.trim(),
+        p_user_agent: userAgent,
       });
-      if (fnErr) throw new Error(fnErr.message);
-      if ((resp as { error?: string }).error) throw new Error((resp as { error: string }).error);
-      setData(resp as UnlockResponse);
+      if (rpcErr) throw new Error(rpcErr.message);
+      const r = resp as { error?: string } & UnlockResponse;
+      if (r?.error) throw new Error(r.error);
+      setData(r);
     } catch (e: any) {
       setError(e?.message ?? 'Could not unlock');
     } finally {
@@ -86,7 +98,11 @@ export default function QRLanding() {
         {data.photos.length > 0 && (
           <ScrollView horizontal style={{ marginVertical: 12 }}>
             {data.photos.map((p, i) => (
-              <Image key={i} source={{ uri: p.url }} style={styles.photo} />
+              <Image
+                key={i}
+                source={{ uri: photoPublicUrl(p.storage_path) }}
+                style={styles.photo}
+              />
             ))}
           </ScrollView>
         )}

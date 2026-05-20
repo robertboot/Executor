@@ -578,3 +578,97 @@ create policy "item-photos: authenticated delete"
   );
 
 -- Public reads (bucket is public). Paths are unguessable UUIDs.
+
+-- =========================================================================
+-- 7. Executor unlock RPC (callable by anon for the QR landing page).
+--
+-- A QR scanner is anonymous — they have no Supabase session. Rather than
+-- run a separate Edge Function, this RPC does the same job: verifies the
+-- bcrypt-hashed code via pgcrypto, logs the access, and returns the
+-- sanitized item + inventory + photos + sibling list.
+--
+-- SECURITY DEFINER lets it bypass RLS. The function itself enforces the
+-- authorization: only valid, non-revoked codes return data.
+-- =========================================================================
+create or replace function public.unlock_item_for_executor(
+  p_public_id uuid,
+  p_code text,
+  p_user_agent text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_item public.items;
+  v_inv public.inventories;
+  v_code_id uuid;
+  v_photos jsonb;
+  v_siblings jsonb;
+begin
+  select * into v_item from public.items where public_id = p_public_id;
+  if v_item.id is null then
+    return jsonb_build_object('error', 'Item not found');
+  end if;
+
+  select c.id into v_code_id
+  from public.executor_codes c
+  where c.inventory_id = v_item.inventory_id
+    and c.revoked = false
+    and crypt(p_code, c.code_hash) = c.code_hash
+  limit 1;
+
+  if v_code_id is null then
+    return jsonb_build_object('error', 'Invalid or revoked code');
+  end if;
+
+  insert into public.executor_access_log (executor_code_id, item_public_id, user_agent)
+  values (v_code_id, p_public_id, p_user_agent);
+
+  update public.executor_codes set last_used_at = now() where id = v_code_id;
+
+  select * into v_inv from public.inventories where id = v_item.inventory_id;
+
+  select coalesce(
+    jsonb_agg(
+      jsonb_build_object('caption', caption, 'storage_path', storage_path)
+      order by sort_order
+    ),
+    '[]'::jsonb
+  )
+  into v_photos
+  from public.item_photos
+  where item_id = v_item.id;
+
+  select coalesce(
+    jsonb_agg(
+      jsonb_build_object(
+        'id', id,
+        'name', name,
+        'category', category,
+        'value_amount', value_amount,
+        'value_currency', value_currency,
+        'public_id', public_id,
+        'intended_recipient_name', intended_recipient_name
+      )
+      order by name
+    ),
+    '[]'::jsonb
+  )
+  into v_siblings
+  from public.items
+  where inventory_id = v_item.inventory_id;
+
+  return jsonb_build_object(
+    'item', to_jsonb(v_item),
+    'inventory', to_jsonb(v_inv),
+    'photos', v_photos,
+    'sibling_items', v_siblings
+  );
+end;
+$$;
+
+revoke all on function public.unlock_item_for_executor(uuid, text, text) from public;
+grant execute on function public.unlock_item_for_executor(uuid, text, text) to anon;
+grant execute on function public.unlock_item_for_executor(uuid, text, text) to authenticated;

@@ -101,6 +101,11 @@ export default function InventoryDetail() {
               <Text style={styles.headerButtonText}>Print labels</Text>
             </Pressable>
           </Link>
+          <Link href={`/(app)/inventory/${id}/export`} asChild>
+            <Pressable style={styles.headerButton}>
+              <Text style={styles.headerButtonText}>Export</Text>
+            </Pressable>
+          </Link>
         </View>
       </View>
 

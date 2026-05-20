@@ -8,115 +8,91 @@ and inherit each one.
 > ⚠️ **Important**
 > Keepsake is a personal inventory tool. It is **not a will**, not legal or
 > estate advice, and not a substitute for either. To make legally-binding
-> decisions about who inherits your property, please consult an attorney and
-> prepare a proper will.
+> decisions about who inherits your property, please consult an attorney
+> and prepare a proper will.
 
 ---
 
-## What you need before you start
+## Setup from an iPad (no terminal required)
 
-1. **Node.js** installed on your computer.
-   - Download from <https://nodejs.org> — the "LTS" version is fine.
-2. **A free Supabase account.**
-   - Sign up at <https://supabase.com> and create a new project.
-   - Wait ~1 minute for the project to be ready.
-3. **The Expo Go app on your phone.**
-   - iPhone: search "Expo Go" on the App Store.
-   - Android: search "Expo Go" on Google Play.
+Everything below can be done in Safari on an iPad. You'll create two free
+accounts (Supabase + Vercel), paste one SQL file, and click a deploy
+button.
 
----
+### Step 1 — Create your Supabase project
 
-## One-time setup
+1. Open <https://supabase.com> in Safari and sign up (free tier is plenty).
+2. Click **New project**. Pick a name, a password (any), and the region
+   nearest you. Wait ~60 seconds for it to spin up.
+3. From the left sidebar, open **SQL Editor** → **New query**.
+4. In another Safari tab, open this repo on GitHub and view
+   **`supabase/migrations/0001_init.sql`**. Tap **⋯** → **Copy raw file**.
+5. Paste the whole thing into the Supabase SQL editor and tap **Run**.
+   You should see "Success. No rows returned."
 
-### 1. Install the dependencies
+That's the entire database setup. The migration creates every table, all
+the security rules, the revision trigger, the storage bucket for photos,
+and the secure `unlock_item_for_executor` function that the QR landing
+page calls — no separate Edge Function deploy.
 
-Open a terminal in this folder (the one that contains `package.json`) and run:
+> **Re-running is safe.** If something looks wrong, you can re-run the
+> SQL file as many times as you want. It drops and recreates policies
+> idempotently.
 
-```bash
-npm install
-```
+### Step 2 — Grab your Supabase keys
 
-This downloads everything the app needs. It takes a few minutes the first time.
+In Supabase, go to **Project Settings → API** (gear icon on the left).
+Keep this tab open — you'll need:
 
-### 2. Set up your Supabase project's database
+- **Project URL** — looks like `https://abcdef.supabase.co`
+- **anon public** key — long string starting with `ey…`
 
-1. Go to your Supabase project at <https://app.supabase.com>.
-2. In the left sidebar click **SQL Editor** → **New query**.
-3. Open the file [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)
-   from this folder. Copy its entire contents and paste into the SQL editor.
-   Click **Run**.
-4. Repeat for [`supabase/migrations/0002_verify_bcrypt.sql`](supabase/migrations/0002_verify_bcrypt.sql).
+### Step 3 — Deploy the web app to Vercel (one click)
 
-If both runs say "Success", your database is ready. You can re-run these
-files later without breaking anything — they're idempotent.
+1. Fork or push this repo to your own GitHub account (if it isn't there
+   already — your iPad's GitHub website works fine for forking).
+2. Open <https://vercel.com> in Safari and sign in **with GitHub**.
+3. Click **Add new… → Project**, find this repo, click **Import**.
+4. In the **Environment Variables** section, paste these three:
+   - `EXPO_PUBLIC_SUPABASE_URL` → your project URL from step 2
+   - `EXPO_PUBLIC_SUPABASE_ANON_KEY` → the `anon` key from step 2
+   - `EXPO_PUBLIC_QR_LANDING_BASE_URL` → leave blank for now, you'll set
+     it after the first deploy when you have a Vercel URL
+5. Click **Deploy**. After ~2 minutes Vercel gives you a URL like
+   `keepsake-abc123.vercel.app`.
+6. Go back to Vercel's project → **Settings → Environment Variables** and
+   set `EXPO_PUBLIC_QR_LANDING_BASE_URL` to your new Vercel URL (with
+   `https://` in front, no trailing slash). Trigger a redeploy.
 
-### 3. Connect the app to Supabase
+> Prefer Netlify? It's the same idea: a `netlify.toml` is included, and
+> Netlify will detect it automatically when you import the repo.
 
-In the same folder where you ran `npm install`, copy the example env file:
+### Step 4 — Use the app
 
-```bash
-cp .env.example .env
-```
+Open your Vercel URL in Safari (or Chrome) on your iPad. You'll land on
+the sign-up screen. Create an account using your real email — Supabase
+will email you a confirmation link. Tap it, come back, and sign in.
 
-Open `.env` in a text editor and fill in:
-
-- `EXPO_PUBLIC_SUPABASE_URL` — your project's URL. Find it in Supabase under
-  **Project Settings → API → Project URL**.
-- `EXPO_PUBLIC_SUPABASE_ANON_KEY` — the **anon public** key on the same
-  Settings → API page.
-- `EXPO_PUBLIC_QR_LANDING_BASE_URL` — where the **web** version of this app
-  is reachable. During development this is the same URL Expo shows when you
-  run `npm run web` (typically `http://localhost:8081`). When you eventually
-  host the web build somewhere, replace this with that URL.
-
-### 4. Deploy the executor-unlock Edge Function
-
-The QR landing page calls a secure server function so private data can never
-be exposed by URL alone. To deploy it:
-
-1. Install the Supabase CLI: <https://supabase.com/docs/guides/cli>
-2. From this folder, log in: `supabase login`
-3. Link your project: `supabase link --project-ref <your-project-ref>`
-   (the ref is in your Supabase project URL).
-4. Deploy:
-
-   ```bash
-   supabase functions deploy executor-unlock --no-verify-jwt
-   ```
-
-   The `--no-verify-jwt` flag is required — anonymous visitors scan the QR
-   code without a Supabase session, and the function does its own
-   authorization via the executor code.
+That's it. You can now create inventories, add items, upload photos
+(Safari's file picker handles this), generate executor codes, and print
+QR labels.
 
 ---
 
-## Running the app
+## Optional — Running on your iPhone as a "real" app
 
-### On your phone (recommended for development)
-
-```bash
-npm start
-```
-
-A QR code will appear in your terminal. Open the **Expo Go** app on your
-phone and scan it. The app will load instantly.
-
-### In a web browser
-
-```bash
-npm run web
-```
-
-A browser tab will open at <http://localhost:8081>. The web version is what
-people see when they scan an item's QR sticker — they go straight to
-`/i/<id>` and are asked for an executor access code.
+If you want the native iOS app instead of (or in addition to) the web
+app, install **Expo Go** from the App Store on your iPhone. You'll need
+to run a dev server somewhere — on a laptop, on a cloud machine, or via
+Expo's hosted preview (EAS Update). The web-app path above is the
+zero-friction option.
 
 ---
 
-## How it's organized
+## What's where
 
 ```
-app/                  # Screens (Expo Router file-based routing)
+app/                  Screens (Expo Router file-based routing)
   _layout.tsx           Root layout, providers
   login.tsx             Email + password sign-in
   signup.tsx            Account creation
@@ -126,11 +102,12 @@ app/                  # Screens (Expo Router file-based routing)
     new-inventory.tsx
     invites.tsx         Pending invites
     settings.tsx        Sign out, disclaimer
-    scan.tsx            QR scanner (uses the camera)
+    scan.tsx            QR scanner (uses the camera; web falls back to URL)
     inventory/[id]/
       index.tsx         Items list with search + filter
       settings.tsx      Rename, delete, sharing, executor codes, access log
-      labels.tsx        Generate printable PDF of QR labels
+      labels.tsx        Avery-5160 PDF label sheet
+      export.tsx        CSV + PDF inventory export
       item/
         new.tsx
         [itemId]/
@@ -153,65 +130,66 @@ lib/
   format.ts             Money, date, random code helpers
   types.ts              TypeScript types matching the DB
 
-supabase/
-  migrations/           SQL you ran in step 2
-  functions/
-    executor-unlock/    The server function for the QR landing page
+supabase/migrations/0001_init.sql
+                      ↑ the only file you paste into Supabase
+
+.github/workflows/build-web.yml
+                      Builds the web bundle on every push (CI guardrail)
+vercel.json / netlify.toml
+                      Build configs for one-click hosting
 ```
 
 ---
 
-## What's where (mapping to the build spec)
+## Mapping to the build spec phases
 
 | Phase | Where to look |
 |------|---------------|
-| **0 – Setup, schema, disclaimer** | `supabase/migrations/0001_init.sql`, `components/Disclaimer.tsx`, `app/_layout.tsx` |
+| **0 – Setup, schema, disclaimer** | `supabase/migrations/0001_init.sql`, `components/Disclaimer.tsx` |
 | **1 – Auth + Inventories + Items** | `app/login.tsx`, `app/signup.tsx`, `app/(app)/index.tsx`, `app/(app)/inventory/[id]/*`, `components/ItemForm.tsx`, `components/PhotoStrip.tsx`, `lib/categories.ts` |
-| **2 – QR codes, labels, executor unlock** | `app/(app)/inventory/[id]/item/[itemId]/qr.tsx`, `app/(app)/inventory/[id]/labels.tsx`, `app/i/[public_id].tsx`, `supabase/functions/executor-unlock/index.ts`, `app/(app)/inventory/[id]/settings.tsx` (executor codes section), `supabase/migrations/0002_verify_bcrypt.sql` |
+| **2 – QR codes, labels, executor unlock** | `app/(app)/inventory/[id]/item/[itemId]/qr.tsx`, `app/(app)/inventory/[id]/labels.tsx`, `app/i/[public_id].tsx`, `unlock_item_for_executor` RPC + `create_executor_code` RPC in `0001_init.sql`, executor-code management in `app/(app)/inventory/[id]/settings.tsx` |
 | **3 – Sharing + roles** | `app/(app)/inventory/[id]/settings.tsx` (sharing section), `app/(app)/invites.tsx`, RLS policies in `0001_init.sql` |
 | **4 – History / audit trail** | `app/(app)/inventory/[id]/item/[itemId]/history.tsx`, the `record_item_revision` trigger and `restore_item_revision` RPC in `0001_init.sql` |
-| **5 – Polish** | Search & category filter in `app/(app)/inventory/[id]/index.tsx`, total value per inventory, currency on each item |
+| **5 – Polish** | Search & category filter in `app/(app)/inventory/[id]/index.tsx`, currency on each item, **CSV + PDF export** at `app/(app)/inventory/[id]/export.tsx` |
 
 ---
 
 ## Things to know
 
-- **Executor codes are shown once.** When you generate a code, copy or
-  screenshot it immediately. Only the encrypted hash is stored, so we
-  literally cannot recover or show it again.
+- **Executor codes are shown once.** When you generate a code, copy it
+  immediately. Only the encrypted hash is stored, so we literally cannot
+  recover or show it again.
 - **The QR sticker unlocks the whole inventory, read-only.** Anyone with a
   valid executor code can see every item in that inventory's QR landing
   pages. This is intentional — your executor needs to know what else is
-  there. If this isn't what you want, revoke the code and issue a new one
-  scoped differently (you'll need to extend the schema for that).
-- **Photo bucket is public.** File paths are unguessable UUIDs, so URLs are
-  effectively private. If you need stricter privacy, switch the bucket to
-  private and use signed URLs in `lib/api.ts` → `photoPublicUrl`.
-- **Hosting the web build.** When you're ready to give out QR stickers in
-  the real world, run `npm run export:web` and deploy the `dist/` folder to
-  any static host (Vercel, Netlify, Cloudflare Pages). Set
-  `EXPO_PUBLIC_QR_LANDING_BASE_URL` to that host's URL before generating QR
-  labels.
+  there.
+- **Photo bucket is public.** File paths are unguessable UUIDs, so URLs
+  are effectively private. If you need stricter privacy, switch the bucket
+  to private and use signed URLs in `lib/api.ts → photoPublicUrl`.
+- **Hosting the web build elsewhere.** Any static host works. Set
+  `EXPO_PUBLIC_QR_LANDING_BASE_URL` to wherever the app lives so the QR
+  codes point to the right place.
 
 ---
 
 ## Common problems
 
-**"Cannot find module 'expo'"** — run `npm install` again from this folder.
-
-**"Network request failed" when signing in** — your `.env` values are
-missing or wrong. Restart `npm start` after editing `.env`.
-
-**"new row violates row-level security"** — the migration didn't run, or
-the auth user doesn't have a profile row yet. Sign out and back in; the
-trigger creates the profile automatically on signup.
+**"new row violates row-level security"** — the migration didn't fully
+run, or you're trying to do something the policies don't allow. Re-run
+`0001_init.sql` in the Supabase SQL editor.
 
 **The QR landing page says "Invalid or revoked code"** — codes are
 case-sensitive and exact. They look like `ABCD-EFGH-JKLM-NPQR`. Copy/paste
 the original value you saved.
 
-**Edge function returns 404** — you haven't deployed it yet. Re-read step 4
-above. Until you do, the QR landing page won't be able to unlock anything.
+**"Could not unlock" with a network error on the QR landing page** —
+double-check that `EXPO_PUBLIC_SUPABASE_URL` and
+`EXPO_PUBLIC_SUPABASE_ANON_KEY` are set in your hosting provider's
+environment and redeploy.
+
+**Email confirmation link goes to a Supabase-hosted page, not the app**
+— that's the default. In Supabase **Authentication → URL Configuration**,
+set the Site URL to your Vercel URL so confirmation links return there.
 
 ---
 

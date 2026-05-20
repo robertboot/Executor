@@ -28,6 +28,7 @@ export default function AppLayout() {
       <Stack.Screen name="inventory/[id]/index" options={{ title: 'Inventory' }} />
       <Stack.Screen name="inventory/[id]/settings" options={{ title: 'Inventory settings' }} />
       <Stack.Screen name="inventory/[id]/labels" options={{ title: 'Print labels' }} />
+      <Stack.Screen name="inventory/[id]/export" options={{ title: 'Export' }} />
       <Stack.Screen name="inventory/[id]/item/new" options={{ title: 'New item' }} />
       <Stack.Screen name="inventory/[id]/item/[itemId]/index" options={{ title: 'Item' }} />
       <Stack.Screen name="inventory/[id]/item/[itemId]/edit" options={{ title: 'Edit item' }} />
