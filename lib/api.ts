@@ -82,13 +82,10 @@ export async function getInventoryRole(
 }
 
 export async function createInventory(name: string, description: string | null) {
-  const { data: me } = await supabase.auth.getUser();
-  if (!me.user) throw new Error('Not signed in');
-  const { data, error } = await supabase
-    .from('inventories')
-    .insert({ name, description, owner_id: me.user.id })
-    .select()
-    .single();
+  const { data, error } = await supabase.rpc('create_inventory', {
+    p_name: name,
+    p_description: description,
+  });
   if (error) throw error;
   return data as Inventory;
 }

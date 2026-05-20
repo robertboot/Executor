@@ -672,3 +672,47 @@ $$;
 revoke all on function public.unlock_item_for_executor(uuid, text, text) from public;
 grant execute on function public.unlock_item_for_executor(uuid, text, text) to anon;
 grant execute on function public.unlock_item_for_executor(uuid, text, text) to authenticated;
+
+-- =========================================================================
+-- 8. create_inventory RPC
+--
+-- Bypasses the direct-insert path. The function runs as SECURITY DEFINER
+-- and forces owner_id = auth.uid(), so the caller can't supply the wrong
+-- value and there's no client-side dependency on getUser() returning a
+-- consistent id. Also ensures a profile row exists for the caller.
+-- =========================================================================
+create or replace function public.create_inventory(
+  p_name text,
+  p_description text default null
+)
+returns public.inventories
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_uid uuid;
+  v_inv public.inventories;
+  v_email text;
+begin
+  v_uid := auth.uid();
+  if v_uid is null then
+    raise exception 'You must be signed in to create an inventory';
+  end if;
+
+  -- Make sure the profile row exists (covers users created before the
+  -- on_auth_user_created trigger was installed).
+  select email into v_email from auth.users where id = v_uid;
+  insert into public.profiles (id, display_name)
+  values (v_uid, coalesce(split_part(v_email, '@', 1), 'user'))
+  on conflict (id) do nothing;
+
+  insert into public.inventories (owner_id, name, description)
+  values (v_uid, p_name, p_description)
+  returning * into v_inv;
+  return v_inv;
+end;
+$$;
+
+revoke all on function public.create_inventory(text, text) from public;
+grant execute on function public.create_inventory(text, text) to authenticated;
