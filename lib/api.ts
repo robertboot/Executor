@@ -532,7 +532,7 @@ export async function createDemoInventory(): Promise<Inventory> {
   if (!me.user) throw new Error('Not signed in');
   const inv = await createInventory(
     'Sample inventory',
-    'Demo items so you can see how Keepsake works. Delete this any time.',
+    'Demo items so you can see how Heirloom works. Delete this any time.',
   );
   for (const d of DEMO_ITEMS) {
     await createItem(inv.id, {

@@ -8,7 +8,7 @@ export default function SetupNeeded() {
       style={{ backgroundColor: '#fef2f2' }}
     >
       <View style={styles.card}>
-        <Text style={styles.title}>Keepsake — setup not complete</Text>
+        <Text style={styles.title}>Heirloom — setup not complete</Text>
         <Text style={styles.body}>
           This deployment is missing one or both of the Supabase environment
           variables, so the app can't connect to its database yet.

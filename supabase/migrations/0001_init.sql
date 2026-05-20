@@ -1,5 +1,5 @@
 -- =========================================================================
--- Keepsake — personal inventory app
+-- Heirloom — personal inventory app
 -- Initial schema, Row-Level Security policies, and revision trigger.
 --
 -- Run this once in the Supabase SQL Editor:

@@ -40,7 +40,7 @@ export default function Login() {
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Welcome back</Text>
-        <Text style={styles.subtitle}>Sign in to your Keepsake inventory.</Text>
+        <Text style={styles.subtitle}>Sign in to your Heirloom inventory.</Text>
 
         <Text style={styles.label}>Email</Text>
         <TextInput

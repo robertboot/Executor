@@ -233,7 +233,7 @@ function buildPdfHtml(inv: Inventory, items: Item[]): string {
       generated ${escapeHtml(new Date().toLocaleString())}
     </div>
     <div class="disclaimer">
-      <strong>Important:</strong> Keepsake is a personal inventory tool. It is
+      <strong>Important:</strong> Heirloom is a personal inventory tool. It is
       <strong>not a will</strong> and not legal or estate advice.
     </div>
     ${rows}

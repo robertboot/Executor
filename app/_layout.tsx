@@ -33,7 +33,7 @@ export default function RootLayout() {
             <Stack.Screen name="(app)" options={{ headerShown: false }} />
             <Stack.Screen
               name="i/[public_id]"
-              options={{ title: 'Keepsake', headerShown: false }}
+              options={{ title: 'Heirloom', headerShown: false }}
             />
           </Stack>
         </AuthProvider>

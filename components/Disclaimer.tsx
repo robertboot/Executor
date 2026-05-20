@@ -5,7 +5,7 @@ export default function Disclaimer({ compact = false }: { compact?: boolean }) {
     <View style={[styles.box, compact && styles.boxCompact]}>
       <Text style={styles.title}>Important</Text>
       <Text style={styles.body}>
-        Keepsake is a personal inventory tool. It is{' '}
+        Heirloom is a personal inventory tool. It is{' '}
         <Text style={styles.bold}>not a will</Text>, not legal or estate advice, and not a
         substitute for either. To make legally-binding decisions about who inherits your
         property, please consult an attorney and prepare a proper will.

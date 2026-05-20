@@ -33,7 +33,7 @@ export default function Scan() {
   const submitManual = () => {
     const id = extractPublicId(manual);
     if (!id) {
-      setManualError('Please paste a Keepsake item link or its 36-character ID.');
+      setManualError('Please paste a Heirloom item link or its 36-character ID.');
       return;
     }
     goToPublicId(id);
@@ -64,7 +64,7 @@ export default function Scan() {
   if (Platform.OS === 'web') {
     return (
       <View style={styles.webContainer}>
-        <Text style={styles.heading}>Scan a Keepsake QR sticker</Text>
+        <Text style={styles.heading}>Scan a Heirloom QR sticker</Text>
         <Text style={styles.subhead}>
           From the web app, point your phone's camera at the sticker — your
           camera app will recognise the QR code and open the link. Or paste
@@ -109,7 +109,7 @@ export default function Scan() {
       />
       <View style={styles.overlay}>
         <Text style={styles.overlayText}>
-          Point at a Keepsake QR sticker.
+          Point at a Heirloom QR sticker.
         </Text>
       </View>
     </View>

@@ -1,4 +1,4 @@
-# Keepsake
+# Heirloom
 
 A personal inventory app for households and collectors. Catalog your books,
 antiques, DVDs, collectibles — anything — with photos, intended recipients,
@@ -6,7 +6,7 @@ and a printable QR sticker per item so a designated executor can identify
 and inherit each one.
 
 > ⚠️ **Important**
-> Keepsake is a personal inventory tool. It is **not a will**, not legal or
+> Heirloom is a personal inventory tool. It is **not a will**, not legal or
 > estate advice, and not a substitute for either. To make legally-binding
 > decisions about who inherits your property, please consult an attorney
 > and prepare a proper will.
@@ -51,7 +51,7 @@ Keep this tab open — you'll need:
 
 The fastest path:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Frobertboot%2FExecutor&env=EXPO_PUBLIC_SUPABASE_URL,EXPO_PUBLIC_SUPABASE_ANON_KEY,EXPO_PUBLIC_QR_LANDING_BASE_URL&envDescription=From%20your%20Supabase%20project%27s%20API%20settings.%20Leave%20QR_LANDING_BASE_URL%20blank%20and%20set%20it%20to%20your%20Vercel%20URL%20after%20the%20first%20deploy.&project-name=keepsake&repository-name=keepsake)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Frobertboot%2FExecutor&env=EXPO_PUBLIC_SUPABASE_URL,EXPO_PUBLIC_SUPABASE_ANON_KEY,EXPO_PUBLIC_QR_LANDING_BASE_URL&envDescription=From%20your%20Supabase%20project%27s%20API%20settings.%20Leave%20QR_LANDING_BASE_URL%20blank%20and%20set%20it%20to%20your%20Vercel%20URL%20after%20the%20first%20deploy.&project-name=heirloom&repository-name=heirloom)
 
 Or do it manually:
 
@@ -65,7 +65,7 @@ Or do it manually:
    - `EXPO_PUBLIC_QR_LANDING_BASE_URL` → leave blank for now, you'll set
      it after the first deploy when you have a Vercel URL
 5. Click **Deploy**. After ~2 minutes Vercel gives you a URL like
-   `keepsake-abc123.vercel.app`.
+   `heirloom-abc123.vercel.app`.
 6. Go back to Vercel's project → **Settings → Environment Variables** and
    set `EXPO_PUBLIC_QR_LANDING_BASE_URL` to your new Vercel URL (with
    `https://` in front, no trailing slash). Trigger a redeploy.

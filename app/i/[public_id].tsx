@@ -89,7 +89,7 @@ export default function QRLanding() {
     const it = data.item;
     return (
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.brand}>Keepsake</Text>
+        <Text style={styles.brand}>Heirloom</Text>
         <Text style={styles.title}>{it.name}</Text>
         {data.inventory && (
           <Text style={styles.subtitle}>From the inventory: {data.inventory.name}</Text>
@@ -167,7 +167,7 @@ export default function QRLanding() {
 
   return (
     <ScrollView contentContainerStyle={styles.lockedContainer}>
-      <Text style={styles.brand}>Keepsake</Text>
+      <Text style={styles.brand}>Heirloom</Text>
       <View style={styles.lockedCard}>
         <Text style={styles.lockedTitle}>This item is part of a private inventory.</Text>
         <Text style={styles.lockedHelp}>
