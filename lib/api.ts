@@ -222,6 +222,196 @@ export async function listUsedCollections(inventoryId: string): Promise<string[]
 }
 
 // =========================================================================
+// Collections (first-class)
+// =========================================================================
+
+export interface CollectionRecord {
+  id: string;
+  name: string;
+  description: string | null;
+  hero_storage_path: string | null;
+  created_at: string;
+}
+
+export interface CollectionWithStats {
+  id: string | null;       // null for ad-hoc collections (no row in collections table)
+  name: string;
+  description: string | null;
+  hero_storage_path: string | null;
+  itemCount: number;
+  totalValue: number;
+  currency: string;
+  sharedWithEmails: string[]; // distinct emails of users who share access (via inventories)
+  firstPhotoPath: string | null;
+  firstItemId: string | null;
+  firstInventoryId: string | null;
+}
+
+export async function listMyCollectionsRich(): Promise<CollectionWithStats[]> {
+  // 1) Pre-created collections owned by user
+  const { data: rows, error: cErr } = await supabase
+    .from('collections')
+    .select('id, name, description, hero_storage_path, created_at')
+    .order('name');
+  if (cErr) throw cErr;
+
+  // 2) Items the user can see, joined with photos and inventory shares
+  const { data: items, error: iErr } = await supabase
+    .from('items')
+    .select(
+      'id, inventory_id, name, category, value_amount, value_currency, ' +
+        'item_photos(storage_path, sort_order), ' +
+        'inventory:inventories(id, owner_id, shares:inventory_shares(invited_email, status))',
+    )
+    .order('created_at', { ascending: false });
+  if (iErr) throw iErr;
+
+  // 3) Group items by collection name (case-insensitive).
+  type Bucket = {
+    name: string;
+    count: number;
+    totalValue: number;
+    currency: string;
+    photoPath: string | null;
+    firstItemId: string | null;
+    firstInventoryId: string | null;
+    sharedSet: Set<string>;
+  };
+  const buckets = new Map<string, Bucket>();
+  const keyOf = (s: string) => s.toLowerCase();
+
+  const ensure = (name: string): Bucket => {
+    const k = keyOf(name);
+    let b = buckets.get(k);
+    if (!b) {
+      b = {
+        name,
+        count: 0,
+        totalValue: 0,
+        currency: 'USD',
+        photoPath: null,
+        firstItemId: null,
+        firstInventoryId: null,
+        sharedSet: new Set<string>(),
+      };
+      buckets.set(k, b);
+    }
+    return b;
+  };
+
+  type ItemRow = {
+    id: string;
+    inventory_id: string;
+    category: string | null;
+    value_amount: number | null;
+    value_currency: string;
+    item_photos: { storage_path: string; sort_order: number }[] | null;
+    inventory:
+      | { id: string; owner_id: string; shares: { invited_email: string; status: string }[] | null }
+      | { id: string; owner_id: string; shares: { invited_email: string; status: string }[] | null }[]
+      | null;
+  };
+  const rawItems = (items ?? []) as unknown as ItemRow[];
+  for (const it of rawItems) {
+    const cat = (it.category ?? '').trim();
+    if (!cat) continue;
+    const b = ensure(cat);
+    b.count += 1;
+    if (it.value_amount != null) b.totalValue += Number(it.value_amount);
+    b.currency = it.value_currency || b.currency;
+    if (!b.photoPath && it.item_photos && it.item_photos.length > 0) {
+      const sorted = [...it.item_photos].sort((a, z) => a.sort_order - z.sort_order);
+      b.photoPath = sorted[0].storage_path;
+      b.firstItemId = it.id;
+      b.firstInventoryId = it.inventory_id;
+    }
+    if (!b.firstItemId) {
+      b.firstItemId = it.id;
+      b.firstInventoryId = it.inventory_id;
+    }
+    const inv = Array.isArray(it.inventory) ? it.inventory[0] : it.inventory;
+    if (inv) {
+      for (const s of inv.shares ?? []) {
+        if (s.status === 'accepted') b.sharedSet.add(s.invited_email);
+      }
+    }
+  }
+
+  // 4) Merge with pre-created collections so empty-but-named ones still show.
+  const byName = new Map<string, CollectionRecord>();
+  for (const r of (rows ?? []) as CollectionRecord[]) byName.set(keyOf(r.name), r);
+
+  const out: CollectionWithStats[] = [];
+  const seen = new Set<string>();
+
+  for (const [k, b] of buckets) {
+    const meta = byName.get(k);
+    out.push({
+      id: meta?.id ?? null,
+      name: meta?.name ?? b.name,
+      description: meta?.description ?? null,
+      hero_storage_path: meta?.hero_storage_path ?? null,
+      itemCount: b.count,
+      totalValue: b.totalValue,
+      currency: b.currency,
+      sharedWithEmails: [...b.sharedSet],
+      firstPhotoPath: b.photoPath,
+      firstItemId: b.firstItemId,
+      firstInventoryId: b.firstInventoryId,
+    });
+    seen.add(k);
+  }
+  for (const [k, meta] of byName) {
+    if (seen.has(k)) continue;
+    out.push({
+      id: meta.id,
+      name: meta.name,
+      description: meta.description,
+      hero_storage_path: meta.hero_storage_path,
+      itemCount: 0,
+      totalValue: 0,
+      currency: 'USD',
+      sharedWithEmails: [],
+      firstPhotoPath: null,
+      firstItemId: null,
+      firstInventoryId: null,
+    });
+  }
+
+  out.sort((a, z) => z.itemCount - a.itemCount || a.name.localeCompare(z.name));
+  return out;
+}
+
+export async function createCollection(
+  name: string,
+  description: string | null = null,
+): Promise<CollectionRecord> {
+  const { data: me } = await supabase.auth.getUser();
+  if (!me.user) throw new Error('Not signed in');
+  const { data, error } = await supabase
+    .from('collections')
+    .insert({ owner_id: me.user.id, name: name.trim(), description })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as CollectionRecord;
+}
+
+export async function deleteCollection(id: string) {
+  const { error } = await supabase.from('collections').delete().eq('id', id);
+  if (error) throw error;
+}
+
+export async function listMyCollectionNames(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('collections')
+    .select('name')
+    .order('name');
+  if (error) throw error;
+  return (data ?? []).map((r: { name: string }) => r.name);
+}
+
+// =========================================================================
 // Photos
 // =========================================================================
 

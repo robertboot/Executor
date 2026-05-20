@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -7,6 +7,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { listMyCollectionNames } from '../lib/api';
 import { CATEGORY_PRESETS, findCategory } from '../lib/categories';
 import type { Item } from '../lib/types';
 
@@ -84,6 +85,20 @@ export default function ItemForm({ initial, onSubmit, submitLabel }: Props) {
   const [v, setV] = useState<ItemFormValues>(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customChips, setCustomChips] = useState<string[]>([]);
+
+  useEffect(() => {
+    listMyCollectionNames().then((names) => {
+      const presetKeys = new Set(CATEGORY_PRESETS.map((p) => p.key.toLowerCase()));
+      const presetLabels = new Set(CATEGORY_PRESETS.map((p) => p.label.toLowerCase()));
+      setCustomChips(
+        names.filter(
+          (n) =>
+            !presetKeys.has(n.toLowerCase()) && !presetLabels.has(n.toLowerCase()),
+        ),
+      );
+    }).catch(() => {});
+  }, []);
 
   const cat = findCategory(v.category);
 
@@ -128,6 +143,17 @@ export default function ItemForm({ initial, onSubmit, submitLabel }: Props) {
             >
               <Text style={v.category === c.key ? styles.chipTextActive : styles.chipText}>
                 {c.label}
+              </Text>
+            </Pressable>
+          ))}
+          {customChips.map((name) => (
+            <Pressable
+              key={`custom-${name}`}
+              style={[styles.chip, v.category === name && styles.chipActive]}
+              onPress={() => update('category', v.category === name ? null : name)}
+            >
+              <Text style={v.category === name ? styles.chipTextActive : styles.chipText}>
+                {name}
               </Text>
             </Pressable>
           ))}

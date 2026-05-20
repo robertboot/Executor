@@ -716,3 +716,71 @@ $$;
 
 revoke all on function public.create_inventory(text, text) from public;
 grant execute on function public.create_inventory(text, text) to authenticated;
+
+-- =========================================================================
+-- 9. collections (first-class registry of named "bins")
+--
+-- A collection is identified by name (case-insensitive). Items still hold
+-- a free-text `category` value — the collections table just lets you
+-- pre-create named collections (with hero photo / description) before any
+-- item is tagged with them. A trigger keeps the table in sync: every time
+-- an item is inserted or its category changes, we upsert a collection
+-- owned by the inventory's owner.
+-- =========================================================================
+create table if not exists public.collections (
+  id uuid primary key default uuid_generate_v4(),
+  owner_id uuid not null references public.profiles(id) on delete cascade,
+  name text not null,
+  description text,
+  hero_storage_path text,
+  created_at timestamptz not null default now()
+);
+
+create unique index if not exists collections_owner_name_lower_idx
+  on public.collections (owner_id, lower(name));
+create index if not exists collections_owner_idx on public.collections(owner_id);
+
+alter table public.collections enable row level security;
+
+drop policy if exists "collections: owner reads" on public.collections;
+create policy "collections: owner reads"
+  on public.collections for select
+  using (owner_id = auth.uid());
+
+drop policy if exists "collections: owner writes" on public.collections;
+create policy "collections: owner writes"
+  on public.collections for all
+  using (owner_id = auth.uid())
+  with check (owner_id = auth.uid());
+
+create or replace function public.sync_collection_from_item()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_owner uuid;
+begin
+  if new.category is null or btrim(new.category) = '' then return new; end if;
+  select owner_id into v_owner from public.inventories where id = new.inventory_id;
+  if v_owner is null then return new; end if;
+  insert into public.collections (owner_id, name)
+  values (v_owner, new.category)
+  on conflict (owner_id, lower(name)) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists items_sync_collection on public.items;
+create trigger items_sync_collection
+  after insert or update of category on public.items
+  for each row execute function public.sync_collection_from_item();
+
+-- Backfill from existing items.
+insert into public.collections (owner_id, name)
+select distinct i.owner_id, it.category
+from public.items it
+join public.inventories i on i.id = it.inventory_id
+where it.category is not null and btrim(it.category) <> ''
+on conflict (owner_id, lower(name)) do nothing;
