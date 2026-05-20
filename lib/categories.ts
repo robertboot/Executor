@@ -35,8 +35,10 @@ const ICONS: Record<string, number> = {
   'books-manuscripts': require('../assets/categories/books-manuscripts.png'),
   'china-dishware': require('../assets/categories/china-dishware.png'),
   'coins-currency': require('../assets/categories/coins-currency.png'),
+  'family-keepsakes': require('../assets/categories/family-keepsakes.png'),
   'fine-jewelry': require('../assets/categories/fine-jewelry.png'),
   'furniture': require('../assets/categories/furniture.png'),
+  'holiday-decorations': require('../assets/categories/holiday-decorations.png'),
   'maps-globes': require('../assets/categories/maps-globes.png'),
   'music-instruments': require('../assets/categories/music-instruments.png'),
   'photography': require('../assets/categories/photography.png'),
@@ -137,6 +139,8 @@ const RAW: CategoryPreset[] = [
     fields: [f('type', 'Type'), f('period', 'Period')] },
   { key: 'textiles-quilts', label: 'Textiles & Quilts', glyph: '🪡',
     fields: [f('maker', 'Maker'), f('pattern', 'Pattern'), f('origin', 'Origin'), f('year', 'Year', 'number')] },
+  { key: 'family-keepsakes', label: 'Family Keepsakes', glyph: '💝',
+    fields: [f('relation', 'Original owner / relation'), f('story', 'Story'), f('year', 'Year', 'number')] },
 
   // Custom
   { key: 'custom', label: 'Other / Custom', glyph: '➕', custom: true, fields: [] },
