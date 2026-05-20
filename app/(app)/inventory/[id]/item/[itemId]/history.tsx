@@ -2,7 +2,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   StyleSheet,
@@ -10,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { getInventoryRole, listRevisions, restoreRevision } from '../../../../../../lib/api';
+import { confirm, notify } from '../../../../../../lib/confirm';
 import { formatDateTime, formatMoney } from '../../../../../../lib/format';
 import type { ItemRevision, Role } from '../../../../../../lib/types';
 
@@ -41,25 +41,18 @@ export default function ItemHistory() {
     );
   }
 
-  const onRestore = (rev: ItemRevision) => {
-    Alert.alert(
+  const onRestore = async (rev: ItemRevision) => {
+    const ok = await confirm(
       'Restore this version?',
       'The current item fields will be replaced with this snapshot. A new revision will be created.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Restore',
-          onPress: async () => {
-            try {
-              await restoreRevision(rev.id);
-              router.replace(`/(app)/inventory/${id}/item/${itemId}`);
-            } catch (e: any) {
-              Alert.alert('Restore failed', e?.message ?? String(e));
-            }
-          },
-        },
-      ],
     );
+    if (!ok) return;
+    try {
+      await restoreRevision(rev.id);
+      router.replace(`/(app)/inventory/${id}/item/${itemId}`);
+    } catch (e: any) {
+      notify('Restore failed', e?.message ?? String(e));
+    }
   };
 
   return (

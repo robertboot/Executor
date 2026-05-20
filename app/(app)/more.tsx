@@ -1,6 +1,5 @@
 import { useRouter } from 'expo-router';
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,6 +8,7 @@ import {
 } from 'react-native';
 import Disclaimer from '../../components/Disclaimer';
 import { useAuth } from '../../lib/auth';
+import { confirm } from '../../lib/confirm';
 import { colors, radius, shadows } from '../../lib/theme';
 
 export default function More() {
@@ -40,17 +40,11 @@ export default function More() {
       label: 'Sign out',
       glyph: '↪',
       tone: 'danger',
-      onPress: () =>
-        Alert.alert('Sign out?', undefined, [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Sign out',
-            onPress: async () => {
-              await signOut();
-              router.replace('/login');
-            },
-          },
-        ]),
+      onPress: async () => {
+        if (!(await confirm('Sign out?'))) return;
+        await signOut();
+        router.replace('/login');
+      },
     },
   ];
 

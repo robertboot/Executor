@@ -2,7 +2,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -11,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { deletePhoto, listPhotos, photoPublicUrl, uploadPhoto } from '../lib/api';
+import { confirm, notify } from '../lib/confirm';
 import type { ItemPhoto } from '../lib/types';
 
 interface Props {
@@ -42,7 +42,7 @@ export default function PhotoStrip({ inventoryId, itemId, canEdit }: Props) {
     if (result.canceled || !result.assets?.[0]) return;
     const asset = result.assets[0];
     if (!asset.base64) {
-      Alert.alert('Could not read image');
+      notify('Could not read image');
       return;
     }
     setUploading(true);
@@ -55,28 +55,21 @@ export default function PhotoStrip({ inventoryId, itemId, canEdit }: Props) {
       });
       await load();
     } catch (e: any) {
-      Alert.alert('Upload failed', e?.message ?? String(e));
+      notify('Upload failed', e?.message ?? String(e));
     } finally {
       setUploading(false);
     }
   };
 
-  const remove = (p: ItemPhoto) => {
-    Alert.alert('Delete photo?', undefined, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deletePhoto(p);
-            await load();
-          } catch (e: any) {
-            Alert.alert('Delete failed', e?.message ?? String(e));
-          }
-        },
-      },
-    ]);
+  const remove = async (p: ItemPhoto) => {
+    const ok = await confirm('Delete this photo?');
+    if (!ok) return;
+    try {
+      await deletePhoto(p);
+      await load();
+    } catch (e: any) {
+      notify('Delete failed', e?.message ?? String(e));
+    }
   };
 
   if (loading) {

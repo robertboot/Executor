@@ -3,7 +3,6 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +10,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { confirm, notify } from '../../../../lib/confirm';
 import {
   createExecutorCode,
   deleteInventory,
@@ -84,28 +84,24 @@ export default function InventorySettings() {
   const saveDetails = async () => {
     try {
       await updateInventory(inv.id, { name: name.trim(), description: description.trim() || null });
-      Alert.alert('Saved');
+      notify('Saved');
     } catch (e: any) {
-      Alert.alert('Save failed', e?.message ?? String(e));
+      notify('Save failed', e?.message ?? String(e));
     }
   };
 
-  const onDelete = () => {
-    Alert.alert('Delete inventory?', 'This deletes the inventory AND all its items, photos, and history. Cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteInventory(inv.id);
-            router.replace('/(app)');
-          } catch (e: any) {
-            Alert.alert('Delete failed', e?.message ?? String(e));
-          }
-        },
-      },
-    ]);
+  const onDelete = async () => {
+    const ok = await confirm(
+      'Delete this inventory?',
+      'This deletes the inventory AND all its items, photos, and history. Cannot be undone.',
+    );
+    if (!ok) return;
+    try {
+      await deleteInventory(inv.id);
+      router.replace('/(app)');
+    } catch (e: any) {
+      notify('Delete failed', e?.message ?? String(e));
+    }
   };
 
   const onInvite = async () => {
@@ -116,7 +112,7 @@ export default function InventorySettings() {
       setInviteEmail('');
       await load();
     } catch (e: any) {
-      Alert.alert('Invite failed', e?.message ?? String(e));
+      notify('Invite failed', e?.message ?? String(e));
     }
   };
 
@@ -125,22 +121,18 @@ export default function InventorySettings() {
       await updateShareRole(share.id, role);
       await load();
     } catch (e: any) {
-      Alert.alert('Role change failed', e?.message ?? String(e));
+      notify('Role change failed', e?.message ?? String(e));
     }
   };
 
-  const onRevokeShare = (share: InventoryShare) => {
-    Alert.alert('Remove access?', `${share.invited_email} will no longer be able to access this inventory.`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove',
-        style: 'destructive',
-        onPress: async () => {
-          await revokeShare(share.id);
-          await load();
-        },
-      },
-    ]);
+  const onRevokeShare = async (share: InventoryShare) => {
+    const ok = await confirm(
+      'Remove access?',
+      `${share.invited_email} will no longer be able to access this inventory.`,
+    );
+    if (!ok) return;
+    await revokeShare(share.id);
+    await load();
   };
 
   const onCreateCode = async () => {
@@ -151,22 +143,18 @@ export default function InventorySettings() {
       setCodeLabel('');
       await load();
     } catch (e: any) {
-      Alert.alert('Could not create code', e?.message ?? String(e));
+      notify('Could not create code', e?.message ?? String(e));
     }
   };
 
-  const onRevokeCode = (c: ExecutorCode) => {
-    Alert.alert('Revoke this code?', 'It will stop working immediately for anyone holding it.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Revoke',
-        style: 'destructive',
-        onPress: async () => {
-          await revokeExecutorCode(c.id);
-          await load();
-        },
-      },
-    ]);
+  const onRevokeCode = async (c: ExecutorCode) => {
+    const ok = await confirm(
+      'Revoke this code?',
+      'It will stop working immediately for anyone holding it.',
+    );
+    if (!ok) return;
+    await revokeExecutorCode(c.id);
+    await load();
   };
 
   return (
@@ -269,7 +257,7 @@ export default function InventorySettings() {
                 style={styles.codeRevealButton}
                 onPress={async () => {
                   await Clipboard.setStringAsync(justGeneratedCode.plain);
-                  Alert.alert('Copied');
+                  notify('Copied');
                 }}
               >
                 <Text style={styles.codeRevealButtonText}>Copy</Text>

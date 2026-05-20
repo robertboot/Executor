@@ -1,22 +1,16 @@
 import { router } from 'expo-router';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import Disclaimer from '../../components/Disclaimer';
 import { useAuth } from '../../lib/auth';
+import { confirm } from '../../lib/confirm';
 
 export default function AppSettings() {
   const { user, signOut } = useAuth();
 
-  const onSignOut = () => {
-    Alert.alert('Sign out?', undefined, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign out',
-        onPress: async () => {
-          await signOut();
-          router.replace('/login');
-        },
-      },
-    ]);
+  const onSignOut = async () => {
+    if (!(await confirm('Sign out?'))) return;
+    await signOut();
+    router.replace('/login');
   };
 
   return (

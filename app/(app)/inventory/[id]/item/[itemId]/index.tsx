@@ -2,7 +2,6 @@ import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
 import PhotoStrip from '../../../../../../components/PhotoStrip';
 import { deleteItem, getInventoryRole, getItem } from '../../../../../../lib/api';
 import { findCategory } from '../../../../../../lib/categories';
+import { confirm, notify } from '../../../../../../lib/confirm';
 import { formatDate, formatMoney } from '../../../../../../lib/format';
 import type { Item, Role } from '../../../../../../lib/types';
 
@@ -55,22 +55,18 @@ export default function ItemDetail() {
   const cat = findCategory(item.category);
   const customEntries = Object.entries(item.custom_fields ?? {});
 
-  const onDelete = () => {
-    Alert.alert('Delete item?', 'This will also remove its photos and history.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteItem(item.id);
-            router.replace(`/(app)/inventory/${id}`);
-          } catch (e: any) {
-            Alert.alert('Delete failed', e?.message ?? String(e));
-          }
-        },
-      },
-    ]);
+  const onDelete = async () => {
+    const ok = await confirm(
+      'Delete this item?',
+      'This will also remove its photos and history. This cannot be undone.',
+    );
+    if (!ok) return;
+    try {
+      await deleteItem(item.id);
+      router.replace(`/(app)/inventory/${id}`);
+    } catch (e: any) {
+      notify('Delete failed', e?.message ?? String(e));
+    }
   };
 
   return (

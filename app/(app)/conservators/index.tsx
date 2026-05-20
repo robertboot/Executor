@@ -2,7 +2,6 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   StyleSheet,
@@ -10,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { deleteConservator, listConservators } from '../../../lib/api';
+import { confirm } from '../../../lib/confirm';
 import { colors, radius, shadows } from '../../../lib/theme';
 import type { Conservator } from '../../../lib/types';
 
@@ -32,22 +32,14 @@ export default function Conservators() {
     }, [load]),
   );
 
-  const onDelete = (c: Conservator) => {
-    Alert.alert(
+  const onDelete = async (c: Conservator) => {
+    const ok = await confirm(
       `Remove ${c.name}?`,
       'Items assigned to this conservator will keep their record but unlink.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            await deleteConservator(c.id);
-            await load();
-          },
-        },
-      ],
     );
+    if (!ok) return;
+    await deleteConservator(c.id);
+    await load();
   };
 
   if (loading) {
