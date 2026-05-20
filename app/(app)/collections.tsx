@@ -2,7 +2,6 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -12,9 +11,9 @@ import {
 } from 'react-native';
 import {
   listMyCollectionsRich,
-  photoPublicUrl,
   type CollectionWithStats,
 } from '../../lib/api';
+import { findCategory, glyphForCategory } from '../../lib/categories';
 import { colors, radius, shadows } from '../../lib/theme';
 
 export default function Collections() {
@@ -110,23 +109,19 @@ function CollectionCard({
   c: CollectionWithStats;
   onPress: () => void;
 }) {
+  const preset = findCategory(c.name);
+  const displayName = preset?.label ?? c.name;
+  const glyph = preset?.glyph ?? glyphForCategory(c.name);
   return (
     <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.cardHero}>
-        {c.firstPhotoPath ? (
-          <Image
-            source={{ uri: photoPublicUrl(c.firstPhotoPath) }}
-            style={styles.cardImage}
-          />
-        ) : (
-          <View style={styles.cardImageEmpty}>
-            <Text style={styles.cardImageGlyph}>❦</Text>
-          </View>
-        )}
+        <View style={styles.cardImageEmpty}>
+          <Text style={styles.cardImageGlyph}>{glyph}</Text>
+        </View>
       </View>
       <View style={styles.cardBody}>
         <Text style={styles.cardTitle} numberOfLines={1}>
-          {c.name}
+          {displayName}
         </Text>
         <View style={styles.cardMetaRow}>
           <Text style={styles.cardMetaGlyph}>◰</Text>
@@ -206,7 +201,6 @@ const styles = StyleSheet.create({
     ...shadows.card,
   },
   cardHero: { aspectRatio: 1.1, backgroundColor: colors.creamSoft },
-  cardImage: { width: '100%', height: '100%' },
   cardImageEmpty: {
     width: '100%',
     height: '100%',
@@ -214,7 +208,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cardImageGlyph: { color: colors.gold, fontSize: 36 },
+  cardImageGlyph: { fontSize: 64 },
   cardBody: { padding: 12, gap: 6 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: colors.ink },
   cardMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
