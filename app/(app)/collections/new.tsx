@@ -176,7 +176,7 @@ function Tile({
           style={styles.tileImage}
           resizeMode="contain"
         />
-      ) : (
+      ) : preset.custom ? (
         <>
           <View style={[styles.tileIcon, selected && styles.tileIconSelected]}>
             <Text style={styles.tileGlyph}>{preset.glyph}</Text>
@@ -188,6 +188,13 @@ function Tile({
             {preset.label}
           </Text>
         </>
+      ) : (
+        <Text
+          style={[styles.tileTextOnly, selected && styles.tileLabelSelected]}
+          numberOfLines={3}
+        >
+          {preset.label}
+        </Text>
       )}
       {selected && (
         <View style={styles.checkBadge}>
@@ -245,6 +252,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
     lineHeight: 14,
+  },
+  tileTextOnly: {
+    fontSize: 14,
+    color: colors.ink,
+    textAlign: 'center',
+    fontWeight: '700',
+    lineHeight: 18,
+    paddingHorizontal: 8,
   },
   tileLabelSelected: { color: colors.goldDeep },
 

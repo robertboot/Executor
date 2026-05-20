@@ -14,7 +14,7 @@ import {
   listMyCollectionsRich,
   type CollectionWithStats,
 } from '../../lib/api';
-import { findCategory, glyphForCategory } from '../../lib/categories';
+import { findCategory } from '../../lib/categories';
 import { colors, radius, shadows } from '../../lib/theme';
 
 export default function Collections() {
@@ -112,24 +112,20 @@ function CollectionCard({
 }) {
   const preset = findCategory(c.name);
   const displayName = preset?.label ?? c.name;
-  const glyph = preset?.glyph ?? glyphForCategory(c.name);
+  const hasImage = !!preset?.iconAsset;
   return (
     <Pressable style={styles.card} onPress={onPress}>
-      <View style={styles.cardHero}>
-        {preset?.iconAsset ? (
+      {hasImage && (
+        <View style={styles.cardHero}>
           <Image
-            source={preset.iconAsset}
+            source={preset!.iconAsset!}
             style={styles.cardImage}
             resizeMode="contain"
           />
-        ) : (
-          <View style={styles.cardImageEmpty}>
-            <Text style={styles.cardImageGlyph}>{glyph}</Text>
-          </View>
-        )}
-      </View>
+        </View>
+      )}
       <View style={styles.cardBody}>
-        <Text style={styles.cardTitle} numberOfLines={1}>
+        <Text style={[styles.cardTitle, !hasImage && styles.cardTitleNoImage]} numberOfLines={2}>
           {displayName}
         </Text>
         <View style={styles.cardMetaRow}>
@@ -221,6 +217,7 @@ const styles = StyleSheet.create({
   cardImageGlyph: { fontSize: 64 },
   cardBody: { padding: 12, gap: 6 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: colors.ink },
+  cardTitleNoImage: { fontSize: 18, marginTop: 4 },
   cardMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   cardMetaGlyph: { color: colors.gold, fontSize: 14 },
   cardMeta: { color: colors.muted, fontSize: 13 },
