@@ -31,18 +31,19 @@ export default function AppLayout() {
         tabBarStyle: {
           backgroundColor: colors.forest,
           borderTopColor: colors.forestDeep,
-          paddingTop: 6,
-          height: 64,
+          paddingTop: 8,
+          height: 72,
         },
         tabBarActiveTintColor: colors.gold,
         tabBarInactiveTintColor: colors.onForestMuted,
-        tabBarLabelStyle: { fontWeight: '600', fontSize: 11, marginBottom: 4 },
+        tabBarLabelStyle: { fontWeight: '600', fontSize: 11, marginBottom: 6 },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
+          headerShown: false,
           tabBarIcon: ({ color }) => <Glyph color={color}>⌂</Glyph>,
         }}
       />
@@ -54,19 +55,34 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="scan"
         options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }) => <Glyph color={color}>⚙</Glyph>,
+          title: 'Scanner',
+          tabBarIcon: ({ color }) => <ScanGlyph color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="conservators"
+        options={{
+          title: 'Conservators',
+          tabBarIcon: ({ color }) => <Glyph color={color}>👥</Glyph>,
+        }}
+      />
+      <Tabs.Screen
+        name="more"
+        options={{
+          title: 'More',
+          tabBarIcon: ({ color }) => <Glyph color={color}>⋯</Glyph>,
         }}
       />
 
       {/* Hidden but addressable routes. */}
+      <Tabs.Screen name="settings" options={{ href: null, title: 'Settings' }} />
       <Tabs.Screen name="new-inventory" options={{ href: null, title: 'New inventory' }} />
       <Tabs.Screen name="invites" options={{ href: null, title: 'Invites' }} />
-      <Tabs.Screen name="scan" options={{ href: null, title: 'Scan QR' }} />
       <Tabs.Screen name="collections/[key]" options={{ href: null, title: 'Collection' }} />
       <Tabs.Screen name="collections/new" options={{ href: null, title: 'New collection' }} />
+      <Tabs.Screen name="conservators/new" options={{ href: null, title: 'New conservator' }} />
       <Tabs.Screen name="inventory/[id]/index" options={{ href: null, title: 'Inventory' }} />
       <Tabs.Screen
         name="inventory/[id]/settings"
@@ -99,5 +115,25 @@ export default function AppLayout() {
 }
 
 function Glyph({ children, color }: { children: string; color: string }) {
-  return <Text style={{ color, fontSize: 22, marginTop: 2 }}>{children}</Text>;
+  return <Text style={{ color, fontSize: 20, marginTop: 2 }}>{children}</Text>;
+}
+
+function ScanGlyph({ color }: { color: string }) {
+  // Slightly raised "scanner" target glyph.
+  return (
+    <View
+      style={{
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        borderWidth: 2,
+        borderColor: color,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: -8,
+      }}
+    >
+      <Text style={{ color, fontSize: 18, fontWeight: '700' }}>⊡</Text>
+    </View>
+  );
 }

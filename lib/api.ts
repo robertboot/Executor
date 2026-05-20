@@ -1,6 +1,7 @@
 import { decode as decodeBase64 } from 'base64-arraybuffer';
 import { supabase } from './supabase';
 import type {
+  Conservator,
   ExecutorAccessLogEntry,
   ExecutorCode,
   Inventory,
@@ -409,6 +410,88 @@ export async function listMyCollectionNames(): Promise<string[]> {
     .order('name');
   if (error) throw error;
   return (data ?? []).map((r: { name: string }) => r.name);
+}
+
+// =========================================================================
+// Conservators
+// =========================================================================
+
+export async function listConservators(): Promise<Conservator[]> {
+  const { data, error } = await supabase
+    .from('conservators')
+    .select('*')
+    .order('name');
+  if (error) throw error;
+  return (data ?? []) as Conservator[];
+}
+
+export async function createConservator(input: {
+  name: string;
+  relationship?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  notes?: string | null;
+}): Promise<Conservator> {
+  const { data: me } = await supabase.auth.getUser();
+  if (!me.user) throw new Error('Not signed in');
+  const { data, error } = await supabase
+    .from('conservators')
+    .insert({
+      owner_id: me.user.id,
+      name: input.name.trim(),
+      relationship: input.relationship?.trim() || null,
+      email: input.email?.trim() || null,
+      phone: input.phone?.trim() || null,
+      notes: input.notes?.trim() || null,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as Conservator;
+}
+
+export async function deleteConservator(id: string) {
+  const { error } = await supabase.from('conservators').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// =========================================================================
+// Dashboard stats
+// =========================================================================
+
+export async function dashboardStats(): Promise<{
+  itemCount: number;
+  inventoryCount: number;
+  totalValue: number;
+  totalCurrency: string;
+  conservatorCount: number;
+  taggedForSaleCount: number;
+}> {
+  const [itemsRes, invsRes, consRes] = await Promise.all([
+    supabase
+      .from('items')
+      .select('value_amount, value_currency, tagged_for_sale'),
+    supabase.from('inventories').select('id'),
+    supabase.from('conservators').select('id'),
+  ]);
+  let total = 0;
+  let currency = 'USD';
+  let taggedCount = 0;
+  for (const it of itemsRes.data ?? []) {
+    if (it.value_amount != null) {
+      total += Number(it.value_amount);
+      currency = it.value_currency || currency;
+    }
+    if (it.tagged_for_sale) taggedCount += 1;
+  }
+  return {
+    itemCount: itemsRes.data?.length ?? 0,
+    inventoryCount: invsRes.data?.length ?? 0,
+    totalValue: total,
+    totalCurrency: currency,
+    conservatorCount: consRes.data?.length ?? 0,
+    taggedForSaleCount: taggedCount,
+  };
 }
 
 // =========================================================================

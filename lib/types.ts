@@ -33,6 +33,8 @@ export interface Item {
   bequest_notes: string | null;
   custom_fields: Record<string, unknown>;
   public_id: string;
+  tagged_for_sale: boolean;
+  conservator_id: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -88,4 +90,15 @@ export interface ExecutorAccessLogEntry {
 
 export interface InventoryWithRole extends Inventory {
   role: 'owner' | Role;
+}
+
+export interface Conservator {
+  id: string;
+  owner_id: string;
+  name: string;
+  relationship: string | null;
+  email: string | null;
+  phone: string | null;
+  notes: string | null;
+  created_at: string;
 }

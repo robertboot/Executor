@@ -784,3 +784,46 @@ from public.items it
 join public.inventories i on i.id = it.inventory_id
 where it.category is not null and btrim(it.category) <> ''
 on conflict (owner_id, lower(name)) do nothing;
+
+-- =========================================================================
+-- 10. tagged_for_sale on items
+-- =========================================================================
+alter table public.items
+  add column if not exists tagged_for_sale boolean not null default false;
+create index if not exists items_for_sale_idx on public.items(tagged_for_sale) where tagged_for_sale = true;
+
+-- =========================================================================
+-- 11. conservators (people who look after specific items / collections)
+-- =========================================================================
+create table if not exists public.conservators (
+  id uuid primary key default uuid_generate_v4(),
+  owner_id uuid not null references public.profiles(id) on delete cascade,
+  name text not null,
+  relationship text,
+  email text,
+  phone text,
+  notes text,
+  created_at timestamptz not null default now()
+);
+create index if not exists conservators_owner_idx on public.conservators(owner_id);
+alter table public.conservators enable row level security;
+
+drop policy if exists "conservators: owner reads" on public.conservators;
+create policy "conservators: owner reads"
+  on public.conservators for select
+  using (owner_id = auth.uid());
+drop policy if exists "conservators: owner writes" on public.conservators;
+create policy "conservators: owner writes"
+  on public.conservators for all
+  using (owner_id = auth.uid())
+  with check (owner_id = auth.uid());
+
+-- Optional link from items to conservators (many-to-many via single column
+-- for now — most items have just one designated caretaker).
+alter table public.items
+  add column if not exists conservator_id uuid references public.conservators(id) on delete set null;
+create index if not exists items_conservator_idx on public.items(conservator_id);
+
+-- Link from collections to conservators (collection-level caretaker).
+alter table public.collections
+  add column if not exists conservator_id uuid references public.conservators(id) on delete set null;
