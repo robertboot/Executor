@@ -467,17 +467,38 @@ export async function dashboardStats(): Promise<{
   conservatorCount: number;
   taggedForSaleCount: number;
 }> {
-  const [itemsRes, invsRes, consRes] = await Promise.all([
-    supabase
-      .from('items')
-      .select('value_amount, value_currency, tagged_for_sale'),
-    supabase.from('inventories').select('id'),
-    supabase.from('conservators').select('id'),
-  ]);
+  // Each query is independent — if one fails (e.g. column / table not
+  // there yet because the migration hasn't been re-run), we still want
+  // the other stats to render.
+  const itemsRes = await supabase
+    .from('items')
+    .select('value_amount, value_currency, tagged_for_sale')
+    .then((r) => r, () => ({ data: null, error: 'failed' } as any));
+  const itemsFallbackRes =
+    itemsRes.data == null
+      ? await supabase
+          .from('items')
+          .select('value_amount, value_currency')
+          .then((r) => r, () => ({ data: null } as any))
+      : null;
+  const invsRes = await supabase
+    .from('inventories')
+    .select('id')
+    .then((r) => r, () => ({ data: null } as any));
+  const consRes = await supabase
+    .from('conservators')
+    .select('id')
+    .then((r) => r, () => ({ data: null } as any));
+
   let total = 0;
   let currency = 'USD';
   let taggedCount = 0;
-  for (const it of itemsRes.data ?? []) {
+  const items = (itemsRes.data ?? itemsFallbackRes?.data ?? []) as Array<{
+    value_amount: number | null;
+    value_currency: string;
+    tagged_for_sale?: boolean;
+  }>;
+  for (const it of items) {
     if (it.value_amount != null) {
       total += Number(it.value_amount);
       currency = it.value_currency || currency;
@@ -485,7 +506,7 @@ export async function dashboardStats(): Promise<{
     if (it.tagged_for_sale) taggedCount += 1;
   }
   return {
-    itemCount: itemsRes.data?.length ?? 0,
+    itemCount: items.length,
     inventoryCount: invsRes.data?.length ?? 0,
     totalValue: total,
     totalCurrency: currency,

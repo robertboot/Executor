@@ -64,41 +64,54 @@ export default function Home() {
 
   const load = useCallback(async () => {
     try {
-      const [list, inv, agg, recRes] = await Promise.all([
-        listMyInventories(),
-        listMyPendingInvites(),
-        dashboardStats(),
-        supabase
+      try {
+        setInventories(await listMyInventories());
+      } catch (e) {
+        console.warn('listMyInventories failed', e);
+        setInventories([]);
+      }
+      try {
+        setInvites(await listMyPendingInvites());
+      } catch (e) {
+        console.warn('listMyPendingInvites failed', e);
+        setInvites([]);
+      }
+      try {
+        setStats(await dashboardStats());
+      } catch (e) {
+        console.warn('dashboardStats failed', e);
+      }
+      try {
+        const recRes = await supabase
           .from('items')
           .select(
             'id, inventory_id, name, category, value_amount, value_currency, created_at, item_photos(storage_path, sort_order)',
           )
           .order('created_at', { ascending: false })
-          .limit(4),
-      ]);
-      setInventories(list);
-      setInvites(inv);
-      setStats(agg);
-      const recentItems = (recRes.data ?? []) as Array<{
-        id: string;
-        inventory_id: string;
-        name: string;
-        category: string | null;
-        value_amount: number | null;
-        value_currency: string;
-        item_photos: { storage_path: string; sort_order: number }[] | null;
-      }>;
-      setRecent(
-        recentItems.map((it) => ({
-          id: it.id,
-          inventory_id: it.inventory_id,
-          name: it.name,
-          category: it.category,
-          value_amount: it.value_amount,
-          value_currency: it.value_currency,
-          photo_path: it.item_photos?.[0]?.storage_path ?? null,
-        })),
-      );
+          .limit(4);
+        const recentItems = (recRes.data ?? []) as Array<{
+          id: string;
+          inventory_id: string;
+          name: string;
+          category: string | null;
+          value_amount: number | null;
+          value_currency: string;
+          item_photos: { storage_path: string; sort_order: number }[] | null;
+        }>;
+        setRecent(
+          recentItems.map((it) => ({
+            id: it.id,
+            inventory_id: it.inventory_id,
+            name: it.name,
+            category: it.category,
+            value_amount: it.value_amount,
+            value_currency: it.value_currency,
+            photo_path: it.item_photos?.[0]?.storage_path ?? null,
+          })),
+        );
+      } catch (e) {
+        console.warn('recent items query failed', e);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
