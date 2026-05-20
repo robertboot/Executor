@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "Keepsake",
+    "slug": "keepsake",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "keepsake",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.keepsake.inventory",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Keepsake uses the camera to scan QR codes on your items and take photos to attach to entries.",
+        "NSPhotoLibraryUsageDescription": "Keepsake needs photo library access so you can attach photos to your inventory items."
+      }
+    },
+    "android": {
+      "package": "app.keepsake.inventory",
+      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Keepsake to use your camera to scan item QR codes."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Keepsake to access your photos to attach images to inventory items."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "supabaseUrl": "",
+      "supabaseAnonKey": "",
+      "qrLandingBaseUrl": ""
+    }
+  }
+}
