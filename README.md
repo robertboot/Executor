@@ -49,6 +49,12 @@ Keep this tab open — you'll need:
 
 ### Step 3 — Deploy the web app to Vercel (one click)
 
+The fastest path:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Frobertboot%2FExecutor&env=EXPO_PUBLIC_SUPABASE_URL,EXPO_PUBLIC_SUPABASE_ANON_KEY,EXPO_PUBLIC_QR_LANDING_BASE_URL&envDescription=From%20your%20Supabase%20project%27s%20API%20settings.%20Leave%20QR_LANDING_BASE_URL%20blank%20and%20set%20it%20to%20your%20Vercel%20URL%20after%20the%20first%20deploy.&project-name=keepsake&repository-name=keepsake)
+
+Or do it manually:
+
 1. Fork or push this repo to your own GitHub account (if it isn't there
    already — your iPad's GitHub website works fine for forking).
 2. Open <https://vercel.com> in Safari and sign in **with GitHub**.

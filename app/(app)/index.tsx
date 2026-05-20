@@ -2,6 +2,7 @@ import { Link, useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -10,7 +11,11 @@ import {
   View,
 } from 'react-native';
 import Disclaimer from '../../components/Disclaimer';
-import { listMyInventories, listMyPendingInvites } from '../../lib/api';
+import {
+  createDemoInventory,
+  listMyInventories,
+  listMyPendingInvites,
+} from '../../lib/api';
 import type { InventoryShare, InventoryWithRole } from '../../lib/types';
 
 export default function InventoriesScreen() {
@@ -86,6 +91,19 @@ export default function InventoriesScreen() {
           <Text style={styles.emptyText}>
             Create your first inventory below — e.g. “Books”, “Antiques”, “Garage”.
           </Text>
+          <Pressable
+            style={styles.demoButton}
+            onPress={async () => {
+              try {
+                const inv = await createDemoInventory();
+                router.push(`/(app)/inventory/${inv.id}`);
+              } catch (e: any) {
+                Alert.alert('Could not create demo', e?.message ?? String(e));
+              }
+            }}
+          >
+            <Text style={styles.demoButtonText}>or try a sample inventory</Text>
+          </Pressable>
         </View>
       }
       renderItem={({ item }) => (
@@ -145,6 +163,8 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', marginTop: 32, gap: 6 },
   emptyTitle: { fontSize: 16, fontWeight: '600', color: '#374151' },
   emptyText: { color: '#6b7280', textAlign: 'center', paddingHorizontal: 24 },
+  demoButton: { marginTop: 16, paddingVertical: 8 },
+  demoButtonText: { color: '#1d4ed8', fontWeight: '500' },
   primaryButton: {
     backgroundColor: '#111827',
     borderRadius: 8,

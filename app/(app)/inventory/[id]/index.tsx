@@ -16,10 +16,18 @@ import {
   getInventoryRole,
   inventoryTotalValue,
   listItems,
+  type ItemSort,
 } from '../../../../lib/api';
 import { CATEGORY_PRESETS } from '../../../../lib/categories';
 import { formatMoney } from '../../../../lib/format';
 import type { Inventory, Item, Role } from '../../../../lib/types';
+
+const SORT_OPTIONS: Array<{ key: ItemSort; label: string }> = [
+  { key: 'recent', label: 'Recent' },
+  { key: 'name', label: 'Name A–Z' },
+  { key: 'value_desc', label: 'Value high→low' },
+  { key: 'value_asc', label: 'Value low→high' },
+];
 
 export default function InventoryDetail() {
   const router = useRouter();
@@ -33,6 +41,7 @@ export default function InventoryDetail() {
   });
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string | null>(null);
+  const [sort, setSort] = useState<ItemSort>('recent');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -41,7 +50,7 @@ export default function InventoryDetail() {
     try {
       const [_inv, _items, _role, _total] = await Promise.all([
         getInventory(id),
-        listItems(id, { search, category: category ?? undefined }),
+        listItems(id, { search, category: category ?? undefined, sort }),
         getInventoryRole(id),
         inventoryTotalValue(id),
       ]);
@@ -53,7 +62,7 @@ export default function InventoryDetail() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [id, search, category]);
+  }, [id, search, category, sort]);
 
   useFocusEffect(
     useCallback(() => {
@@ -146,6 +155,25 @@ export default function InventoryDetail() {
         ))}
       </ScrollView>
 
+      <ScrollView
+        horizontal
+        contentContainerStyle={styles.filterRow}
+        showsHorizontalScrollIndicator={false}
+      >
+        <Text style={styles.sortLabel}>Sort:</Text>
+        {SORT_OPTIONS.map((o) => (
+          <Pressable
+            key={o.key}
+            style={[styles.chipSmall, sort === o.key && styles.chipActive]}
+            onPress={() => setSort(o.key)}
+          >
+            <Text style={sort === o.key ? styles.chipTextActive : styles.chipText}>
+              {o.label}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+
       <FlatList
         data={items}
         keyExtractor={(i) => i.id}
@@ -228,6 +256,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#f3f4f6',
     borderRadius: 999,
   },
+  chipSmall: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 999,
+  },
+  sortLabel: { color: '#6b7280', alignSelf: 'center', marginRight: 4, fontSize: 12 },
   chipActive: { backgroundColor: '#111827' },
   chipText: { color: '#374151' },
   chipTextActive: { color: 'white', fontWeight: '600' },

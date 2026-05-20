@@ -1,5 +1,6 @@
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -51,9 +52,21 @@ export default function ItemQR() {
       <Text selectable style={styles.url}>
         {url}
       </Text>
-      <Pressable style={styles.button} onPress={copy}>
-        <Text style={styles.buttonText}>Copy link</Text>
-      </Pressable>
+      <View style={styles.buttonRow}>
+        <Pressable style={styles.button} onPress={copy}>
+          <Text style={styles.buttonText}>Copy link</Text>
+        </Pressable>
+        <Pressable
+          style={styles.secondaryButton}
+          onPress={() => WebBrowser.openBrowserAsync(url)}
+        >
+          <Text style={styles.secondaryButtonText}>Preview as executor</Text>
+        </Pressable>
+      </View>
+      <Text style={styles.previewHint}>
+        Preview opens the public landing page in a browser tab — enter one of your executor
+        codes to confirm what the executor sees.
+      </Text>
     </ScrollView>
   );
 }
@@ -70,6 +83,7 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   url: { fontFamily: 'Courier', textAlign: 'center', color: '#4b5563' },
+  buttonRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' },
   button: {
     backgroundColor: '#111827',
     paddingHorizontal: 20,
@@ -77,4 +91,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   buttonText: { color: 'white', fontWeight: '600' },
+  secondaryButton: {
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  secondaryButtonText: { color: '#111827', fontWeight: '600' },
+  previewHint: {
+    color: '#6b7280',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
+    paddingHorizontal: 16,
+  },
 });

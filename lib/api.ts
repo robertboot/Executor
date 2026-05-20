@@ -107,20 +107,34 @@ export async function deleteInventory(id: string) {
 // Items
 // =========================================================================
 
+export type ItemSort = 'recent' | 'name' | 'value_desc' | 'value_asc';
+
 export interface ItemListOptions {
   search?: string;
   category?: string;
+  sort?: ItemSort;
 }
 
 export async function listItems(
   inventoryId: string,
   opts: ItemListOptions = {},
 ): Promise<Item[]> {
-  let q = supabase
-    .from('items')
-    .select('*')
-    .eq('inventory_id', inventoryId)
-    .order('created_at', { ascending: false });
+  let q = supabase.from('items').select('*').eq('inventory_id', inventoryId);
+  switch (opts.sort ?? 'recent') {
+    case 'name':
+      q = q.order('name', { ascending: true });
+      break;
+    case 'value_desc':
+      q = q.order('value_amount', { ascending: false, nullsFirst: false });
+      break;
+    case 'value_asc':
+      q = q.order('value_amount', { ascending: true, nullsFirst: false });
+      break;
+    case 'recent':
+    default:
+      q = q.order('created_at', { ascending: false });
+      break;
+  }
   if (opts.category) q = q.eq('category', opts.category);
   if (opts.search && opts.search.trim()) {
     const s = `%${opts.search.trim()}%`;
@@ -395,6 +409,148 @@ export async function listExecutorAccessLog(
 // =========================================================================
 // Profiles
 // =========================================================================
+
+// =========================================================================
+// Demo / sample inventory
+// =========================================================================
+
+interface DemoItem {
+  name: string;
+  category: string;
+  description: string;
+  condition?: string;
+  location?: string;
+  value_amount: number;
+  provenance?: string;
+  intended_recipient_name?: string;
+  bequest_notes?: string;
+  custom_fields: Record<string, unknown>;
+}
+
+const DEMO_ITEMS: DemoItem[] = [
+  {
+    name: 'First-edition Foundation',
+    category: 'books',
+    description: 'Isaac Asimov, Gnome Press 1951. Hardcover, original dust jacket.',
+    condition: 'Very good',
+    location: 'Living room — top shelf',
+    value_amount: 1800,
+    provenance: 'Bought at the Estate auction in Boston, 2002.',
+    intended_recipient_name: 'My niece Sara',
+    bequest_notes: 'Sara has loved this book since she was 14. Please make sure she gets it.',
+    custom_fields: {
+      author: 'Isaac Asimov',
+      publisher: 'Gnome Press',
+      year: 1951,
+      edition: '1st',
+    },
+  },
+  {
+    name: 'Grandmother’s walnut writing desk',
+    category: 'antiques',
+    description: 'Late Victorian walnut writing desk with leather inlay top.',
+    condition: 'Good — minor scuffs on the legs',
+    location: 'Study',
+    value_amount: 2400,
+    provenance: 'Passed down from grandma Rose; originally from her parents’ house in Chicago.',
+    intended_recipient_name: 'My brother David',
+    bequest_notes: 'Keep it in the family — David has the space and will care for it.',
+    custom_fields: {
+      period: 'Late Victorian, c. 1890',
+      materials: 'Walnut, leather',
+      dimensions: '120cm x 60cm x 75cm',
+    },
+  },
+  {
+    name: 'Casablanca DVD (Special Edition)',
+    category: 'media',
+    description: '2-disc special edition with the original theatrical version.',
+    condition: 'Excellent — like new',
+    location: 'TV cabinet',
+    value_amount: 18,
+    intended_recipient_name: 'Anyone in the family',
+    custom_fields: {
+      director: 'Michael Curtiz',
+      format: 'DVD',
+      region: '1',
+      year: 1942,
+    },
+  },
+  {
+    name: 'Hot Wheels Redline Volkswagen Beach Bomb',
+    category: 'collectibles',
+    description: 'Rare 1969 prototype with rear-loaded surfboards.',
+    condition: 'Mint',
+    location: 'Display case, garage',
+    value_amount: 4200,
+    provenance: 'Bought from a private collector in 2014.',
+    intended_recipient_name: 'My son Tom',
+    bequest_notes: 'Tom understands what this is. Recommend appraisal before any sale.',
+    custom_fields: {
+      brand: 'Hot Wheels',
+      series: 'Redline',
+      year: 1969,
+      rarity: 'Prototype',
+    },
+  },
+  {
+    name: 'Pocket watch (gold-cased)',
+    category: 'antiques',
+    description: 'Hunter case pocket watch, Waltham movement.',
+    condition: 'Working — last serviced 2019',
+    location: 'Safe deposit box',
+    value_amount: 1500,
+    provenance: 'Belonged to my father; given to me on my wedding day.',
+    intended_recipient_name: 'My grandson Leo',
+    bequest_notes: 'To be given to Leo on his 21st birthday.',
+    custom_fields: {
+      maker: 'Waltham',
+      period: 'c. 1910',
+      materials: 'Gold-filled case, white enamel dial',
+    },
+  },
+  {
+    name: 'Painting: "Harbor at Dusk"',
+    category: 'other',
+    description: 'Oil on canvas, signed lower right.',
+    condition: 'Restored 2018',
+    location: 'Above fireplace',
+    value_amount: 3200,
+    provenance: 'Commissioned from local artist Maria H. in 1998.',
+    intended_recipient_name: 'My daughter Emma',
+    bequest_notes: 'Emma sat for the early sketches — this should be hers.',
+    custom_fields: {
+      artist: 'Maria Hernandez',
+      medium: 'Oil on canvas',
+      dimensions: '60cm x 90cm',
+    },
+  },
+];
+
+export async function createDemoInventory(): Promise<Inventory> {
+  const { data: me } = await supabase.auth.getUser();
+  if (!me.user) throw new Error('Not signed in');
+  const inv = await createInventory(
+    'Sample inventory',
+    'Demo items so you can see how Keepsake works. Delete this any time.',
+  );
+  for (const d of DEMO_ITEMS) {
+    await createItem(inv.id, {
+      name: d.name,
+      category: d.category,
+      description: d.description,
+      condition: d.condition ?? null,
+      location: d.location ?? null,
+      value_amount: d.value_amount,
+      value_currency: 'USD',
+      provenance: d.provenance ?? null,
+      intended_recipient_name: d.intended_recipient_name ?? null,
+      bequest_notes: d.bequest_notes ?? null,
+      custom_fields: d.custom_fields,
+    });
+  }
+  return inv;
+}
 
 export async function getProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
