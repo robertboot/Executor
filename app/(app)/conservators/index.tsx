@@ -9,9 +9,9 @@ import {
   Text,
   View,
 } from 'react-native';
-import { deleteConservator, listConservators } from '../../lib/api';
-import { colors, radius, shadows } from '../../lib/theme';
-import type { Conservator } from '../../lib/types';
+import { deleteConservator, listConservators } from '../../../lib/api';
+import { colors, radius, shadows } from '../../../lib/theme';
+import type { Conservator } from '../../../lib/types';
 
 export default function Conservators() {
   const router = useRouter();

@@ -11,6 +11,7 @@ export default function CollectionsLayout() {
         headerTitleStyle: { fontWeight: '700', color: colors.ink },
       }}
     >
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="[key]" options={{ title: 'Collection' }} />
       <Stack.Screen name="new" options={{ title: 'New collection' }} />
     </Stack>

@@ -13,9 +13,9 @@ import {
 import {
   listMyCollectionsRich,
   type CollectionWithStats,
-} from '../../lib/api';
-import { findCategory } from '../../lib/categories';
-import { colors, radius, shadows } from '../../lib/theme';
+} from '../../../lib/api';
+import { findCategory } from '../../../lib/categories';
+import { colors, radius, shadows } from '../../../lib/theme';
 
 export default function Collections() {
   const router = useRouter();

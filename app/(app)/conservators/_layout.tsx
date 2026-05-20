@@ -11,6 +11,7 @@ export default function ConservatorsLayout() {
         headerTitleStyle: { fontWeight: '700', color: colors.ink },
       }}
     >
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="new" options={{ title: 'New conservator' }} />
     </Stack>
   );
