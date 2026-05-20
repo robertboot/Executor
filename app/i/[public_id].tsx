@@ -131,7 +131,7 @@ export default function QRLanding() {
         </Section>
 
         <Section title="Details">
-          <Row label="Category" value={it.category} />
+          <Row label="Collection" value={it.category} />
           <Row label="Condition" value={it.condition} />
           <Row label="Location" value={it.location} />
           <Row label="Acquired" value={formatDate(it.acquired_date)} />

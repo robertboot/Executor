@@ -132,9 +132,6 @@ export default function InventoriesScreen() {
           <Pressable style={styles.secondary} onPress={() => router.push('/(app)/scan')}>
             <Text style={styles.secondaryText}>Scan a QR code</Text>
           </Pressable>
-          <Pressable style={styles.secondary} onPress={() => router.push('/(app)/settings')}>
-            <Text style={styles.secondaryText}>Settings & sign out</Text>
-          </Pressable>
         </View>
       }
     />

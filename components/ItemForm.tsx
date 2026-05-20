@@ -116,8 +116,9 @@ export default function ItemForm({ initial, onSubmit, submitLabel }: Props) {
       <Text style={styles.label}>Name *</Text>
       <TextInput style={styles.input} value={v.name} onChangeText={(t) => update('name', t)} />
 
-      <Text style={styles.label}>Category</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }}>
+      <Text style={styles.label}>Collection</Text>
+      <Text style={styles.help}>Pick a preset or type your own. You can skip this and add later.</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 6 }}>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {CATEGORY_PRESETS.map((c) => (
             <Pressable
@@ -132,6 +133,17 @@ export default function ItemForm({ initial, onSubmit, submitLabel }: Props) {
           ))}
         </View>
       </ScrollView>
+      <TextInput
+        style={styles.input}
+        value={
+          v.category && !CATEGORY_PRESETS.some((c) => c.key === v.category)
+            ? v.category
+            : ''
+        }
+        onChangeText={(t) => update('category', t || null)}
+        placeholder="Or type a custom collection (e.g. Grandfather's tools)"
+        autoCapitalize="words"
+      />
 
       <Text style={styles.label}>Description</Text>
       <TextInput

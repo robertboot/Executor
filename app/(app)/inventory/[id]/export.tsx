@@ -20,7 +20,7 @@ import type { Inventory, Item } from '../../../../lib/types';
 
 const CSV_COLUMNS: Array<{ key: keyof Item | 'custom_fields_json'; header: string }> = [
   { key: 'name', header: 'Name' },
-  { key: 'category', header: 'Category' },
+  { key: 'category', header: 'Collection' },
   { key: 'description', header: 'Description' },
   { key: 'condition', header: 'Condition' },
   { key: 'location', header: 'Location' },

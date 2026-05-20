@@ -207,6 +207,20 @@ export async function inventoryTotalValue(inventoryId: string): Promise<{
   return { total, currency };
 }
 
+export async function listUsedCollections(inventoryId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('items')
+    .select('category')
+    .eq('inventory_id', inventoryId)
+    .not('category', 'is', null);
+  if (error) throw error;
+  const set = new Set<string>();
+  for (const r of data ?? []) {
+    if (r.category) set.add(r.category as string);
+  }
+  return [...set].sort();
+}
+
 // =========================================================================
 // Photos
 // =========================================================================
