@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -150,20 +151,31 @@ function Tile({
   selected: boolean;
   onPress: () => void;
 }) {
+  const hasImage = !!preset.iconAsset && !preset.custom;
   return (
     <Pressable
       style={[styles.tile, selected && styles.tileSelected, preset.custom && styles.tileDashed]}
       onPress={onPress}
     >
-      <View style={[styles.tileIcon, selected && styles.tileIconSelected]}>
-        <Text style={styles.tileGlyph}>{preset.glyph}</Text>
-      </View>
-      <Text
-        style={[styles.tileLabel, selected && styles.tileLabelSelected]}
-        numberOfLines={2}
-      >
-        {preset.label}
-      </Text>
+      {hasImage ? (
+        <Image
+          source={preset.iconAsset!}
+          style={styles.tileImage}
+          resizeMode="contain"
+        />
+      ) : (
+        <>
+          <View style={[styles.tileIcon, selected && styles.tileIconSelected]}>
+            <Text style={styles.tileGlyph}>{preset.glyph}</Text>
+          </View>
+          <Text
+            style={[styles.tileLabel, selected && styles.tileLabelSelected]}
+            numberOfLines={2}
+          >
+            {preset.label}
+          </Text>
+        </>
+      )}
     </Pressable>
   );
 }
@@ -208,6 +220,7 @@ const styles = StyleSheet.create({
   },
   tileIconSelected: { backgroundColor: colors.paper },
   tileGlyph: { fontSize: 24 },
+  tileImage: { width: '100%', height: '100%' },
   tileLabel: {
     fontSize: 11,
     color: colors.inkSoft,

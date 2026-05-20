@@ -3,7 +3,8 @@
 //
 // Each preset has a key (canonical slug — what we store in items.category),
 // a human-readable label, a fallback `glyph` (emoji used until the icon
-// PNG is in place), and an optional `iconAsset` path under /assets.
+// PNG is in place), and an optional `iconAsset` (require()'d module ID
+// resolved at bundle time).
 
 export interface CustomFieldDef {
   key: string;
@@ -15,7 +16,7 @@ export interface CategoryPreset {
   key: string;
   label: string;
   glyph: string;
-  iconAsset?: string | null; // populated once individual PNGs are committed
+  iconAsset?: number | null; // result of require('...png')
   fields: CustomFieldDef[];
   custom?: boolean; // marks the "Other / Custom" tile
 }
@@ -26,7 +27,23 @@ const f = (key: string, label: string, type: CustomFieldDef['type'] = 'text'): C
   type,
 });
 
-export const CATEGORY_PRESETS: CategoryPreset[] = [
+// Icon assets. Add a `require(...)` line here as each PNG lands in
+// /assets/categories. Filenames must match the preset key.
+const ICONS: Record<string, number> = {
+  'antiques': require('../assets/categories/antiques.png'),
+  'art-paintings': require('../assets/categories/art-paintings.png'),
+  'books-manuscripts': require('../assets/categories/books-manuscripts.png'),
+  'coins-currency': require('../assets/categories/coins-currency.png'),
+  'fine-jewelry': require('../assets/categories/fine-jewelry.png'),
+  'music-instruments': require('../assets/categories/music-instruments.png'),
+  'photography': require('../assets/categories/photography.png'),
+  'sports-memorabilia': require('../assets/categories/sports-memorabilia.png'),
+  'stamps': require('../assets/categories/stamps.png'),
+  'toys-dolls': require('../assets/categories/toys-dolls.png'),
+  'vintage-timepieces': require('../assets/categories/vintage-timepieces.png'),
+};
+
+const RAW: CategoryPreset[] = [
   // Row 1
   { key: 'art-paintings', label: 'Art & Paintings', glyph: '🖼️',
     fields: [f('artist', 'Artist'), f('medium', 'Medium'), f('year', 'Year', 'number'), f('dimensions', 'Dimensions')] },
@@ -118,6 +135,12 @@ export const CATEGORY_PRESETS: CategoryPreset[] = [
   // Custom
   { key: 'custom', label: 'Other / Custom', glyph: '➕', custom: true, fields: [] },
 ];
+
+// Attach icon assets at module load (saves a require lookup per render).
+export const CATEGORY_PRESETS: CategoryPreset[] = RAW.map((p) => ({
+  ...p,
+  iconAsset: ICONS[p.key] ?? null,
+}));
 
 export function findCategory(key: string | null | undefined): CategoryPreset | null {
   if (!key) return null;

@@ -2,6 +2,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -115,9 +116,17 @@ function CollectionCard({
   return (
     <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.cardHero}>
-        <View style={styles.cardImageEmpty}>
-          <Text style={styles.cardImageGlyph}>{glyph}</Text>
-        </View>
+        {preset?.iconAsset ? (
+          <Image
+            source={preset.iconAsset}
+            style={styles.cardImage}
+            resizeMode="contain"
+          />
+        ) : (
+          <View style={styles.cardImageEmpty}>
+            <Text style={styles.cardImageGlyph}>{glyph}</Text>
+          </View>
+        )}
       </View>
       <View style={styles.cardBody}>
         <Text style={styles.cardTitle} numberOfLines={1}>
@@ -200,7 +209,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...shadows.card,
   },
-  cardHero: { aspectRatio: 1.1, backgroundColor: colors.creamSoft },
+  cardHero: { aspectRatio: 1.1, backgroundColor: colors.paper },
+  cardImage: { width: '100%', height: '100%' },
   cardImageEmpty: {
     width: '100%',
     height: '100%',
