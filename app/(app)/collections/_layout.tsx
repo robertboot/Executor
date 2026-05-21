@@ -1,19 +1,11 @@
 import { Stack } from 'expo-router';
-import { colors } from '../../../lib/theme';
 
 export default function CollectionsLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.cream },
-        headerShadowVisible: false,
-        headerTintColor: colors.ink,
-        headerTitleStyle: { fontWeight: '700', color: colors.ink },
-      }}
-    >
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="[key]" options={{ title: 'Collection' }} />
-      <Stack.Screen name="new" options={{ title: 'New collection' }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="[key]" />
+      <Stack.Screen name="new" />
     </Stack>
   );
 }

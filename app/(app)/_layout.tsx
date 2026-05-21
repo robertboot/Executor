@@ -24,10 +24,7 @@ export default function AppLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: colors.cream },
-        headerShadowVisible: false,
-        headerTintColor: colors.ink,
-        headerTitleStyle: { fontWeight: '700', color: colors.ink },
+        headerShown: false,
         tabBarStyle: {
           backgroundColor: colors.forest,
           borderTopColor: colors.forestDeep,

@@ -231,9 +231,23 @@ export default function CollectionDetail() {
           <Text style={styles.backGlyph}>‹</Text>
         </Pressable>
         <Text style={styles.crumb}>Collections</Text>
+        <View style={{ flex: 1 }} />
+        <Pressable style={styles.headerAction} hitSlop={8}>
+          <Text style={styles.headerActionGlyph}>↗</Text>
+        </Pressable>
+        <Pressable
+          style={styles.headerAction}
+          hitSlop={8}
+          onPress={() => setEditingDesc(true)}
+        >
+          <Text style={styles.headerActionGlyph}>✎</Text>
+        </Pressable>
+        <Pressable style={styles.headerAction} hitSlop={8}>
+          <Text style={styles.headerActionGlyph}>⋯</Text>
+        </Pressable>
       </View>
 
-      {/* Hero + summary */}
+      {/* Hero + summary side-by-side */}
       <View style={styles.heroBlock}>
         <View style={styles.heroImageWrap}>
           {heroFromPhoto ? (
@@ -456,11 +470,26 @@ const styles = StyleSheet.create({
   },
   backGlyph: { fontSize: 22, color: colors.ink, marginTop: -2, fontWeight: '700' },
   crumb: { fontSize: 18, color: colors.ink, fontWeight: '700' },
+  headerAction: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerActionGlyph: { color: colors.ink, fontSize: 16 },
 
-  heroBlock: { gap: 14 },
+  heroBlock: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 16,
+  },
   heroImageWrap: {
-    width: '100%',
-    aspectRatio: 1.2,
+    width: 160,
+    height: 160,
     borderRadius: radius.lg,
     overflow: 'hidden',
     backgroundColor: colors.paper,
@@ -469,11 +498,11 @@ const styles = StyleSheet.create({
   },
   heroImage: { width: '100%', height: '100%' },
   heroEmpty: { backgroundColor: colors.creamSoft, alignItems: 'center', justifyContent: 'center' },
-  heroEmptyGlyph: { fontSize: 72, color: colors.gold },
+  heroEmptyGlyph: { fontSize: 56, color: colors.gold },
 
-  summaryBlock: { gap: 4 },
-  title: { fontSize: 38, color: colors.ink, fontWeight: '700' },
-  subtitle: { color: colors.muted, marginTop: -2 },
+  summaryBlock: { flex: 1, gap: 4 },
+  title: { fontSize: 34, color: colors.ink, fontWeight: '700', lineHeight: 38 },
+  subtitle: { color: colors.muted, marginTop: 2 },
 
   statsRow: {
     flexDirection: 'row',
@@ -481,11 +510,11 @@ const styles = StyleSheet.create({
     marginTop: 14,
     alignItems: 'stretch',
   },
-  statCol: { flex: 1, alignItems: 'center', gap: 4, paddingVertical: 4 },
+  statCol: { flex: 1, alignItems: 'center', gap: 2, paddingVertical: 2 },
   statDiv: { width: 1, backgroundColor: colors.hairline, marginVertical: 4 },
-  statGlyph: { color: colors.forest, fontSize: 20, fontWeight: '700' },
-  statValue: { color: colors.ink, fontSize: 18, fontWeight: '700' },
-  statLabel: { color: colors.muted, fontSize: 11 },
+  statGlyph: { color: colors.forest, fontSize: 18, fontWeight: '700' },
+  statValue: { color: colors.ink, fontSize: 16, fontWeight: '700' },
+  statLabel: { color: colors.muted, fontSize: 10 },
 
   aboutCard: {
     backgroundColor: colors.paper,
