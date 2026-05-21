@@ -211,6 +211,11 @@ export default function CollectionDetail() {
       notify('Can\'t delete', 'The Unassigned bucket is automatic — it lists items that don\'t have a collection yet.');
       return;
     }
+    const ok = await confirm(
+      `Delete "${coll.name}"?`,
+      `You'll be asked where the ${stats.itemCount} item${stats.itemCount === 1 ? '' : 's'} should go next.`,
+    );
+    if (!ok) return;
     const all = await listAllCollectionNames();
     setOtherNames(all.filter((n) => n.toLowerCase() !== coll.name.toLowerCase()));
     setShowDeletePicker(true);
@@ -764,12 +769,15 @@ const styles = StyleSheet.create({
   addText: { color: colors.ink, fontWeight: '700' },
 
   deleteBtn: {
-    backgroundColor: colors.dangerSoft,
+    alignSelf: 'flex-start',
+    backgroundColor: 'transparent',
+    borderColor: colors.danger,
+    borderWidth: 1,
     borderRadius: radius.md,
-    paddingVertical: 14,
-    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
   },
-  deleteBtnText: { color: colors.danger, fontWeight: '700' },
+  deleteBtnText: { color: colors.danger, fontWeight: '600', fontSize: 13 },
 
   pickerCard: {
     backgroundColor: colors.paper,
