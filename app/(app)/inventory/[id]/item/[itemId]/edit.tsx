@@ -1,39 +1,53 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import ItemForm, {
-  formValuesToDraft,
-  itemToFormValues,
-  type ItemFormValues,
-} from '../../../../../../components/ItemForm';
-import { getItem, updateItem } from '../../../../../../lib/api';
+import ItemEditor, {
+  itemToValues,
+  type ItemEditorValues,
+} from '../../../../../../components/ItemEditor';
+import { deleteItem, getItem, updateItem } from '../../../../../../lib/api';
+import { colors } from '../../../../../../lib/theme';
 
 export default function EditItem() {
   const { id, itemId } = useLocalSearchParams<{ id: string; itemId: string }>();
-  const [initial, setInitial] = useState<ItemFormValues | null>(null);
+  const [initial, setInitial] = useState<ItemEditorValues | null>(null);
 
   useEffect(() => {
     if (!itemId) return;
     getItem(itemId).then((it) => {
-      if (it) setInitial(itemToFormValues(it));
+      if (it) setInitial(itemToValues(it));
     });
   }, [itemId]);
 
   if (!initial) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator />
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: colors.cream,
+        }}
+      >
+        <ActivityIndicator color={colors.forest} />
       </View>
     );
   }
 
   return (
-    <ItemForm
+    <ItemEditor
+      mode="edit"
+      inventoryId={id!}
+      itemId={itemId!}
+      title="Edit item"
+      subtitle="Update details. Every change is saved to the item's history."
       initial={initial}
-      submitLabel="Save changes"
-      onSubmit={async (values) => {
-        await updateItem(itemId!, formValuesToDraft(values));
-        router.replace(`/(app)/inventory/${id}/item/${itemId}`);
+      onSave={async (draft) => {
+        const item = await updateItem(itemId!, draft);
+        return { id: item.id };
+      }}
+      onDelete={async () => {
+        await deleteItem(itemId!);
       }}
     />
   );
