@@ -73,6 +73,8 @@ jobs:
           fi
 
       - name: Build iOS
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas build --non-interactive --platform ios --profile ${{ steps.profile.outputs.name }}
 
       - name: Submit to TestFlight
@@ -82,4 +84,6 @@ jobs:
             github.event.inputs.submit_to_testflight == 'true' ||
             contains(github.event.head_commit.message, '[submit]')
           )
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas submit --non-interactive --platform ios --latest
