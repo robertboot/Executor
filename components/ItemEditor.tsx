@@ -177,7 +177,6 @@ export default function ItemEditor({
   }, []);
 
   const preset = findCategory(v.collection);
-
   const pickPhoto = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -698,7 +697,7 @@ function CollectionPicker({
   const preset = findCategory(selectedName);
   const displayLabel = preset?.label ?? selected?.name ?? selectedName ?? 'Select a collection';
   return (
-    <View>
+    <View style={open ? styles.dropdownWrapOpen : undefined}>
       <Pressable style={styles.dropdownTrigger} onPress={() => setOpen(!open)}>
         {selectedName ? (
           <View style={styles.selectedRow}>
@@ -849,13 +848,14 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.hairline,
-    overflow: 'hidden',
     ...shadows.card,
   },
   sectionHeader: {
     paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10,
     borderBottomWidth: 1, borderBottomColor: colors.divider,
     backgroundColor: colors.creamSoft,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
   },
   sectionEyebrow: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1.4 },
   sectionTitle: { fontSize: 20, color: colors.ink, fontWeight: '700', marginTop: 2 },
@@ -906,10 +906,23 @@ const styles = StyleSheet.create({
   dropdownSelected: { color: colors.ink, flex: 1, fontWeight: '600', fontSize: 16 },
   dropdownClear: { color: colors.muted, fontSize: 14, paddingHorizontal: 4 },
   dropdownChevron: { color: colors.muted },
+  dropdownWrapOpen: {
+    // Ensure this wrapper sits above the form fields below when open.
+    zIndex: 100,
+    elevation: 100,
+    position: 'relative',
+  },
   dropdownPanel: {
-    marginTop: 6, backgroundColor: colors.paper,
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    marginTop: 6,
+    backgroundColor: colors.paper,
     borderWidth: 1, borderColor: colors.hairline,
     borderRadius: radius.md, overflow: 'hidden',
+    zIndex: 1000,
+    elevation: 1000,
     ...shadows.raised,
   },
   searchRow: {
