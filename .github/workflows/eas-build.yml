@@ -1,0 +1,85 @@
+name: EAS Build (iOS)
+
+# Triggers:
+#   - Manual: Actions tab → "EAS Build (iOS)" → Run workflow
+#   - Auto:   when a commit message contains "[build]" or "[build-ios]"
+#
+# What this does:
+#   1. Checks out the repo
+#   2. Installs Node + the EAS CLI
+#   3. Runs `eas build --platform ios --profile preview` (or production)
+#
+# The build runs on Expo's macOS cloud workers. The .ipa is delivered to
+# TestFlight (production profile) or to a shareable Expo URL (preview).
+#
+# Required secrets — add these once in GitHub:
+#   Settings → Secrets and variables → Actions → New repository secret
+#
+#   EXPO_TOKEN   — from https://expo.dev/accounts/<you>/settings/access-tokens
+#
+# That's it. EAS handles your Apple credentials (managed credentials by
+# default) — you log in to Apple once via the EAS CLI on any machine, and
+# EAS stores the cert/profile for future builds.
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Build profile'
+        type: choice
+        options: [preview, production]
+        default: preview
+      submit_to_testflight:
+        description: 'Auto-submit to TestFlight (production only)'
+        type: boolean
+        default: false
+  push:
+    branches: ['**']
+    paths-ignore:
+      - '**/*.md'
+
+jobs:
+  build:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, '[build]') ||
+      contains(github.event.head_commit.message, '[build-ios]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Decide profile
+        id: profile
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "name=${{ inputs.profile }}" >> "$GITHUB_OUTPUT"
+          elif echo "${{ github.event.head_commit.message }}" | grep -q "\[build-production\]"; then
+            echo "name=production" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=preview" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build iOS
+        run: eas build --non-interactive --platform ios --profile ${{ steps.profile.outputs.name }}
+
+      - name: Submit to TestFlight
+        if: |
+          steps.profile.outputs.name == 'production' &&
+          (
+            github.event.inputs.submit_to_testflight == 'true' ||
+            contains(github.event.head_commit.message, '[submit]')
+          )
+        run: eas submit --non-interactive --platform ios --latest
