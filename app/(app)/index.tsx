@@ -1,4 +1,5 @@
 import { useFocusEffect, useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -304,6 +305,10 @@ export default function Home() {
         <Text style={styles.addItemPlus}>+</Text>
         <Text style={styles.addItemText}>Add New Item</Text>
       </Pressable>
+
+      <Text style={styles.version}>
+        Heirloom v{Constants.expoConfig?.version ?? '0.1.0'}
+      </Text>
       </View>
     </ScrollView>
   );
@@ -442,4 +447,13 @@ const styles = StyleSheet.create({
   },
   addItemPlus: { color: colors.forest, fontSize: 22, fontWeight: '700' },
   addItemText: { color: colors.ink, fontWeight: '700', fontSize: 16 },
+
+  version: {
+    textAlign: 'center',
+    color: colors.mutedSoft,
+    fontSize: 11,
+    marginTop: 24,
+    marginBottom: 12,
+    letterSpacing: 0.5,
+  },
 });
