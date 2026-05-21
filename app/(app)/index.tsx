@@ -173,6 +173,11 @@ export default function Home() {
           >
             <Text style={styles.gearGlyph}>⚙</Text>
           </Pressable>
+          <View style={styles.versionBadge}>
+            <Text style={styles.versionBadgeText}>
+              v{Constants.expoConfig?.version || '0.1.0'}
+            </Text>
+          </View>
         </View>
       <Text style={[styles.welcome, SERIF]}>Welcome back, {firstName} 👋</Text>
       <Text style={styles.subWelcome}>Here&apos;s what&apos;s happening.</Text>
@@ -370,6 +375,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   gearGlyph: { color: colors.ink, fontSize: 18 },
+  versionBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 0,
+    backgroundColor: colors.forest,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  versionBadgeText: {
+    color: colors.gold,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
 
   brand: { fontSize: 28, fontWeight: '700', color: colors.ink, letterSpacing: 0.5 },
   welcome: { fontSize: 22, fontWeight: '700', color: colors.ink },
