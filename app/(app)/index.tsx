@@ -1,6 +1,11 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useAuth } from '../../lib/auth';
+import { findCategory } from '../../lib/categories';
 import { colors } from '../../lib/theme';
+
+// Just exercise the import — if categories.ts asset registration is the
+// trigger, the page will crash on render.
+const _probe = findCategory('antiques');
 
 export default function Home() {
   const { user } = useAuth();
@@ -9,7 +14,10 @@ export default function Home() {
       <Text style={styles.title}>Heirloom</Text>
       <Text style={styles.body}>Signed in as {user?.email ?? '(no user)'}</Text>
       <View style={styles.card}>
-        <Text style={styles.body}>If you can read this, the home renders cleanly.</Text>
+        <Text style={styles.body}>
+          Probe: categories module loaded. Antiques preset has label
+          “{_probe?.label ?? '???'}”.
+        </Text>
       </View>
     </ScrollView>
   );
