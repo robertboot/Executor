@@ -307,7 +307,7 @@ export default function Home() {
       </Pressable>
 
       <Text style={styles.version}>
-        Heirloom v{Constants.expoConfig?.version ?? '0.1.0'}
+        Heirloom · v{Constants.expoConfig?.version || '0.1.0'}
       </Text>
       </View>
     </ScrollView>
@@ -450,10 +450,11 @@ const styles = StyleSheet.create({
 
   version: {
     textAlign: 'center',
-    color: colors.mutedSoft,
-    fontSize: 11,
-    marginTop: 24,
-    marginBottom: 12,
-    letterSpacing: 0.5,
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 28,
+    marginBottom: 16,
+    letterSpacing: 1,
   },
 });
