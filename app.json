@@ -2,7 +2,7 @@
   "expo": {
     "name": "Heirloom",
     "slug": "heirloom",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "orientation": "portrait",
     "scheme": "heirloom",
     "userInterfaceStyle": "automatic",
