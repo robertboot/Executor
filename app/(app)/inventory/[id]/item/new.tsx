@@ -6,11 +6,14 @@ import ItemForm, {
 import { createItem } from '../../../../../lib/api';
 
 export default function NewItem() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, category } = useLocalSearchParams<{
+    id: string;
+    category?: string;
+  }>();
 
   return (
     <ItemForm
-      initial={itemToFormValues({})}
+      initial={itemToFormValues({ category: category ?? null })}
       submitLabel="Create item"
       onSubmit={async (values) => {
         const item = await createItem(id!, formValuesToDraft(values));

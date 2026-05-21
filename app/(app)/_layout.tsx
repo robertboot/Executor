@@ -81,6 +81,7 @@ export default function AppLayout() {
       <Tabs.Screen name="settings" options={{ href: null, title: 'Settings' }} />
       <Tabs.Screen name="new-inventory" options={{ href: null, title: 'New inventory' }} />
       <Tabs.Screen name="invites" options={{ href: null, title: 'Invites' }} />
+      <Tabs.Screen name="inventory" options={{ href: null, title: 'Inventory' }} />
     </Tabs>
   );
 }

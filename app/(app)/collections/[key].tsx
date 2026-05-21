@@ -1,122 +1,652 @@
-import { Link, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
+  Image,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
-import { labelForCategory } from '../../../lib/categories';
+import {
+  createCollection,
+  listMyInventories,
+  photoPublicUrl,
+} from '../../../lib/api';
+import { findCategory, labelForCategory } from '../../../lib/categories';
+import { notify } from '../../../lib/confirm';
 import { formatMoney } from '../../../lib/format';
 import { supabase } from '../../../lib/supabase';
-import type { Inventory, Item } from '../../../lib/types';
+import { colors, radius, shadows } from '../../../lib/theme';
+import type { Inventory, Item, InventoryWithRole } from '../../../lib/types';
 
-interface Row {
-  item: Item;
-  inventory_name: string | null;
+const SERIF = { fontFamily: 'Georgia' };
+
+interface CollectionRow {
+  id: string | null;
+  name: string;
+  description: string | null;
+  hero_storage_path: string | null;
 }
+
+interface ItemWithExtras extends Item {
+  inventory_name: string | null;
+  first_photo_path: string | null;
+}
+
+interface Stats {
+  itemCount: number;
+  totalValue: number;
+  currency: string;
+  recipientCount: number;
+  oldestLabel: string;
+}
+
+type SortKey = 'recent' | 'name' | 'value';
 
 export default function CollectionDetail() {
   const { key } = useLocalSearchParams<{ key: string }>();
-  const [rows, setRows] = useState<Row[]>([]);
+  const [coll, setColl] = useState<CollectionRow | null>(null);
+  const [items, setItems] = useState<ItemWithExtras[]>([]);
+  const [inventories, setInventories] = useState<InventoryWithRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sort, setSort] = useState<SortKey>('recent');
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [descDraft, setDescDraft] = useState('');
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!key) return;
-    (async () => {
-      const isUncat = key === '__uncategorized';
-      let q = supabase
+    try {
+      // 1) Pre-created collection record (may not exist for ad-hoc tags)
+      const { data: collRow } = await supabase
+        .from('collections')
+        .select('id, name, description, hero_storage_path')
+        .ilike('name', key)
+        .maybeSingle();
+
+      // 2) Items + their inventory + first photo
+      const { data: rawItems } = await supabase
         .from('items')
-        .select('*, inventory:inventories(id, name)')
-        .order('name');
-      q = isUncat ? q.is('category', null) : q.eq('category', key);
-      const { data, error } = await q;
-      if (error) {
-        setLoading(false);
-        return;
-      }
-      const flat: Row[] = (data ?? []).map((r: Item & { inventory: Inventory | Inventory[] | null }) => ({
-        item: r,
-        inventory_name: Array.isArray(r.inventory)
-          ? r.inventory[0]?.name ?? null
-          : r.inventory?.name ?? null,
-      }));
-      setRows(flat);
+        .select(
+          'id, inventory_id, name, category, description, condition, location, value_amount, value_currency, notes, provenance, acquired_date, intended_recipient_name, intended_recipient_contact, bequest_notes, custom_fields, public_id, tagged_for_sale, conservator_id, created_by, created_at, updated_at, item_photos(storage_path, sort_order), inventory:inventories(name)',
+        )
+        .ilike('category', key);
+
+      const flat: ItemWithExtras[] = ((rawItems ?? []) as unknown as Array<
+        Item & {
+          item_photos: { storage_path: string; sort_order: number }[] | null;
+          inventory: { name: string } | { name: string }[] | null;
+        }
+      >).map((r) => {
+        const inv = Array.isArray(r.inventory) ? r.inventory[0] : r.inventory;
+        const photo = (r.item_photos ?? []).slice().sort(
+          (a, b) => a.sort_order - b.sort_order,
+        )[0];
+        return {
+          ...(r as Item),
+          inventory_name: inv?.name ?? null,
+          first_photo_path: photo?.storage_path ?? null,
+        };
+      });
+
+      setColl(
+        collRow ?? {
+          id: null,
+          name: labelForCategory(key) || key,
+          description: null,
+          hero_storage_path: null,
+        },
+      );
+      setDescDraft(collRow?.description ?? '');
+      setItems(flat);
+
+      const invs = await listMyInventories();
+      setInventories(invs);
+    } finally {
       setLoading(false);
-    })();
+    }
   }, [key]);
 
-  if (loading) {
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
+
+  const stats = useMemo<Stats>(() => {
+    let total = 0;
+    let currency = 'USD';
+    const recipients = new Set<string>();
+    let oldestYear: number | null = null;
+    for (const it of items) {
+      if (it.value_amount != null) {
+        total += Number(it.value_amount);
+        currency = it.value_currency || currency;
+      }
+      if (it.intended_recipient_name) recipients.add(it.intended_recipient_name);
+      if (it.acquired_date) {
+        const y = parseInt(it.acquired_date.slice(0, 4), 10);
+        if (!Number.isNaN(y) && (oldestYear == null || y < oldestYear)) oldestYear = y;
+      }
+    }
+    let oldestLabel = '—';
+    if (oldestYear != null) {
+      const decade = Math.floor(oldestYear / 10) * 10;
+      oldestLabel = `${decade}s`;
+    }
+    return {
+      itemCount: items.length,
+      totalValue: total,
+      currency,
+      recipientCount: recipients.size,
+      oldestLabel,
+    };
+  }, [items]);
+
+  const sortedItems = useMemo(() => {
+    const arr = [...items];
+    switch (sort) {
+      case 'name':
+        arr.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'value':
+        arr.sort((a, b) => (b.value_amount ?? 0) - (a.value_amount ?? 0));
+        break;
+      case 'recent':
+      default:
+        arr.sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''));
+        break;
+    }
+    return arr;
+  }, [items, sort]);
+
+  if (loading || !coll) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator />
+      <View style={styles.center}>
+        <ActivityIndicator color={colors.forest} />
       </View>
     );
   }
 
-  const heading =
-    key === '__uncategorized' ? 'Uncategorized' : labelForCategory(key);
+  const preset = findCategory(coll.name);
+  const displayName = preset?.label ?? coll.name;
+  const heroFromIcon = preset?.iconAsset ?? null;
+  const heroFromPhoto =
+    items.find((i) => i.first_photo_path)?.first_photo_path ?? coll.hero_storage_path ?? null;
+
+  const saveDescription = async () => {
+    try {
+      if (coll.id) {
+        await supabase
+          .from('collections')
+          .update({ description: descDraft.trim() || null })
+          .eq('id', coll.id);
+      } else {
+        // ad-hoc: create the collection row now
+        const created = await createCollection(coll.name, descDraft.trim() || null);
+        setColl({
+          id: created.id,
+          name: created.name,
+          description: created.description,
+          hero_storage_path: null,
+        });
+      }
+      setEditingDesc(false);
+      await load();
+    } catch (e: any) {
+      notify('Could not save', e?.message ?? String(e));
+    }
+  };
+
+  const onAddItem = () => {
+    const writableInv = inventories.find(
+      (i) => i.role === 'owner' || i.role === 'contributor',
+    );
+    if (!writableInv) {
+      notify(
+        'No writable inventory',
+        'Create an inventory first, then add items to this collection.',
+      );
+      return;
+    }
+    router.push({
+      pathname: '/(app)/inventory/[id]/item/new',
+      params: { id: writableInv.id, category: coll.name },
+    });
+  };
 
   return (
-    <FlatList
-      data={rows}
-      keyExtractor={(r) => r.item.id}
-      contentContainerStyle={{ padding: 16, gap: 8, paddingBottom: 80 }}
-      ListHeaderComponent={
-        <View style={{ marginBottom: 8 }}>
-          <Text style={styles.title}>{heading}</Text>
-          <Text style={styles.meta}>
-            {rows.length} item{rows.length === 1 ? '' : 's'} across your inventories
+    <ScrollView
+      style={{ backgroundColor: colors.cream }}
+      contentContainerStyle={styles.scroll}
+    >
+      {/* Header */}
+      <View style={styles.headerRow}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => router.push('/(app)/collections')}
+        >
+          <Text style={styles.backGlyph}>‹</Text>
+        </Pressable>
+        <Text style={styles.crumb}>Collections</Text>
+      </View>
+
+      {/* Hero + summary */}
+      <View style={styles.heroBlock}>
+        <View style={styles.heroImageWrap}>
+          {heroFromPhoto ? (
+            <Image
+              source={{ uri: photoPublicUrl(heroFromPhoto) }}
+              style={styles.heroImage}
+              resizeMode="cover"
+            />
+          ) : heroFromIcon ? (
+            <Image source={heroFromIcon} style={styles.heroImage} resizeMode="contain" />
+          ) : (
+            <View style={[styles.heroImage, styles.heroEmpty]}>
+              <Text style={styles.heroEmptyGlyph}>{preset?.glyph ?? '◇'}</Text>
+            </View>
+          )}
+        </View>
+        <View style={styles.summaryBlock}>
+          <Text style={[styles.title, SERIF]}>{displayName}</Text>
+          <Text style={styles.subtitle}>
+            {stats.itemCount} item{stats.itemCount === 1 ? '' : 's'} across your
+            inventories
+          </Text>
+
+          <View style={styles.statsRow}>
+            <StatCol glyph="▢" value={String(stats.itemCount)} label="Items" />
+            <View style={styles.statDiv} />
+            <StatCol
+              glyph="◊"
+              value={formatMoney(stats.totalValue, stats.currency)}
+              label="Est. value"
+            />
+            <View style={styles.statDiv} />
+            <StatCol
+              glyph="◯"
+              value={String(stats.recipientCount)}
+              label="Recipients"
+            />
+            <View style={styles.statDiv} />
+            <StatCol glyph="◰" value={stats.oldestLabel} label="Oldest item" />
+          </View>
+        </View>
+      </View>
+
+      {/* About card */}
+      <View style={styles.aboutCard}>
+        <View style={styles.aboutIcon}>
+          <Text style={styles.aboutGlyph}>◇</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.aboutLabel}>ABOUT THIS COLLECTION</Text>
+          {editingDesc ? (
+            <>
+              <TextInput
+                style={styles.aboutInput}
+                value={descDraft}
+                onChangeText={setDescDraft}
+                multiline
+                placeholder="What lives in this collection?"
+                placeholderTextColor={colors.mutedSoft}
+                autoFocus
+              />
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                <Pressable style={styles.savePill} onPress={saveDescription}>
+                  <Text style={styles.savePillText}>Save</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.cancelPill}
+                  onPress={() => {
+                    setEditingDesc(false);
+                    setDescDraft(coll.description ?? '');
+                  }}
+                >
+                  <Text style={styles.cancelPillText}>Cancel</Text>
+                </Pressable>
+              </View>
+            </>
+          ) : (
+            <Text style={styles.aboutBody}>
+              {coll.description?.trim() ||
+                'Add a description so future generations know what this collection means.'}
+            </Text>
+          )}
+        </View>
+        {!editingDesc && (
+          <Pressable onPress={() => setEditingDesc(true)} hitSlop={8}>
+            <Text style={styles.editLink}>Edit</Text>
+          </Pressable>
+        )}
+      </View>
+
+      {/* Items header */}
+      <View style={styles.itemsHeader}>
+        <Text style={styles.itemsTitle}>ITEMS ({stats.itemCount})</Text>
+        <Pressable
+          style={styles.sortPill}
+          onPress={() => {
+            setSort((s) =>
+              s === 'recent' ? 'name' : s === 'name' ? 'value' : 'recent',
+            );
+          }}
+        >
+          <Text style={styles.sortText}>
+            Sort: {sort === 'recent' ? 'Recently added' : sort === 'name' ? 'Name A–Z' : 'Value'}
+          </Text>
+          <Text style={styles.sortGlyph}>⌄</Text>
+        </Pressable>
+      </View>
+
+      {/* Items list */}
+      {sortedItems.length === 0 ? (
+        <View style={styles.empty}>
+          <Text style={styles.emptyText}>
+            No items in this collection yet.
           </Text>
         </View>
-      }
-      ListEmptyComponent={
-        <Text style={styles.empty}>
-          No items in this collection yet.
-        </Text>
-      }
-      renderItem={({ item: r }) => (
-        <Link
-          href={`/(app)/inventory/${r.item.inventory_id}/item/${r.item.id}`}
-          asChild
-        >
-          <Pressable style={styles.row}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.itemName}>{r.item.name}</Text>
-              <Text style={styles.itemMeta}>
-                {r.inventory_name ?? 'Inventory'}
-                {r.item.intended_recipient_name
-                  ? ` • for ${r.item.intended_recipient_name}`
-                  : ''}
-              </Text>
-            </View>
-            <Text style={styles.value}>
-              {formatMoney(r.item.value_amount, r.item.value_currency)}
-            </Text>
-          </Pressable>
-        </Link>
+      ) : (
+        sortedItems.map((it) => (
+          <Link
+            key={it.id}
+            href={`/(app)/inventory/${it.inventory_id}/item/${it.id}`}
+            asChild
+          >
+            <Pressable style={styles.itemCard}>
+              <View style={styles.itemThumb}>
+                {it.first_photo_path ? (
+                  <Image
+                    source={{ uri: photoPublicUrl(it.first_photo_path) }}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Text style={styles.itemThumbGlyph}>{preset?.glyph ?? '◇'}</Text>
+                )}
+              </View>
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text style={[styles.itemName, SERIF]} numberOfLines={2}>
+                  {it.name}
+                </Text>
+                {(it.condition || it.acquired_date) && (
+                  <Text style={styles.itemSub}>
+                    {[it.condition, it.acquired_date ? `c. ${it.acquired_date.slice(0, 4)}` : null]
+                      .filter(Boolean)
+                      .join(' • ')}
+                  </Text>
+                )}
+                <View style={styles.chipRow}>
+                  {it.inventory_name && (
+                    <View style={styles.invChip}>
+                      <Text style={styles.invChipText}>{it.inventory_name}</Text>
+                    </View>
+                  )}
+                  {it.intended_recipient_name ? (
+                    <Text style={styles.forText}>
+                      • for {it.intended_recipient_name}
+                    </Text>
+                  ) : null}
+                </View>
+                {(it.location || it.custom_fields) && (
+                  <View style={styles.detailMini}>
+                    {it.location ? (
+                      <>
+                        <Text style={styles.detailMiniGlyph}>▢</Text>
+                        <Text style={styles.detailMiniText}>{it.location}</Text>
+                      </>
+                    ) : null}
+                  </View>
+                )}
+              </View>
+              <View style={styles.itemValueCol}>
+                <View style={styles.itemValueBadge}>
+                  <Text style={styles.itemValueText}>
+                    {formatMoney(it.value_amount, it.value_currency)}
+                  </Text>
+                </View>
+                <Text style={styles.chevron}>›</Text>
+              </View>
+            </Pressable>
+          </Link>
+        ))
       )}
-    />
+
+      {/* Add item tile */}
+      <Pressable style={styles.addTile} onPress={onAddItem}>
+        <View style={styles.addCircle}>
+          <Text style={styles.addPlus}>+</Text>
+        </View>
+        <Text style={styles.addText}>Add item to this collection</Text>
+      </Pressable>
+    </ScrollView>
+  );
+}
+
+function StatCol({ glyph, value, label }: { glyph: string; value: string; label: string }) {
+  return (
+    <View style={styles.statCol}>
+      <Text style={styles.statGlyph}>{glyph}</Text>
+      <Text style={styles.statValue} numberOfLines={1}>
+        {value}
+      </Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 22, fontWeight: '700', color: '#111827' },
-  meta: { color: '#6b7280', marginTop: 4 },
-  row: {
-    backgroundColor: 'white',
-    padding: 14,
-    borderRadius: 10,
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cream },
+  scroll: { padding: 16, paddingBottom: 40, gap: 16 },
+
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.paper,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.hairline,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.card,
+  },
+  backGlyph: { fontSize: 22, color: colors.ink, marginTop: -2, fontWeight: '700' },
+  crumb: { fontSize: 18, color: colors.ink, fontWeight: '700' },
+
+  heroBlock: { gap: 14 },
+  heroImageWrap: {
+    width: '100%',
+    aspectRatio: 1.2,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+  },
+  heroImage: { width: '100%', height: '100%' },
+  heroEmpty: { backgroundColor: colors.creamSoft, alignItems: 'center', justifyContent: 'center' },
+  heroEmptyGlyph: { fontSize: 72, color: colors.gold },
+
+  summaryBlock: { gap: 4 },
+  title: { fontSize: 38, color: colors.ink, fontWeight: '700' },
+  subtitle: { color: colors.muted, marginTop: -2 },
+
+  statsRow: {
+    flexDirection: 'row',
+    backgroundColor: 'transparent',
+    marginTop: 14,
+    alignItems: 'stretch',
+  },
+  statCol: { flex: 1, alignItems: 'center', gap: 4, paddingVertical: 4 },
+  statDiv: { width: 1, backgroundColor: colors.hairline, marginVertical: 4 },
+  statGlyph: { color: colors.forest, fontSize: 20, fontWeight: '700' },
+  statValue: { color: colors.ink, fontSize: 18, fontWeight: '700' },
+  statLabel: { color: colors.muted, fontSize: 11 },
+
+  aboutCard: {
+    backgroundColor: colors.paper,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    ...shadows.card,
+  },
+  aboutIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.creamSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aboutGlyph: { fontSize: 20, color: colors.forest },
+  aboutLabel: {
+    fontSize: 11,
+    color: colors.muted,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    marginBottom: 4,
+  },
+  aboutBody: { color: colors.ink, lineHeight: 20 },
+  aboutInput: {
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    borderRadius: radius.md,
+    padding: 10,
+    backgroundColor: colors.cream,
+    minHeight: 70,
+    color: colors.ink,
+  },
+  editLink: { color: colors.gold, fontWeight: '700', marginTop: 4 },
+  savePill: {
+    backgroundColor: colors.forest,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  savePillText: { color: colors.onForest, fontWeight: '700' },
+  cancelPill: {
+    backgroundColor: colors.creamSoft,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  cancelPillText: { color: colors.ink, fontWeight: '600' },
+
+  itemsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'space-between',
+    marginTop: 4,
   },
-  itemName: { fontSize: 16, fontWeight: '500', color: '#111827' },
-  itemMeta: { color: '#6b7280', fontSize: 12, marginTop: 2 },
-  value: { fontWeight: '600', color: '#111827' },
-  empty: { color: '#6b7280', textAlign: 'center', marginTop: 24 },
+  itemsTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    color: colors.muted,
+  },
+  sortPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  sortText: { color: colors.ink, fontSize: 12, fontWeight: '600' },
+  sortGlyph: { color: colors.muted },
+
+  empty: {
+    backgroundColor: colors.paper,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    padding: 18,
+  },
+  emptyText: { color: colors.muted },
+
+  itemCard: {
+    flexDirection: 'row',
+    backgroundColor: colors.paper,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    overflow: 'hidden',
+    ...shadows.card,
+  },
+  itemThumb: {
+    width: 120,
+    backgroundColor: colors.creamSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  itemThumbGlyph: { fontSize: 36, color: colors.gold },
+  itemName: { fontSize: 18, fontWeight: '700', color: colors.ink, paddingTop: 12, paddingRight: 12 },
+  itemSub: { color: colors.muted, fontSize: 13 },
+  chipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+    marginTop: 4,
+  },
+  invChip: {
+    backgroundColor: '#DCEBE0',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  invChipText: { color: '#3E7A5C', fontSize: 11, fontWeight: '700' },
+  forText: { color: colors.muted, fontSize: 12 },
+  detailMini: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
+  detailMiniGlyph: { color: colors.forest, fontSize: 13 },
+  detailMiniText: { color: colors.muted, fontSize: 12 },
+  itemValueCol: {
+    paddingRight: 12,
+    paddingVertical: 12,
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
+  itemValueBadge: {
+    backgroundColor: colors.creamSoft,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  itemValueText: { color: colors.ink, fontWeight: '700' },
+  chevron: { color: colors.mutedSoft, fontSize: 22 },
+
+  addTile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: colors.gold,
+    borderStyle: 'dashed',
+    borderRadius: radius.lg,
+    paddingVertical: 22,
+    marginTop: 8,
+  },
+  addCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.creamSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addPlus: { color: colors.forest, fontSize: 24, fontWeight: '700' },
+  addText: { color: colors.ink, fontWeight: '700' },
 });
