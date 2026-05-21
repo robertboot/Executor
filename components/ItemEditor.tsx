@@ -828,10 +828,15 @@ const styles = StyleSheet.create({
   btnCancel: { paddingHorizontal: 12, paddingVertical: 10, borderRadius: radius.md },
   btnCancelText: { color: colors.muted, fontWeight: '700' },
   btnDanger: {
-    backgroundColor: colors.dangerSoft, borderRadius: radius.md,
-    paddingVertical: 14, alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: 'transparent',
+    borderColor: colors.danger,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
   },
-  btnDangerText: { color: colors.danger, fontWeight: '700' },
+  btnDangerText: { color: colors.danger, fontWeight: '600', fontSize: 13 },
 
   errBox: {
     backgroundColor: colors.dangerSoft, borderColor: colors.danger, borderWidth: 1,
