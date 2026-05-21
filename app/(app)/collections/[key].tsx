@@ -418,7 +418,7 @@ export default function CollectionDetail() {
                   <Text style={styles.itemThumbGlyph}>{preset?.glyph ?? '◇'}</Text>
                 )}
               </View>
-              <View style={{ flex: 1, gap: 4 }}>
+              <View style={styles.itemContent}>
                 <Text style={[styles.itemName, SERIF]} numberOfLines={2}>
                   {it.name}
                 </Text>
@@ -709,7 +709,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   itemThumbGlyph: { fontSize: 36, color: colors.gold },
-  itemName: { fontSize: 18, fontWeight: '700', color: colors.ink, paddingTop: 12, paddingRight: 12 },
+  itemContent: { flex: 1, gap: 4, paddingLeft: 14, paddingVertical: 12, paddingRight: 8 },
+  itemName: { fontSize: 18, fontWeight: '700', color: colors.ink, paddingRight: 12 },
   itemSub: { color: colors.muted, fontSize: 13 },
   chipRow: {
     flexDirection: 'row',
