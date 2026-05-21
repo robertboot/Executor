@@ -922,8 +922,8 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: colors.hairline,
     borderRadius: radius.md, overflow: 'hidden',
     zIndex: 1000,
-    elevation: 1000,
     ...shadows.raised,
+    elevation: 1000,
   },
   searchRow: {
     flexDirection: 'row', alignItems: 'center', gap: 6,

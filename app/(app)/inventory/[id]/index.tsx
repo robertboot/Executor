@@ -1,5 +1,5 @@
-import { Link, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -11,6 +11,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import ItemDetailView from '../../../../components/ItemDetailView';
 import {
   getInventory,
   getInventoryRole,
@@ -20,6 +21,8 @@ import {
 } from '../../../../lib/api';
 import { CATEGORY_PRESETS } from '../../../../lib/categories';
 import { formatMoney } from '../../../../lib/format';
+import { colors, radius, shadows } from '../../../../lib/theme';
+import { useBreakpoint } from '../../../../lib/useBreakpoint';
 import type { Inventory, Item, Role } from '../../../../lib/types';
 
 const SORT_OPTIONS: Array<{ key: ItemSort; label: string }> = [
@@ -32,6 +35,7 @@ const SORT_OPTIONS: Array<{ key: ItemSort; label: string }> = [
 export default function InventoryDetail() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { isWide } = useBreakpoint();
   const [inv, setInv] = useState<Inventory | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [role, setRole] = useState<'owner' | Role | null>(null);
@@ -44,6 +48,7 @@ export default function InventoryDetail() {
   const [sort, setSort] = useState<ItemSort>('recent');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -70,10 +75,18 @@ export default function InventoryDetail() {
     }, [load]),
   );
 
+  // On wide screens, auto-select the first item if nothing is selected yet
+  // and the list isn't empty — so the right panel never sits empty.
+  useEffect(() => {
+    if (isWide && !selectedItemId && items.length > 0) {
+      setSelectedItemId(items[0].id);
+    }
+  }, [isWide, items, selectedItemId]);
+
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator />
+        <ActivityIndicator color={colors.forest} />
       </View>
     );
   }
@@ -88,7 +101,15 @@ export default function InventoryDetail() {
   const canWrite = role === 'owner' || role === 'contributor';
   const isOwner = role === 'owner';
 
-  return (
+  const onItemPress = (item: Item) => {
+    if (isWide) {
+      setSelectedItemId(item.id);
+    } else {
+      router.push(`/(app)/inventory/${id}/item/${item.id}`);
+    }
+  };
+
+  const listPanel = (
     <View style={{ flex: 1 }}>
       <View style={styles.header}>
         <Text style={styles.title}>{inv.name}</Text>
@@ -99,22 +120,25 @@ export default function InventoryDetail() {
         </Text>
         <View style={styles.headerActions}>
           {isOwner && (
-            <Link href={`/(app)/inventory/${id}/settings`} asChild>
-              <Pressable style={styles.headerButton}>
-                <Text style={styles.headerButtonText}>Settings</Text>
-              </Pressable>
-            </Link>
+            <Pressable
+              style={styles.headerButton}
+              onPress={() => router.push(`/(app)/inventory/${id}/settings`)}
+            >
+              <Text style={styles.headerButtonText}>Settings</Text>
+            </Pressable>
           )}
-          <Link href={`/(app)/inventory/${id}/labels`} asChild>
-            <Pressable style={styles.headerButton}>
-              <Text style={styles.headerButtonText}>Print labels</Text>
-            </Pressable>
-          </Link>
-          <Link href={`/(app)/inventory/${id}/export`} asChild>
-            <Pressable style={styles.headerButton}>
-              <Text style={styles.headerButtonText}>Export</Text>
-            </Pressable>
-          </Link>
+          <Pressable
+            style={styles.headerButton}
+            onPress={() => router.push(`/(app)/inventory/${id}/labels`)}
+          >
+            <Text style={styles.headerButtonText}>Print labels</Text>
+          </Pressable>
+          <Pressable
+            style={styles.headerButton}
+            onPress={() => router.push(`/(app)/inventory/${id}/export`)}
+          >
+            <Text style={styles.headerButtonText}>Export</Text>
+          </Pressable>
         </View>
       </View>
 
@@ -124,6 +148,7 @@ export default function InventoryDetail() {
         onSubmitEditing={load}
         returnKeyType="search"
         placeholder="Search items…"
+        placeholderTextColor={colors.mutedSoft}
         style={styles.search}
       />
 
@@ -134,15 +159,13 @@ export default function InventoryDetail() {
       >
         <Pressable
           style={[styles.chip, category == null && styles.chipActive]}
-          onPress={() => {
-            setCategory(null);
-          }}
+          onPress={() => setCategory(null)}
         >
           <Text style={category == null ? styles.chipTextActive : styles.chipText}>
             All
           </Text>
         </Pressable>
-        {CATEGORY_PRESETS.map((c) => (
+        {CATEGORY_PRESETS.filter((c) => !c.custom).map((c) => (
           <Pressable
             key={c.key}
             style={[styles.chip, category === c.key && styles.chipActive]}
@@ -189,12 +212,16 @@ export default function InventoryDetail() {
         }
         ListEmptyComponent={
           <Text style={styles.empty}>
-            No items yet. {canWrite ? 'Tap “Add item” below to start.' : ''}
+            No items yet. {canWrite ? 'Tap "+ Add item" below to start.' : ''}
           </Text>
         }
-        renderItem={({ item }) => (
-          <Link href={`/(app)/inventory/${id}/item/${item.id}`} asChild>
-            <Pressable style={styles.itemRow}>
+        renderItem={({ item }) => {
+          const isSelected = isWide && item.id === selectedItemId;
+          return (
+            <Pressable
+              style={[styles.itemRow, isSelected && styles.itemRowSelected]}
+              onPress={() => onItemPress(item)}
+            >
               <View style={{ flex: 1 }}>
                 <Text style={styles.itemName}>{item.name}</Text>
                 <Text style={styles.itemMeta}>
@@ -206,8 +233,8 @@ export default function InventoryDetail() {
                 {formatMoney(item.value_amount, item.value_currency)}
               </Text>
             </Pressable>
-          </Link>
-        )}
+          );
+        }}
       />
 
       {canWrite && (
@@ -222,66 +249,135 @@ export default function InventoryDetail() {
       )}
     </View>
   );
+
+  // Phone layout — single column, navigation push on tap
+  if (!isWide) {
+    return <View style={{ flex: 1, backgroundColor: colors.cream }}>{listPanel}</View>;
+  }
+
+  // Tablet / desktop — master-detail side by side
+  return (
+    <View style={styles.row}>
+      <View style={styles.masterCol}>{listPanel}</View>
+      <View style={styles.detailCol}>
+        {selectedItemId ? (
+          <ItemDetailView
+            inventoryId={id!}
+            itemId={selectedItemId}
+            embedded
+          />
+        ) : (
+          <View style={styles.emptyDetail}>
+            <Text style={styles.emptyDetailText}>
+              Pick an item from the list to see its details here.
+            </Text>
+          </View>
+        )}
+      </View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.cream,
+  },
+
+  row: { flex: 1, flexDirection: 'row', backgroundColor: colors.cream },
+  masterCol: {
+    flex: 0,
+    flexBasis: '42%',
+    maxWidth: 520,
+    borderRightWidth: 1,
+    borderRightColor: colors.hairline,
+    backgroundColor: colors.cream,
+  },
+  detailCol: { flex: 1, backgroundColor: colors.cream },
+  emptyDetail: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+  },
+  emptyDetailText: { color: colors.muted, textAlign: 'center' },
+
   header: { padding: 16, paddingBottom: 8, gap: 4 },
-  title: { fontSize: 22, fontWeight: '700', color: '#111827' },
-  desc: { color: '#4b5563' },
-  total: { color: '#4b5563', marginTop: 6 },
-  totalAmount: { color: '#111827', fontWeight: '600' },
-  headerActions: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  title: { fontSize: 22, fontWeight: '700', color: colors.ink },
+  desc: { color: colors.muted },
+  total: { color: colors.muted, marginTop: 6 },
+  totalAmount: { color: colors.ink, fontWeight: '600' },
+  headerActions: { flexDirection: 'row', gap: 8, marginTop: 8, flexWrap: 'wrap' },
   headerButton: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.paper,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.hairline,
   },
-  headerButtonText: { color: '#111827', fontWeight: '500' },
+  headerButtonText: { color: colors.ink, fontWeight: '500' },
   search: {
     margin: 16,
     marginTop: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: colors.hairline,
     borderRadius: 8,
     padding: 10,
-    backgroundColor: 'white',
+    backgroundColor: colors.paper,
+    color: colors.ink,
   },
   filterRow: { paddingHorizontal: 16, paddingBottom: 8, gap: 8 },
   chip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.paper,
     borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.hairline,
   },
   chipSmall: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.paper,
     borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.hairline,
   },
-  sortLabel: { color: '#6b7280', alignSelf: 'center', marginRight: 4, fontSize: 12 },
-  chipActive: { backgroundColor: '#111827' },
-  chipText: { color: '#374151' },
-  chipTextActive: { color: 'white', fontWeight: '600' },
-  empty: { color: '#6b7280', textAlign: 'center', marginTop: 32 },
+  sortLabel: { color: colors.muted, alignSelf: 'center', marginRight: 4, fontSize: 12 },
+  chipActive: { backgroundColor: colors.forest, borderColor: colors.forest },
+  chipText: { color: colors.inkSoft },
+  chipTextActive: { color: colors.onForest, fontWeight: '600' },
+  empty: { color: colors.muted, textAlign: 'center', marginTop: 32 },
   itemRow: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    backgroundColor: colors.paper,
     padding: 14,
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.hairline,
     alignItems: 'center',
     gap: 12,
+    ...shadows.card,
   },
-  itemName: { fontSize: 16, fontWeight: '500', color: '#111827' },
-  itemMeta: { color: '#6b7280', marginTop: 2, fontSize: 12 },
-  itemValue: { fontWeight: '600', color: '#111827' },
+  itemRowSelected: {
+    borderColor: colors.gold,
+    borderWidth: 2,
+    backgroundColor: colors.creamSoft,
+  },
+  itemName: { fontSize: 16, fontWeight: '600', color: colors.ink },
+  itemMeta: { color: colors.muted, marginTop: 2, fontSize: 12 },
+  itemValue: { fontWeight: '700', color: colors.ink },
   fabWrap: { position: 'absolute', bottom: 24, left: 24, right: 24 },
-  fab: { backgroundColor: '#111827', padding: 16, borderRadius: 24, alignItems: 'center' },
-  fabText: { color: 'white', fontWeight: '600' },
+  fab: {
+    backgroundColor: colors.forest,
+    padding: 16,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+  },
+  fabText: { color: colors.onForest, fontWeight: '700' },
 });

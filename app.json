@@ -3,13 +3,20 @@
     "name": "Heirloom",
     "slug": "heirloom",
     "version": "0.1.1",
-    "orientation": "portrait",
+    "orientation": "default",
     "scheme": "heirloom",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FAF7F2"
+    },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.heirloom.inventory",
+      "buildNumber": "1",
       "infoPlist": {
         "NSCameraUsageDescription": "Heirloom uses the camera to scan QR codes on your items and take photos to attach to entries.",
         "NSPhotoLibraryUsageDescription": "Heirloom needs photo library access so you can attach photos to your inventory items."
