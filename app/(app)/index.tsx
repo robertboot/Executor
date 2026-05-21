@@ -48,6 +48,7 @@ interface CollectionPreview {
   key: string;
   label: string;
   count: number;
+  iconAsset: number | null;
 }
 
 export default function Home() {
@@ -118,11 +119,15 @@ export default function Home() {
         }
         setCollections(
           [...counts.entries()]
-            .map(([k, count]) => ({
-              key: k,
-              label: findCategory(k)?.label ?? labelForCategory(k),
-              count,
-            }))
+            .map(([k, count]) => {
+              const preset = findCategory(k);
+              return {
+                key: k,
+                label: preset?.label ?? labelForCategory(k),
+                count,
+                iconAsset: preset?.iconAsset ?? null,
+              };
+            })
             .sort((a, b) => b.count - a.count)
             .slice(0, 5),
         );
@@ -262,6 +267,17 @@ export default function Home() {
                   router.push({ pathname: '/(app)/collections/[key]', params: { key: c.key } })
                 }
               >
+                <View style={styles.collIcon}>
+                  {c.iconAsset ? (
+                    <Image
+                      source={c.iconAsset}
+                      style={styles.collIconImg}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <Text style={styles.collIconGlyph}>◇</Text>
+                  )}
+                </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.rowTitle}>{c.label}</Text>
                   <Text style={styles.rowMeta}>
@@ -394,6 +410,17 @@ const styles = StyleSheet.create({
   },
   thumbImg: { width: '100%', height: '100%' },
   thumbGlyph: { color: colors.gold, fontSize: 24 },
+  collIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: colors.creamSoft,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  collIconImg: { width: '100%', height: '100%' },
+  collIconGlyph: { color: colors.forest, fontSize: 22 },
   rowDivider: { borderTopWidth: 1, borderTopColor: colors.divider },
   rowTitle: { fontSize: 16, fontWeight: '700', color: colors.ink },
   rowMeta: { fontSize: 13, color: colors.muted },
