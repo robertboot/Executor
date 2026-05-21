@@ -1,4 +1,4 @@
-import { Link, useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -160,18 +160,20 @@ export default function Home() {
           {recent.map((it, idx) => {
             const dividerStyle = idx > 0 ? styles.rowDivider : null;
             return (
-              <Link key={it.id} href={`/(app)/inventory/${it.inventory_id}/item/${it.id}`} asChild>
-                <Pressable style={[styles.row, dividerStyle]}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.rowTitle, SERIF]} numberOfLines={1}>{it.name}</Text>
-                    <Text style={styles.rowMeta}>{labelForCategory(it.category)}</Text>
-                  </View>
-                  <Text style={styles.rowValue}>
-                    {formatMoney(it.value_amount, it.value_currency)}
-                  </Text>
-                  <Text style={styles.chevron}>›</Text>
-                </Pressable>
-              </Link>
+              <Pressable
+                key={it.id}
+                style={[styles.row, dividerStyle]}
+                onPress={() => router.push(`/(app)/inventory/${it.inventory_id}/item/${it.id}`)}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.rowTitle, SERIF]} numberOfLines={1}>{it.name}</Text>
+                  <Text style={styles.rowMeta}>{labelForCategory(it.category)}</Text>
+                </View>
+                <Text style={styles.rowValue}>
+                  {formatMoney(it.value_amount, it.value_currency)}
+                </Text>
+                <Text style={styles.chevron}>›</Text>
+              </Pressable>
             );
           })}
         </View>
