@@ -2,6 +2,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -118,7 +119,19 @@ export default function Home() {
       style={{ backgroundColor: colors.cream }}
       contentContainerStyle={styles.scroll}
     >
-      <Text style={[styles.brand, SERIF]}>Heirloom</Text>
+      <View style={styles.topBar}>
+        <Image
+          source={require('../../assets/heirloom-logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Pressable
+          style={styles.gear}
+          onPress={() => router.push('/(app)/settings')}
+        >
+          <Text style={styles.gearGlyph}>⚙</Text>
+        </Pressable>
+      </View>
       <Text style={[styles.welcome, SERIF]}>Welcome back, {firstName} 👋</Text>
       <Text style={styles.subWelcome}>Here&apos;s what&apos;s happening.</Text>
 
@@ -266,6 +279,24 @@ const TONES = {
 const styles = StyleSheet.create({
   loading: { flex: 1, backgroundColor: colors.cream, alignItems: 'center', justifyContent: 'center' },
   scroll: { padding: 24, gap: 12 },
+
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  logo: { width: 120, height: 120 },
+  gear: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gearGlyph: { color: colors.ink, fontSize: 18 },
 
   brand: { fontSize: 28, fontWeight: '700', color: colors.ink, letterSpacing: 0.5 },
   welcome: { fontSize: 22, fontWeight: '700', color: colors.ink },
