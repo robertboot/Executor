@@ -315,7 +315,20 @@ export async function listMyCollectionsRich(): Promise<CollectionWithStats[]> {
   const rawItems = (items ?? []) as unknown as ItemRow[];
   for (const it of rawItems) {
     const cat = (it.category ?? '').trim();
-    if (!cat) continue;
+    if (!cat) {
+      // Unassigned bucket
+      const b = ensure('__uncategorized');
+      b.count += 1;
+      if (it.value_amount != null) b.totalValue += Number(it.value_amount);
+      b.currency = it.value_currency || b.currency;
+      if (!b.photoPath && it.item_photos && it.item_photos.length > 0) {
+        const sorted = [...it.item_photos].sort((a, z) => a.sort_order - z.sort_order);
+        b.photoPath = sorted[0].storage_path;
+        b.firstItemId = it.id;
+        b.firstInventoryId = it.inventory_id;
+      }
+      continue;
+    }
     const b = ensure(cat);
     b.count += 1;
     if (it.value_amount != null) b.totalValue += Number(it.value_amount);
@@ -401,6 +414,41 @@ export async function createCollection(
 export async function deleteCollection(id: string) {
   const { error } = await supabase.from('collections').delete().eq('id', id);
   if (error) throw error;
+}
+
+/**
+ * Reassign every item currently tagged with `fromName` to `toName`
+ * (or null for unassigned), then delete the collection row if it exists.
+ * Case-insensitive match on the items.category column.
+ */
+export async function reassignAndDeleteCollection(args: {
+  fromName: string;
+  toName: string | null; // null = unassigned
+}): Promise<void> {
+  const { fromName, toName } = args;
+  // 1) Reassign items
+  const { error: updErr } = await supabase
+    .from('items')
+    .update({ category: toName })
+    .ilike('category', fromName);
+  if (updErr) throw updErr;
+
+  // 2) Delete the collection row (may not exist for ad-hoc tags)
+  await supabase
+    .from('collections')
+    .delete()
+    .ilike('name', fromName);
+}
+
+export async function listAllCollectionNames(): Promise<string[]> {
+  const names = new Set<string>();
+  const { data: rows } = await supabase.from('collections').select('name');
+  for (const r of (rows ?? []) as { name: string }[]) names.add(r.name);
+  const { data: items } = await supabase.from('items').select('category').not('category', 'is', null);
+  for (const r of (items ?? []) as { category: string }[]) {
+    if (r.category) names.add(r.category);
+  }
+  return [...names].sort((a, b) => a.localeCompare(b));
 }
 
 export async function listMyCollectionNames(): Promise<string[]> {

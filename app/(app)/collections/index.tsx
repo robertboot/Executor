@@ -110,8 +110,9 @@ function CollectionCard({
   c: CollectionWithStats;
   onPress: () => void;
 }) {
-  const preset = findCategory(c.name);
-  const displayName = preset?.label ?? c.name;
+  const isUnassigned = c.name === '__uncategorized';
+  const preset = isUnassigned ? null : findCategory(c.name);
+  const displayName = isUnassigned ? 'Unassigned' : (preset?.label ?? c.name);
   const hasImage = !!preset?.iconAsset;
   return (
     <Pressable style={styles.card} onPress={onPress}>

@@ -12,11 +12,13 @@ import {
 } from 'react-native';
 import {
   createCollection,
+  listAllCollectionNames,
   listMyInventories,
   photoPublicUrl,
+  reassignAndDeleteCollection,
 } from '../../../lib/api';
 import { findCategory, labelForCategory } from '../../../lib/categories';
-import { notify } from '../../../lib/confirm';
+import { confirm, notify } from '../../../lib/confirm';
 import { formatMoney } from '../../../lib/format';
 import { supabase } from '../../../lib/supabase';
 import { colors, radius, shadows } from '../../../lib/theme';
@@ -55,24 +57,28 @@ export default function CollectionDetail() {
   const [sort, setSort] = useState<SortKey>('recent');
   const [editingDesc, setEditingDesc] = useState(false);
   const [descDraft, setDescDraft] = useState('');
+  const [showDeletePicker, setShowDeletePicker] = useState(false);
+  const [otherNames, setOtherNames] = useState<string[]>([]);
+
+  const isUnassigned = key === '__uncategorized';
 
   const load = useCallback(async () => {
     if (!key) return;
     try {
-      // 1) Pre-created collection record (may not exist for ad-hoc tags)
-      const { data: collRow } = await supabase
-        .from('collections')
-        .select('id, name, description, hero_storage_path')
-        .ilike('name', key)
-        .maybeSingle();
+      // 1) Pre-created collection record (may not exist for ad-hoc tags, never for unassigned)
+      const { data: collRow } = isUnassigned
+        ? { data: null }
+        : await supabase
+            .from('collections')
+            .select('id, name, description, hero_storage_path')
+            .ilike('name', key)
+            .maybeSingle();
 
       // 2) Items + their inventory + first photo
-      const { data: rawItems } = await supabase
-        .from('items')
-        .select(
-          'id, inventory_id, name, category, description, condition, location, value_amount, value_currency, notes, provenance, acquired_date, intended_recipient_name, intended_recipient_contact, bequest_notes, custom_fields, public_id, tagged_for_sale, conservator_id, created_by, created_at, updated_at, item_photos(storage_path, sort_order), inventory:inventories(name)',
-        )
-        .ilike('category', key);
+      const baseSelect = 'id, inventory_id, name, category, description, condition, location, value_amount, value_currency, notes, provenance, acquired_date, intended_recipient_name, intended_recipient_contact, bequest_notes, custom_fields, public_id, tagged_for_sale, conservator_id, created_by, created_at, updated_at, item_photos(storage_path, sort_order), inventory:inventories(name)';
+      const { data: rawItems } = isUnassigned
+        ? await supabase.from('items').select(baseSelect).is('category', null)
+        : await supabase.from('items').select(baseSelect).ilike('category', key);
 
       const flat: ItemWithExtras[] = ((rawItems ?? []) as unknown as Array<
         Item & {
@@ -94,7 +100,7 @@ export default function CollectionDetail() {
       setColl(
         collRow ?? {
           id: null,
-          name: labelForCategory(key) || key,
+          name: isUnassigned ? 'Unassigned' : (labelForCategory(key) || key),
           description: null,
           hero_storage_path: null,
         },
@@ -107,7 +113,7 @@ export default function CollectionDetail() {
     } finally {
       setLoading(false);
     }
-  }, [key]);
+  }, [key, isUnassigned]);
 
   useFocusEffect(
     useCallback(() => {
@@ -197,6 +203,31 @@ export default function CollectionDetail() {
       await load();
     } catch (e: any) {
       notify('Could not save', e?.message ?? String(e));
+    }
+  };
+
+  const openDeletePicker = async () => {
+    if (isUnassigned) {
+      notify('Can\'t delete', 'The Unassigned bucket is automatic — it lists items that don\'t have a collection yet.');
+      return;
+    }
+    const all = await listAllCollectionNames();
+    setOtherNames(all.filter((n) => n.toLowerCase() !== coll.name.toLowerCase()));
+    setShowDeletePicker(true);
+  };
+
+  const onReassignTo = async (target: string | null) => {
+    const targetLabel = target ?? 'No collection (unassigned)';
+    const ok = await confirm(
+      `Delete "${coll.name}"?`,
+      `All ${stats.itemCount} item${stats.itemCount === 1 ? '' : 's'} will be moved to "${targetLabel}", then this collection will be deleted. Cannot be undone.`,
+    );
+    if (!ok) return;
+    try {
+      await reassignAndDeleteCollection({ fromName: coll.name, toName: target });
+      router.replace('/(app)/collections');
+    } catch (e: any) {
+      notify('Could not delete', e?.message ?? String(e));
     }
   };
 
@@ -434,8 +465,61 @@ export default function CollectionDetail() {
         <View style={styles.addCircle}>
           <Text style={styles.addPlus}>+</Text>
         </View>
-        <Text style={styles.addText}>Add item to this collection</Text>
+        <Text style={styles.addText}>
+          {isUnassigned ? 'Add item' : 'Add item to this collection'}
+        </Text>
       </Pressable>
+
+      {/* Danger zone */}
+      {!isUnassigned && (
+        <View style={{ marginTop: 24, gap: 10 }}>
+          {!showDeletePicker ? (
+            <Pressable style={styles.deleteBtn} onPress={openDeletePicker}>
+              <Text style={styles.deleteBtnText}>Delete this collection</Text>
+            </Pressable>
+          ) : (
+            <View style={styles.pickerCard}>
+              <Text style={styles.pickerTitle}>
+                Move {stats.itemCount} item{stats.itemCount === 1 ? '' : 's'} to:
+              </Text>
+              <Text style={styles.pickerHelp}>
+                Pick where the items in “{coll.name}” should go. Then the
+                collection itself will be deleted.
+              </Text>
+              <Pressable
+                style={styles.pickerRow}
+                onPress={() => onReassignTo(null)}
+              >
+                <View style={styles.pickerDot} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.pickerRowTitle}>No collection</Text>
+                  <Text style={styles.pickerRowMeta}>
+                    Items become Unassigned — you can sort them later.
+                  </Text>
+                </View>
+              </Pressable>
+              {otherNames.map((n) => (
+                <Pressable
+                  key={n}
+                  style={styles.pickerRow}
+                  onPress={() => onReassignTo(n)}
+                >
+                  <View style={[styles.pickerDot, styles.pickerDotFilled]} />
+                  <Text style={styles.pickerRowTitle}>
+                    {findCategory(n)?.label ?? n}
+                  </Text>
+                </Pressable>
+              ))}
+              <Pressable
+                style={styles.pickerCancel}
+                onPress={() => setShowDeletePicker(false)}
+              >
+                <Text style={styles.pickerCancelText}>Cancel</Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -678,4 +762,48 @@ const styles = StyleSheet.create({
   },
   addPlus: { color: colors.forest, fontSize: 24, fontWeight: '700' },
   addText: { color: colors.ink, fontWeight: '700' },
+
+  deleteBtn: {
+    backgroundColor: colors.dangerSoft,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  deleteBtnText: { color: colors.danger, fontWeight: '700' },
+
+  pickerCard: {
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    borderRadius: radius.lg,
+    padding: 14,
+    gap: 10,
+    ...shadows.card,
+  },
+  pickerTitle: { fontSize: 16, fontWeight: '700', color: colors.ink },
+  pickerHelp: { color: colors.muted, fontSize: 13, marginBottom: 6 },
+  pickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+  },
+  pickerDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: colors.gold,
+  },
+  pickerDotFilled: { backgroundColor: colors.gold },
+  pickerRowTitle: { color: colors.ink, fontWeight: '600' },
+  pickerRowMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  pickerCancel: {
+    marginTop: 4,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  pickerCancelText: { color: colors.muted, fontWeight: '600' },
 });
