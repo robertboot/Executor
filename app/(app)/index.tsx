@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import {
@@ -52,6 +53,10 @@ interface CollectionPreview {
 export default function Home() {
   const router = useRouter();
   const { user } = useAuth();
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 700;
+  const isDesktop = width >= 1100;
+  const contentMaxWidth = isDesktop ? 1080 : isTablet ? 760 : '100%';
   const [inventories, setInventories] = useState<InventoryWithRole[]>([]);
   const [invites, setInvites] = useState<InventoryShare[]>([]);
   const [stats, setStats] = useState<Stats>({
@@ -143,23 +148,26 @@ export default function Home() {
     'there';
 
   return (
-    <ScrollView
-      style={{ backgroundColor: colors.cream }}
-      contentContainerStyle={styles.scroll}
-    >
-      <View style={styles.topBar}>
-        <Image
-          source={require('../../assets/heirloom-logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Pressable
-          style={styles.gear}
-          onPress={() => router.push('/(app)/settings')}
-        >
-          <Text style={styles.gearGlyph}>⚙</Text>
-        </Pressable>
-      </View>
+    <ScrollView style={{ backgroundColor: colors.cream }}>
+      <View
+        style={[
+          styles.scroll,
+          { maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' },
+        ]}
+      >
+        <View style={styles.topBar}>
+          <Image
+            source={require('../../assets/heirloom-logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Pressable
+            style={styles.gear}
+            onPress={() => router.push('/(app)/settings')}
+          >
+            <Text style={styles.gearGlyph}>⚙</Text>
+          </Pressable>
+        </View>
       <Text style={[styles.welcome, SERIF]}>Welcome back, {firstName} 👋</Text>
       <Text style={styles.subWelcome}>Here&apos;s what&apos;s happening.</Text>
 
@@ -280,6 +288,7 @@ export default function Home() {
         <Text style={styles.addItemPlus}>+</Text>
         <Text style={styles.addItemText}>Add New Item</Text>
       </Pressable>
+      </View>
     </ScrollView>
   );
 }
@@ -320,12 +329,16 @@ const styles = StyleSheet.create({
   scroll: { padding: 24, gap: 12 },
 
   topBar: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    paddingVertical: 4,
   },
-  logo: { width: 120, height: 120 },
+  logo: { width: 160, height: 160 },
   gear: {
+    position: 'absolute',
+    top: 8,
+    right: 0,
     width: 40,
     height: 40,
     borderRadius: 20,
