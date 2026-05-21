@@ -51,7 +51,10 @@
     "extra": {
       "supabaseUrl": "",
       "supabaseAnonKey": "",
-      "qrLandingBaseUrl": ""
+      "qrLandingBaseUrl": "",
+      "eas": {
+        "projectId": "78817732-3ff1-428d-951d-a18c8c1f528b"
+      }
     }
   }
 }
