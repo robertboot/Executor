@@ -13,6 +13,7 @@ import {
   dashboardStats,
   listMyInventories,
   listMyPendingInvites,
+  photoPublicUrl,
 } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { findCategory, labelForCategory } from '../../lib/categories';
@@ -39,6 +40,7 @@ interface RecentItem {
   category: string | null;
   value_amount: number | null;
   value_currency: string;
+  photo_path: string | null;
 }
 
 interface CollectionPreview {
@@ -72,10 +74,36 @@ export default function Home() {
       try {
         const { data } = await supabase
           .from('items')
-          .select('id, inventory_id, name, category, value_amount, value_currency, created_at')
+          .select(
+            'id, inventory_id, name, category, value_amount, value_currency, created_at, item_photos(storage_path, sort_order)',
+          )
           .order('created_at', { ascending: false })
           .limit(4);
-        setRecent((data ?? []) as RecentItem[]);
+        const list = (data ?? []) as Array<{
+          id: string;
+          inventory_id: string;
+          name: string;
+          category: string | null;
+          value_amount: number | null;
+          value_currency: string;
+          item_photos: { storage_path: string; sort_order: number }[] | null;
+        }>;
+        setRecent(
+          list.map((it) => {
+            const sortedPhotos = (it.item_photos ?? [])
+              .slice()
+              .sort((a, b) => a.sort_order - b.sort_order);
+            return {
+              id: it.id,
+              inventory_id: it.inventory_id,
+              name: it.name,
+              category: it.category,
+              value_amount: it.value_amount,
+              value_currency: it.value_currency,
+              photo_path: sortedPhotos[0]?.storage_path ?? null,
+            };
+          }),
+        );
       } catch {}
       try {
         const { data } = await supabase.from('items').select('category');
@@ -178,6 +206,17 @@ export default function Home() {
                 style={[styles.row, dividerStyle]}
                 onPress={() => router.push(`/(app)/inventory/${it.inventory_id}/item/${it.id}`)}
               >
+                <View style={styles.thumb}>
+                  {it.photo_path ? (
+                    <Image
+                      source={{ uri: photoPublicUrl(it.photo_path) }}
+                      style={styles.thumbImg}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Text style={styles.thumbGlyph}>❦</Text>
+                  )}
+                </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.rowTitle, SERIF]} numberOfLines={1}>{it.name}</Text>
                   <Text style={styles.rowMeta}>{labelForCategory(it.category)}</Text>
@@ -330,7 +369,18 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: colors.hairline,
     ...shadows.card,
   },
-  row: { flexDirection: 'row', padding: 14, gap: 12, alignItems: 'center' },
+  row: { flexDirection: 'row', padding: 12, gap: 12, alignItems: 'center' },
+  thumb: {
+    width: 64,
+    height: 64,
+    borderRadius: 10,
+    backgroundColor: colors.creamSoft,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  thumbImg: { width: '100%', height: '100%' },
+  thumbGlyph: { color: colors.gold, fontSize: 24 },
   rowDivider: { borderTopWidth: 1, borderTopColor: colors.divider },
   rowTitle: { fontSize: 16, fontWeight: '700', color: colors.ink },
   rowMeta: { fontSize: 13, color: colors.muted },
