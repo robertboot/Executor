@@ -7,12 +7,13 @@ type Variant = 'light' | 'dark' | 'compact';
  * (chest illustration + wordmark + tagline) as a single image.
  */
 export default function Logo({ variant = 'dark' }: { variant?: Variant }) {
-  const size = variant === 'compact' ? 72 : 180;
+  const width = variant === 'compact' ? 160 : 260;
+  const height = variant === 'compact' ? 48 : 80;
   return (
     <View style={styles.wrap}>
       <Image
-        source={require('../assets/heirloom-logo.png')}
-        style={{ width: size, height: size }}
+        source={require('../assets/heirloom-logo-horizontal.png')}
+        style={{ width, height }}
         resizeMode="contain"
       />
     </View>

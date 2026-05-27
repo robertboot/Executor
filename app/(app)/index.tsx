@@ -163,7 +163,7 @@ export default function Home() {
       >
         <View style={styles.topBar}>
           <Image
-            source={require('../../assets/heirloom-logo.png')}
+            source={require('../../assets/heirloom-logo-horizontal.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     paddingVertical: 4,
   },
-  logo: { width: 160, height: 160 },
+  logo: { width: 240, height: 72 },
   gear: {
     position: 'absolute',
     top: 8,
