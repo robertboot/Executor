@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getCurrentUser } from '@/lib/supabase/server';
+import { createSupabaseServerClient, getCurrentUser } from '@/lib/supabase/server';
 import {
   dashboardStats,
   listMyInventories,
@@ -18,10 +18,11 @@ export default async function HomePage() {
     user?.email?.split('@')[0] ||
     'there';
 
-  const [stats, inventories, recent] = await Promise.all([
+  const [stats, inventories, recent, pendingInviteCount] = await Promise.all([
     dashboardStats(),
     listMyInventories(),
     listRecentItems(6),
+    pendingInvites(user?.email),
   ]);
 
   return (
@@ -30,6 +31,30 @@ export default async function HomePage() {
         <h1 className="font-serif text-3xl text-ink">Welcome back, {firstName}.</h1>
         <p className="text-muted text-sm mt-1">Here&rsquo;s what&rsquo;s happening.</p>
       </div>
+
+      {pendingInviteCount > 0 && (
+        <Link
+          href="/invites"
+          className="block bg-gold-soft border border-gold rounded-xl p-4 hover:shadow-card transition-shadow"
+        >
+          <span className="text-sm text-ink">
+            <strong>{pendingInviteCount} pending invite{pendingInviteCount === 1 ? '' : 's'}</strong>
+            {' '}— tap to review.
+          </span>
+        </Link>
+      )}
+
+      {inventories.length === 0 && (
+        <Card>
+          <p className="text-sm text-ink-soft">
+            You don&rsquo;t have an inventory yet.{' '}
+            <Link href="/inventories" className="text-forest underline">
+              Create one
+            </Link>{' '}
+            to start cataloging items.
+          </p>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
@@ -110,6 +135,17 @@ export default async function HomePage() {
       </div>
     </div>
   );
+}
+
+async function pendingInvites(email: string | undefined): Promise<number> {
+  if (!email) return 0;
+  const supabase = await createSupabaseServerClient();
+  const { count } = await supabase
+    .from('inventory_shares')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending')
+    .ilike('invited_email', email);
+  return count ?? 0;
 }
 
 function StatCard({

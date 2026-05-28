@@ -31,21 +31,31 @@ export default async function InventoriesPage() {
         <>
           <ul className="space-y-2">
             {inventories.map((inv) => (
-              <li key={inv.id}>
-                <Link
-                  href={`/inventory/${inv.id}`}
-                  className="block bg-paper border border-hairline rounded-xl p-4 hover:shadow-card transition-shadow"
-                >
-                  <div className="flex items-baseline justify-between">
-                    <div className="font-medium text-ink">{inv.name}</div>
-                    <div className="text-xs text-muted uppercase tracking-wide">
-                      {inv.role}
-                    </div>
+              <li
+                key={inv.id}
+                className="bg-paper border border-hairline rounded-xl p-4 hover:shadow-card transition-shadow"
+              >
+                <div className="flex items-baseline justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-medium text-ink truncate">{inv.name}</div>
+                    {inv.description && (
+                      <p className="text-sm text-muted mt-1">{inv.description}</p>
+                    )}
                   </div>
-                  {inv.description && (
-                    <p className="text-sm text-muted mt-1">{inv.description}</p>
-                  )}
-                </Link>
+                  <div className="text-xs text-muted uppercase tracking-wide whitespace-nowrap">
+                    {inv.role}
+                  </div>
+                </div>
+                {inv.role === 'owner' && (
+                  <div className="mt-3 flex gap-3 text-xs">
+                    <Link
+                      href={`/inventories/${inv.id}/shares`}
+                      className="text-forest hover:underline"
+                    >
+                      Manage people →
+                    </Link>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

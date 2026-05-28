@@ -35,9 +35,14 @@ export default async function ItemDetailPage({
           </Link>
           <h1 className="font-serif text-3xl text-ink mt-1">{item.name}</h1>
         </div>
-        <Link href={`/items/${item.id}/edit`}>
-          <Button variant="secondary">Edit</Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href={`/items/${item.id}/history`}>
+            <Button variant="ghost" size="sm">History</Button>
+          </Link>
+          <Link href={`/items/${item.id}/edit`}>
+            <Button variant="secondary">Edit</Button>
+          </Link>
+        </div>
       </div>
 
       {photos.length > 0 && (
