@@ -27,9 +27,19 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-serif text-3xl text-ink">Welcome back, {firstName}.</h1>
-        <p className="text-muted text-sm mt-1">Here&rsquo;s what&rsquo;s happening.</p>
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <h1 className="font-serif text-3xl text-ink">Welcome back, {firstName}.</h1>
+          <p className="text-muted text-sm mt-1">Here&rsquo;s what&rsquo;s happening.</p>
+        </div>
+        {inventories.length > 0 && (
+          <Link
+            href="/items/new"
+            className="inline-flex items-center gap-1 px-4 h-10 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep whitespace-nowrap"
+          >
+            + Add item
+          </Link>
+        )}
       </div>
 
       {pendingInviteCount > 0 && (

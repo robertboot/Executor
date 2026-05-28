@@ -2,6 +2,16 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import Logo from '@/components/Logo';
 import { getCurrentUser } from '@/lib/supabase/server';
+import MobileNav from './MobileNav';
+
+const NAV = [
+  { href: '/home', label: 'Home' },
+  { href: '/collections', label: 'Collections' },
+  { href: '/search', label: 'Search' },
+  { href: '/scan', label: 'Scan' },
+  { href: '/conservators', label: 'People' },
+  { href: '/settings', label: 'Settings' },
+];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
@@ -10,18 +20,22 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex flex-col">
       <header className="w-full bg-paper border-b border-hairline">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/home" className="flex items-center">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+          <Link href="/home" className="flex items-center shrink-0">
             <Logo variant="compact" />
           </Link>
-          <nav className="flex items-center gap-1 text-sm">
-            <NavLink href="/home" label="Home" />
-            <NavLink href="/collections" label="Collections" />
-            <NavLink href="/search" label="Search" />
-            <NavLink href="/scan" label="Scan" />
-            <NavLink href="/conservators" label="People" />
-            <NavLink href="/settings" label="Settings" />
+          <nav className="hidden md:flex items-center gap-1 text-sm">
+            {NAV.map((n) => (
+              <Link
+                key={n.href}
+                href={n.href}
+                className="px-3 py-2 rounded-md text-ink-soft hover:text-ink hover:bg-cream-soft transition-colors"
+              >
+                {n.label}
+              </Link>
+            ))}
           </nav>
+          <MobileNav links={NAV} />
         </div>
       </header>
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6">
@@ -31,16 +45,5 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         Heirloom · {new Date().getFullYear()}
       </footer>
     </div>
-  );
-}
-
-function NavLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="px-3 py-2 rounded-md text-ink-soft hover:text-ink hover:bg-cream-soft transition-colors"
-    >
-      {label}
-    </Link>
   );
 }
