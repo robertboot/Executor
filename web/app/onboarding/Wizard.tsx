@@ -196,18 +196,34 @@ function ArchetypeStep({
             <button
               type="button"
               onClick={() => onPick(a.key)}
-              className="group w-full text-left bg-paper border border-hairline rounded-2xl p-5 hover:border-forest hover:shadow-card transition-all"
+              className="group relative w-full text-left overflow-hidden bg-paper border border-hairline rounded-2xl hover:border-forest hover:shadow-card transition-all"
+              style={{ minHeight: 160 }}
             >
-              <div className="flex items-baseline justify-between gap-3">
-                <h3 className="font-serif text-xl text-ink">{a.title}</h3>
-                <span className="text-forest opacity-0 group-hover:opacity-100 transition-opacity text-sm">
+              <div
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                style={{ backgroundImage: `url('${a.bgImage}')` }}
+                aria-hidden="true"
+              />
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background:
+                    'linear-gradient(to right, rgba(255,253,247,0.97) 0%, rgba(255,253,247,0.92) 35%, rgba(255,253,247,0.55) 60%, rgba(255,253,247,0) 100%)',
+                }}
+                aria-hidden="true"
+              />
+              <div className="relative z-10 p-5 sm:p-6 max-w-[60%]">
+                <div className="flex items-baseline justify-between gap-3">
+                  <h3 className="font-serif text-xl sm:text-2xl text-ink">{a.title}</h3>
+                </div>
+                <p className="text-sm text-ink-soft mt-1">{a.tagline}</p>
+                <p className="text-[11px] uppercase tracking-wider text-muted mt-3">
+                  {a.bestFor}
+                </p>
+                <span className="inline-block mt-3 text-xs text-forest opacity-0 group-hover:opacity-100 transition-opacity">
                   Choose →
                 </span>
               </div>
-              <p className="text-sm text-ink-soft mt-1">{a.tagline}</p>
-              <p className="text-xs uppercase tracking-wider text-muted mt-3">
-                {a.bestFor}
-              </p>
             </button>
           </li>
         ))}
