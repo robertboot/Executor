@@ -112,11 +112,14 @@ export async function listPhotos(itemId: string): Promise<ItemPhoto[]> {
   return (data ?? []) as ItemPhoto[];
 }
 
+export const PHOTO_BUCKET = 'item-photos';
+
 export function photoPublicUrl(storagePath: string): string {
   // Storage buckets in Heirloom are public-read. Build the URL directly so
-  // we don't need a Supabase round-trip per photo.
+  // we don't need a Supabase round-trip per photo. `storage_path` is stored
+  // without the bucket prefix; the bucket is part of the Supabase URL.
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-  return `${base}/storage/v1/object/public/${storagePath}`;
+  return `${base}/storage/v1/object/public/${PHOTO_BUCKET}/${storagePath}`;
 }
 
 // ---------- Conservators ----------

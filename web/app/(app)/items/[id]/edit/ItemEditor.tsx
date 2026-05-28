@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { findCategory } from '@/lib/categories';
 import type { Item } from '@/lib/types';
 import { saveItem, deleteItem } from './actions';
+import PhotoManager from '@/components/PhotoManager';
 
 type InitialItem = Partial<Item> & {
   inventory_id: string;
@@ -91,6 +92,15 @@ export default function ItemEditor({
       <h1 className="font-serif text-3xl text-ink">
         {mode === 'new' ? 'Add new item' : 'Edit item'}
       </h1>
+
+      {mode === 'edit' && initial.id && (
+        <section>
+          <h2 className="text-xs uppercase tracking-wide text-muted font-medium mb-2">
+            Photos
+          </h2>
+          <PhotoManager itemId={initial.id} inventoryId={initial.inventory_id} />
+        </section>
+      )}
 
       <Field label="Name" required>
         <input

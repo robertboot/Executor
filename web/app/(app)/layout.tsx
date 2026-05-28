@@ -19,6 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <NavLink href="/collections" label="Collections" />
             <NavLink href="/scan" label="Scan" />
             <NavLink href="/conservators" label="Conservators" />
+            <NavLink href="/inventories" label="Inventories" />
             <NavLink href="/settings" label="Settings" />
           </nav>
         </div>

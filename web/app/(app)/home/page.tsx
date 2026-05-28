@@ -63,7 +63,7 @@ export default async function HomePage() {
           <h2 className="font-serif text-xl text-ink">Recent items</h2>
           {inventories[0] && (
             <Link
-              href={`/inventory/${inventories[0].id}`}
+              href="/collections"
               className="text-sm text-forest hover:underline"
             >
               View all →
