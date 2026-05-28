@@ -1,92 +1,112 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { listMyCollectionsRich } from '@/lib/api';
-import { CATEGORY_PRESETS, findCategory } from '@/lib/categories';
-import { formatMoney } from '@/lib/format';
+import { CATEGORY_PRESETS, findCategory, type CategoryPreset } from '@/lib/categories';
 
 export const dynamic = 'force-dynamic';
+
+type CardData = {
+  key: string;
+  label: string;
+  itemCount: number;
+  preset: CategoryPreset | null;
+};
 
 export default async function CollectionsPage() {
   const inUse = await listMyCollectionsRich();
   const usedKeys = new Set(inUse.map((c) => c.key));
 
+  const usedCards: CardData[] = inUse.map((c) => ({
+    key: c.key,
+    label: c.label,
+    itemCount: c.itemCount,
+    preset: findCategory(c.key),
+  }));
+
+  const emptyCards: CardData[] = CATEGORY_PRESETS
+    .filter((p) => !usedKeys.has(p.key) && !p.custom && p.iconUrl)
+    .map((p) => ({
+      key: p.key,
+      label: p.label,
+      itemCount: 0,
+      preset: p,
+    }));
+
+  const cards = [...usedCards, ...emptyCards];
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl text-ink">Collections</h1>
-        <p className="text-muted text-sm mt-1">
-          Group items by category. Tap a collection to view or filter.
+        <h1 className="font-serif text-4xl text-ink">Collections</h1>
+        <p className="text-muted text-base mt-2">
+          Organize your items by what matters most.
         </p>
       </div>
 
-      {inUse.length > 0 && (
-        <section>
-          <h2 className="text-xs font-medium uppercase tracking-wide text-muted mb-3">
-            Your collections
-          </h2>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {inUse.map((c) => {
-              const preset = findCategory(c.key);
-              return (
-                <li key={c.key}>
-                  <Link
-                    href={`/collections/${encodeURIComponent(c.key)}`}
-                    className="flex items-center gap-4 bg-paper border border-hairline rounded-xl p-4 hover:shadow-card transition-shadow"
-                  >
-                    {preset?.iconUrl ? (
-                      <Image
-                        src={preset.iconUrl}
-                        alt=""
-                        width={48}
-                        height={48}
-                        className="rounded-lg"
-                      />
-                    ) : (
-                      <div className="text-3xl">{preset?.glyph ?? '◇'}</div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium text-ink truncate">{c.label}</div>
-                      <div className="text-xs text-muted">
-                        {c.itemCount} {c.itemCount === 1 ? 'item' : 'items'} ·{' '}
-                        {formatMoney(c.totalValue, c.totalCurrency)}
-                      </div>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      )}
-
-      <section>
-        <h2 className="text-xs font-medium uppercase tracking-wide text-muted mb-3">
-          Add a new collection
-        </h2>
-        <ul className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-          {CATEGORY_PRESETS.filter((p) => !usedKeys.has(p.key) && !p.custom).map((p) => (
-            <li key={p.key}>
-              <Link
-                href={`/collections/${encodeURIComponent(p.key)}`}
-                className="flex flex-col items-center gap-2 bg-paper border border-hairline rounded-xl p-3 hover:shadow-card transition-shadow text-center"
-              >
-                {p.iconUrl ? (
-                  <Image
-                    src={p.iconUrl}
-                    alt=""
-                    width={48}
-                    height={48}
-                    className="rounded-lg"
-                  />
-                ) : (
-                  <div className="text-3xl">{p.glyph}</div>
-                )}
-                <div className="text-xs text-ink-soft">{p.label}</div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {cards.map((c) => (
+          <li key={c.key}>
+            <CollectionCard data={c} />
+          </li>
+        ))}
+      </ul>
     </div>
+  );
+}
+
+function CollectionCard({ data }: { data: CardData }) {
+  const { key, label, itemCount, preset } = data;
+  return (
+    <Link
+      href={`/collections/${encodeURIComponent(key)}`}
+      className="flex flex-col bg-paper border border-hairline rounded-2xl p-5 hover:shadow-card transition-shadow h-full"
+    >
+      <div className="flex flex-col items-center">
+        {preset?.iconUrl ? (
+          <Image
+            src={preset.iconUrl}
+            alt={label}
+            width={320}
+            height={320}
+            className="w-full aspect-square object-contain"
+          />
+        ) : (
+          <div className="w-full aspect-square flex items-center justify-center text-7xl">
+            {preset?.glyph ?? '◇'}
+          </div>
+        )}
+        <div className="font-serif text-sm text-ink-soft mt-1">{label}</div>
+      </div>
+
+      <h3 className="font-serif text-2xl text-ink font-semibold mt-4 leading-tight">
+        {label}
+      </h3>
+
+      <div className="flex items-center gap-2 mt-3 text-sm text-ink-soft">
+        <BookmarkIcon className="w-4 h-4 text-gold" />
+        <span>{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
+      </div>
+
+      <div className="border-t border-hairline mt-4 pt-3">
+        <div className="text-xs uppercase tracking-wide text-muted">Shared with</div>
+        <div className="text-base italic text-ink-soft mt-1">Just you</div>
+      </div>
+    </Link>
+  );
+}
+
+function BookmarkIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect x="3" y="2" width="10" height="12" rx="1" />
+      <path d="M3 6h10" />
+    </svg>
   );
 }
