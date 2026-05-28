@@ -61,22 +61,19 @@ function CollectionCard({ data }: { data: CardData }) {
       href={`/collections/${encodeURIComponent(key)}`}
       className="flex flex-col bg-paper border border-hairline rounded-2xl p-5 hover:shadow-card transition-shadow h-full"
     >
-      <div className="flex flex-col items-center">
-        {preset?.iconUrl ? (
-          <Image
-            src={preset.iconUrl}
-            alt={label}
-            width={320}
-            height={320}
-            className="w-full aspect-square object-contain"
-          />
-        ) : (
-          <div className="w-full aspect-square flex items-center justify-center text-7xl">
-            {preset?.glyph ?? '◇'}
-          </div>
-        )}
-        <div className="font-serif text-sm text-ink-soft mt-1">{label}</div>
-      </div>
+      {preset?.iconUrl ? (
+        <Image
+          src={preset.iconUrl}
+          alt={label}
+          width={320}
+          height={320}
+          className="w-full aspect-square object-contain"
+        />
+      ) : (
+        <div className="w-full aspect-square flex items-center justify-center text-7xl">
+          {preset?.glyph ?? '◇'}
+        </div>
+      )}
 
       <h3 className="font-serif text-2xl text-ink font-semibold mt-4 leading-tight">
         {label}
