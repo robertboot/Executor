@@ -43,7 +43,7 @@ export default async function CollectionsPage() {
         </p>
       </div>
 
-      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
         {cards.map((c) => (
           <li key={c.key}>
             <CollectionCard data={c} />
@@ -59,7 +59,7 @@ function CollectionCard({ data }: { data: CardData }) {
   return (
     <Link
       href={`/collections/${encodeURIComponent(key)}`}
-      className="flex flex-col bg-paper border border-hairline rounded-2xl p-5 hover:shadow-card transition-shadow h-full"
+      className="flex flex-col bg-paper border border-hairline rounded-2xl p-3 hover:shadow-card transition-shadow h-full"
     >
       {preset?.iconUrl ? (
         <Image
@@ -75,18 +75,18 @@ function CollectionCard({ data }: { data: CardData }) {
         </div>
       )}
 
-      <h3 className="font-serif text-2xl text-ink font-semibold mt-4 leading-tight">
+      <h3 className="font-serif text-lg text-ink font-semibold mt-3 leading-tight">
         {label}
       </h3>
 
-      <div className="flex items-center gap-2 mt-3 text-sm text-ink-soft">
-        <BookmarkIcon className="w-4 h-4 text-gold" />
+      <div className="flex items-center gap-1.5 mt-2 text-xs text-ink-soft">
+        <BookmarkIcon className="w-3.5 h-3.5 text-gold" />
         <span>{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
       </div>
 
-      <div className="border-t border-hairline mt-4 pt-3">
-        <div className="text-xs uppercase tracking-wide text-muted">Shared with</div>
-        <div className="text-base italic text-ink-soft mt-1">Just you</div>
+      <div className="border-t border-hairline mt-3 pt-2">
+        <div className="text-[10px] uppercase tracking-wide text-muted">Shared with</div>
+        <div className="text-sm italic text-ink-soft mt-0.5">Just you</div>
       </div>
     </Link>
   );
