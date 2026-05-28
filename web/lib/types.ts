@@ -4,10 +4,27 @@
 export type Role = 'viewer' | 'contributor';
 export type ShareStatus = 'pending' | 'accepted' | 'revoked';
 
+export type OnboardingArchetype =
+  | 'family-legacy'
+  | 'collector'
+  | 'luxury'
+  | 'historical'
+  | 'mixed';
+
+export type OnboardingFocus =
+  | 'preservation'
+  | 'family-sharing'
+  | 'valuation'
+  | 'cataloging';
+
 export interface Profile {
   id: string;
   display_name: string | null;
   created_at: string;
+  onboarding_completed_at: string | null;
+  archetype: OnboardingArchetype | null;
+  focus: OnboardingFocus | null;
+  selected_collections: string[] | null;
 }
 
 export interface Inventory {

@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { dashboardStats, listMyCollectionsRich } from '@/lib/api';
 import { CATEGORY_PRESETS, findCategory, type CategoryPreset } from '@/lib/categories';
 import { formatMoney } from '@/lib/format';
+import { createSupabaseServerClient, getCurrentUser } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,10 +23,23 @@ type EmptyCard = {
 };
 
 export default async function CollectionsPage() {
-  const [inUse, stats] = await Promise.all([
+  const user = await getCurrentUser();
+  const supabase = await createSupabaseServerClient();
+  const [inUse, stats, profileRes] = await Promise.all([
     listMyCollectionsRich(),
     dashboardStats(),
+    user
+      ? supabase
+          .from('profiles')
+          .select('selected_collections')
+          .eq('id', user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
+
+  const selectedFromOnboarding = new Set<string>(
+    (profileRes?.data?.selected_collections as string[] | null | undefined) ?? [],
+  );
 
   const usedKeys = new Set(inUse.map((c) => c.key));
 
@@ -38,8 +52,30 @@ export default async function CollectionsPage() {
     preset: findCategory(c.key),
   }));
 
+  // Promote onboarding picks (that have no items yet) into the featured list
+  // so the user sees the archive they curated, not just the things they've
+  // already cataloged.
+  const onboardingFeatured: UsedCard[] = CATEGORY_PRESETS
+    .filter(
+      (p) =>
+        selectedFromOnboarding.has(p.key) &&
+        !usedKeys.has(p.key) &&
+        p.iconUrl,
+    )
+    .map((p) => ({
+      key: p.key,
+      label: p.label,
+      itemCount: 0,
+      totalValue: 0,
+      totalCurrency: 'USD',
+      preset: p,
+    }));
+
+  const featuredCards: UsedCard[] = [...usedCards, ...onboardingFeatured];
+  const featuredKeys = new Set(featuredCards.map((c) => c.key));
+
   const emptyCards: EmptyCard[] = CATEGORY_PRESETS
-    .filter((p) => !usedKeys.has(p.key) && p.iconUrl)
+    .filter((p) => !featuredKeys.has(p.key) && p.iconUrl && !p.custom)
     .map((p) => ({ key: p.key, label: p.label, preset: p }));
 
   return (
@@ -51,11 +87,11 @@ export default async function CollectionsPage() {
           totalCurrency={stats.totalCurrency}
         />
 
-        {usedCards.length > 0 && (
+        {featuredCards.length > 0 && (
           <section className="space-y-4">
             <h2 className="font-serif text-2xl text-ink">Your Collections</h2>
             <ul className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              {usedCards.map((c) => (
+              {featuredCards.map((c) => (
                 <li key={c.key}>
                   <FeaturedCard data={c} />
                 </li>
@@ -67,12 +103,12 @@ export default async function CollectionsPage() {
         <section className="space-y-4">
           <div>
             <h2 className="font-serif text-2xl text-ink">
-              {usedCards.length === 0 ? 'Start your estate' : 'Add a new collection'}
+              {featuredCards.length === 0 ? 'Start your estate' : 'Browse more collections'}
             </h2>
             <p className="text-muted text-sm mt-1">
-              {usedCards.length === 0
+              {featuredCards.length === 0
                 ? 'Choose a category below to begin cataloging.'
-                : 'Browse other categories to expand your collection.'}
+                : 'Other categories you can add to your archive.'}
             </p>
           </div>
           <ul className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">

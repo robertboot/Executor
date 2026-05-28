@@ -6,6 +6,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 const PUBLIC_PATHS = ['/login', '/signup', '/auth', '/i', '/favicon.ico'];
+const ONBOARDING_EXEMPT = ['/onboarding', '/logout'];
 const PUBLIC_FILE_REGEX = /\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|map|txt)$/;
 
 export async function middleware(request: NextRequest) {
@@ -56,6 +57,28 @@ export async function middleware(request: NextRequest) {
     url.pathname = '/home';
     url.search = '';
     return NextResponse.redirect(url);
+  }
+
+  // Funnel signed-in users who haven't finished onboarding to /onboarding
+  // (with exemptions so they can still hit the wizard itself or log out).
+  if (data.user && !isPublic) {
+    const exempt = ONBOARDING_EXEMPT.some(
+      (p) => pathname === p || pathname.startsWith(`${p}/`),
+    );
+    if (!exempt) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_completed_at')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      if (!profile?.onboarding_completed_at) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/onboarding';
+        url.search = '';
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return response;
