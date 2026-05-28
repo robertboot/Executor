@@ -17,7 +17,7 @@ import type {
   Profile,
   Role,
 } from './types';
-import { labelForCategory } from './categories';
+import { labelForCategory, normalizeCategoryKey } from './categories';
 
 // ---------- Inventories ----------
 
@@ -187,10 +187,10 @@ export async function listMyCollectionsRich(): Promise<CollectionWithStats[]> {
 
   const byKey = new Map<string, CollectionWithStats>();
   for (const row of data ?? []) {
-    const key = row.category || 'uncategorized';
+    const key = normalizeCategoryKey(row.category) || 'uncategorized';
     const stat = byKey.get(key) ?? {
       key,
-      label: labelForCategory(row.category),
+      label: labelForCategory(key),
       itemCount: 0,
       totalValue: 0,
       totalCurrency: row.value_currency || 'USD',
