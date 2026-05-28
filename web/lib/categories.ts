@@ -116,9 +116,11 @@ const RAW: Omit<CategoryPreset, 'iconUrl'>[] = [
   { key: 'custom', label: 'Other / Custom', glyph: '➕', custom: true, fields: [] },
 ];
 
+const ICON_VERSION = '2';
+
 export const CATEGORY_PRESETS: CategoryPreset[] = RAW.map((p) => ({
   ...p,
-  iconUrl: HAS_ICON.has(p.key) ? `/categories/${p.key}.png` : null,
+  iconUrl: HAS_ICON.has(p.key) ? `/categories/${p.key}.png?v=${ICON_VERSION}` : null,
 }));
 
 export function findCategory(key: string | null | undefined): CategoryPreset | null {
