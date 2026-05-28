@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getCurrentUser } from '@/lib/supabase/server';
 import { getSubscription } from '@/lib/subscription';
 import { Card } from '@/components/ui/Card';
+import DisplayNameForm from './DisplayNameForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,15 @@ export default async function SettingsPage() {
         <div className="text-xs text-muted mt-1">
           Account ID: <span className="font-mono">{user?.id?.slice(0, 8)}…</span>
         </div>
+      </Card>
+
+      <Card>
+        <div className="text-xs uppercase tracking-wide text-muted mb-2">
+          Display name
+        </div>
+        <DisplayNameForm
+          initial={(user?.user_metadata?.display_name as string) ?? ''}
+        />
       </Card>
 
       <ul className="space-y-2">
