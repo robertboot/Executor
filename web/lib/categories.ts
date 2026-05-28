@@ -26,7 +26,7 @@ const f = (key: string, label: string, type: CustomFieldDef['type'] = 'text'): C
 
 const HAS_ICON = new Set([
   'antiques', 'art-paintings', 'books-manuscripts', 'china-dishware',
-  'coins-currency', 'family-keepsakes', 'fine-jewelry', 'furniture',
+  'coins-currency', 'custom', 'family-keepsakes', 'fine-jewelry', 'furniture',
   'holiday-decorations', 'maps-globes', 'music-instruments', 'photography',
   'porcelain-ceramics', 'sports-memorabilia', 'stamps', 'textiles-quilts',
   'toys-dolls', 'vintage-tech', 'vintage-timepieces',

@@ -24,7 +24,7 @@ export default async function CollectionsPage() {
   }));
 
   const emptyCards: CardData[] = CATEGORY_PRESETS
-    .filter((p) => !usedKeys.has(p.key) && !p.custom && p.iconUrl)
+    .filter((p) => !usedKeys.has(p.key) && p.iconUrl)
     .map((p) => ({
       key: p.key,
       label: p.label,
