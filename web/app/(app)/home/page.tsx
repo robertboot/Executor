@@ -504,10 +504,10 @@ function SubCatVisualCard({
   itemCount: number;
 }) {
   // Crop the light-left gradient out of the source image: anchor to
-  // the right edge and zoom at least 1.3x so the cream area never
-  // shows up in the card. Per-sub-cat thumbZoom can still pull in
+  // the right edge and zoom aggressively so the cream half stays
+  // entirely off-screen. Per-sub-cat thumbZoom can still pull in
   // further when its baseline is higher.
-  const baseZoom = Math.max(subCat.thumbZoom ?? 1, 1.3);
+  const baseZoom = Math.max(subCat.thumbZoom ?? 1, 1.8);
   return (
     <Link
       href={`/collections/${encodeURIComponent(subCat.parent)}`}
@@ -529,8 +529,7 @@ function SubCatVisualCard({
           }}
         />
       </div>
-      {/* Light bottom darkening just for text legibility — no full
-          green gradient anymore. */}
+      {/* Light bottom darkening just for text legibility. */}
       <div
         className="absolute inset-x-0 bottom-0 h-3/5 pointer-events-none"
         style={{
@@ -539,11 +538,6 @@ function SubCatVisualCard({
         }}
         aria-hidden="true"
       />
-      <div className="absolute top-3 left-3 z-10">
-        <div className="w-11 h-11 rounded-full bg-cream/95 backdrop-blur-sm flex items-center justify-center text-gold-deep shadow-sm">
-          {subCatIcon(subCat)}
-        </div>
-      </div>
       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 text-cream">
         <h3 className="font-serif text-lg sm:text-xl leading-tight drop-shadow-sm">
           {subCat.label}
