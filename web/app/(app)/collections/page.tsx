@@ -305,17 +305,24 @@ function CollectionRowCard({ row }: { row: CollectionRow }) {
           href={`/collections/${encodeURIComponent(row.coreKey)}`}
           className="relative w-full lg:w-56 shrink-0 aspect-square bg-cream-soft overflow-hidden group"
         >
-          <Image
-            src={row.heroImage}
-            alt=""
-            fill
-            sizes="(max-width: 1024px) 100vw, 224px"
-            className="object-cover object-right transition-transform duration-500 group-hover:scale-105"
-            style={{
-              transform: row.heroZoom !== 1 ? `scale(${row.heroZoom})` : undefined,
-              transformOrigin: '100% 50%',
-            }}
-          />
+          {/* Outer wrapper owns the hover zoom so it stacks on top
+              of the per-row base zoom applied to the image itself. */}
+          <div
+            className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
+            style={{ transformOrigin: '100% 50%' }}
+          >
+            <Image
+              src={row.heroImage}
+              alt=""
+              fill
+              sizes="(max-width: 1024px) 100vw, 224px"
+              className="object-cover object-right"
+              style={{
+                transform: row.heroZoom !== 1 ? `scale(${row.heroZoom})` : undefined,
+                transformOrigin: '100% 50%',
+              }}
+            />
+          </div>
         </Link>
 
         <div className="p-5 lg:w-64 shrink-0 border-b lg:border-b-0 lg:border-r border-hairline flex flex-col justify-between gap-3">
