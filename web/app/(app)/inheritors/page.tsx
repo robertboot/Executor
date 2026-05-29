@@ -72,7 +72,24 @@ function HeroCard({ hasInheritors }: { hasInheritors: boolean }) {
 
   return (
     <section className="relative overflow-hidden bg-paper border border-hairline rounded-2xl shadow-card">
-      <div className="grid grid-cols-1 lg:grid-cols-2">
+      {/* Background image — fills the whole hero block */}
+      <Image
+        src="/inheritors-hero.png"
+        alt=""
+        fill
+        sizes="100vw"
+        className="object-cover object-right"
+        priority
+      />
+
+      {/* Cream-to-transparent overlay so the text stays readable on the left */}
+      <div
+        className="absolute inset-0 bg-gradient-to-r from-paper via-paper/85 to-transparent lg:from-paper lg:via-paper/70 lg:to-transparent"
+        aria-hidden
+      />
+
+      {/* Content overlay */}
+      <div className="relative grid grid-cols-1 lg:grid-cols-2">
         {/* Left: copy */}
         <div className="p-6 sm:p-10 flex flex-col">
           <div className="w-14 h-14 rounded-full bg-gold-soft flex items-center justify-center text-gold-deep mb-5">
@@ -115,17 +132,8 @@ function HeroCard({ hasInheritors }: { hasInheritors: boolean }) {
           </div>
         </div>
 
-        {/* Right: image */}
-        <div className="relative min-h-[260px] lg:min-h-[420px] bg-gradient-to-br from-cream-soft via-gold-soft/40 to-cream-soft">
-          <Image
-            src="/inheritors-hero.png"
-            alt="A pocket watch resting on a sepia family photograph beside an olive branch"
-            fill
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover"
-            priority
-          />
-        </div>
+        {/* Right: spacer so the image shows through */}
+        <div className="hidden lg:block min-h-[420px]" aria-hidden />
       </div>
     </section>
   );
