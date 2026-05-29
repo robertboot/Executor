@@ -115,7 +115,7 @@ export default function ItemEditor({
         <input
           value={form.category}
           onChange={(e) => set('category', e.target.value)}
-          placeholder="e.g. art-paintings, or type a new collection name"
+          placeholder="e.g. art-photography, or type a new collection name"
           className="input"
         />
       </Field>

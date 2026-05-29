@@ -11,10 +11,17 @@ export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ archetype: string }>;
+  searchParams: Promise<{ next?: string }>;
 }
 
-export default async function AddCollectionsPage({ params }: PageProps) {
-  const { archetype: archetypeParam } = await params;
+export default async function AddCollectionsPage({
+  params,
+  searchParams,
+}: PageProps) {
+  const [{ archetype: archetypeParam }, search] = await Promise.all([
+    params,
+    searchParams,
+  ]);
   const archetype = findArchetype(archetypeParam);
   if (!archetype) notFound();
 
@@ -40,6 +47,7 @@ export default async function AddCollectionsPage({ params }: PageProps) {
       archetypeKey={archetype.key as OnboardingArchetype}
       archetypeTitle={archetype.title}
       subCategories={unselected}
+      next={search?.next ?? null}
     />
   );
 }

@@ -70,7 +70,7 @@ export default async function ItemDetailPage({
       </div>
 
       {photos.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3">
           {photos.map((p) => (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -197,10 +197,10 @@ export default async function ItemDetailPage({
         {availablePeople.length > 0 ? (
           <form
             action={addPersonToItem}
-            className="flex flex-wrap items-end gap-2 pt-3 border-t border-hairline"
+            className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-2 pt-3 border-t border-hairline"
           >
             <input type="hidden" name="item_id" value={item.id} />
-            <label className="flex-1 min-w-[160px]">
+            <label className="w-full sm:flex-1 sm:min-w-[160px]">
               <span className="block text-xs uppercase tracking-wider text-muted mb-1">
                 Person
               </span>
@@ -216,7 +216,7 @@ export default async function ItemDetailPage({
                 ))}
               </select>
             </label>
-            <label className="min-w-[160px]">
+            <label className="w-full sm:w-auto sm:min-w-[160px]">
               <span className="block text-xs uppercase tracking-wider text-muted mb-1">
                 Role
               </span>
@@ -236,7 +236,7 @@ export default async function ItemDetailPage({
             </label>
             <button
               type="submit"
-              className="inline-flex items-center px-4 h-10 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep"
+              className="inline-flex items-center justify-center px-4 h-10 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep"
             >
               Link
             </button>

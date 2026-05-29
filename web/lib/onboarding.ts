@@ -179,10 +179,6 @@ export function findArchetype(key: string | null | undefined): ArchetypeDef | nu
   return ARCHETYPES.find((a) => a.key === key) ?? null;
 }
 
-export function findFocus(key: string | null | undefined): FocusDef | null {
-  if (!key) return null;
-  return FOCUS_MODES.find((f) => f.key === key) ?? null;
-}
 
 // ---- Archetype sub-categories ---------------------------------------------
 // Each archetype can define a more granular list of sub-categories that

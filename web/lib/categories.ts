@@ -24,20 +24,13 @@ const f = (key: string, label: string, type: CustomFieldDef['type'] = 'text'): C
   type,
 });
 
+// Only includes keys with an actual PNG file in /public/categories/.
+// Missing keys fall back to their emoji glyph at the render layer.
 const HAS_ICON = new Set([
-  'antiques-decor',
-  'jewelry-watches',
-  'art-photography',
-  'books-documents',
+  'custom',
+  'family-keepsakes',
   'music-instruments',
   'sports-memorabilia',
-  'military-historical',
-  'collectibles-curiosities',
-  'family-keepsakes',
-  'outdoor-sporting',
-  'fashion-textiles',
-  'silver-china-tableware',
-  'custom',
 ]);
 
 const RAW: Omit<CategoryPreset, 'iconUrl'>[] = [

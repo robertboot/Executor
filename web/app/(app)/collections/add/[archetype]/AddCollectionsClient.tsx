@@ -11,6 +11,7 @@ interface Props {
   archetypeKey: OnboardingArchetype;
   archetypeTitle: string;
   subCategories: SubCategory[];
+  next: string | null;
 }
 
 const CARD_OVERLAY_GRADIENT =
@@ -20,6 +21,7 @@ export default function AddCollectionsClient({
   archetypeKey,
   archetypeTitle,
   subCategories,
+  next,
 }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
@@ -42,7 +44,7 @@ export default function AddCollectionsClient({
     setError(null);
     startTransition(async () => {
       try {
-        await addSubCategories(archetypeKey, Array.from(selected));
+        await addSubCategories(archetypeKey, Array.from(selected), next ?? undefined);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Something went wrong.');
       }
@@ -62,7 +64,7 @@ export default function AddCollectionsClient({
         <p className="text-xs uppercase tracking-widest text-muted">
           {archetypeTitle}
         </p>
-        <h1 className="font-serif text-3xl sm:text-4xl text-ink leading-tight mt-1">
+        <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-ink leading-tight mt-1">
           Add more collections
         </h1>
         <p className="text-muted text-sm sm:text-base mt-2">

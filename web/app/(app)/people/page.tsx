@@ -12,7 +12,7 @@ export default async function PeoplePage() {
     <div className="space-y-6 pb-24">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
+          <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-ink leading-tight">
             People
           </h1>
           <p className="text-muted text-sm mt-1">
@@ -45,7 +45,7 @@ export default async function PeoplePage() {
           </Link>
         </div>
       ) : (
-        <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
           {people.map((p) => {
             const name = displayName(p);
             const dates = lifeDates(p);

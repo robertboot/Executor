@@ -4,7 +4,6 @@ import type {
   Person,
   ItemPersonRole,
   SideOfFamily,
-  Confidence,
 } from './types';
 
 export const ROLE_LABEL: Record<ItemPersonRole, string> = {
@@ -31,12 +30,6 @@ export const SIDE_LABEL: Record<SideOfFamily, string> = {
   paternal: 'Paternal Side',
   maternal: 'Maternal Side',
   other: 'Other',
-};
-
-export const CONFIDENCE_LABEL: Record<Confidence, string> = {
-  confirmed: 'Confirmed',
-  likely: 'Likely',
-  unknown: 'Unknown',
 };
 
 export function displayName(p: Pick<Person, 'first_name' | 'middle_name' | 'last_name'>): string {

@@ -14,11 +14,8 @@ import {
   type TimelineEntry,
   type SharedPerson,
 } from '@/lib/api';
-import {
-  formatMoney,
-  formatRelativeTime,
-  timeOfDayGreeting,
-} from '@/lib/format';
+import { formatMoney, formatRelativeTime } from '@/lib/format';
+import GreetingHeading from '@/components/GreetingHeading';
 import {
   findArchetype,
   findSubCategory,
@@ -151,7 +148,7 @@ export default async function HomePage() {
 
       <Link
         href="/items/new"
-        className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 pl-4 pr-5 h-14 rounded-full bg-forest text-cream shadow-xl hover:bg-forest-deep transition-colors font-medium"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 inline-flex items-center gap-2 pl-4 pr-5 h-12 sm:h-14 rounded-full bg-forest text-cream shadow-xl hover:bg-forest-deep transition-colors font-medium"
         aria-label="Add a new piece"
       >
         <PlusIcon className="w-5 h-5" />
@@ -181,9 +178,10 @@ function Header({
   return (
     <section className="space-y-4">
       <div>
-        <h1 className="font-serif text-4xl sm:text-5xl text-ink leading-tight">
-          {timeOfDayGreeting()}, {firstName}.
-        </h1>
+        <GreetingHeading
+          firstName={firstName}
+          className="font-serif text-3xl sm:text-4xl lg:text-5xl text-ink leading-tight"
+        />
         {archetypeTitle && (
           <p className="text-gold-deep text-base sm:text-lg font-medium mt-2">
             Your {archetypeTitle} Collection
@@ -477,7 +475,7 @@ function YourCollections({
           Manage →
         </Link>
       </div>
-      <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3">
         {subCats.map((s) => (
           <li key={s.key}>
             <SubCatVisualCard

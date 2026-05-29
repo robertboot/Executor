@@ -79,7 +79,7 @@ export default async function PersonProfilePage({ params }: PageProps) {
           )}
         </div>
         <div className="flex-1 min-w-0 space-y-2">
-          <h1 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
+          <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-ink leading-tight">
             {name}
           </h1>
           {person.relationship && (
@@ -143,7 +143,7 @@ export default async function PersonProfilePage({ params }: PageProps) {
                   <h3 className="text-xs uppercase tracking-widest text-muted">
                     {ROLE_LABEL[role]}
                   </h3>
-                  <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3">
                     {list.map((it) => (
                       <li key={`${role}-${it.id}`}>
                         <Link

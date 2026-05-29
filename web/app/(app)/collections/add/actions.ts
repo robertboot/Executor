@@ -12,12 +12,22 @@ import type { OnboardingArchetype } from '@/lib/types';
 
 const VALID_CORE_KEYS = new Set(CATEGORY_PRESETS.map((c) => c.key));
 
+// Only allow internal redirects, so a "?next=" param can't be used to
+// punt users off-site after a save.
+function safeNext(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith('/') || raw.startsWith('//')) return null;
+  return raw;
+}
+
 // Adds the supplied sub-category keys to the user's selected_collections
 // (along with their parent Core 12 keys), preserving any existing
-// picks. Redirects back to /collections?archetype=<archetype>.
+// picks. Redirects to `next` when provided and internal, otherwise
+// /collections?archetype=<archetype>.
 export async function addSubCategories(
   archetype: OnboardingArchetype,
   subCategoryKeys: string[],
+  next?: string,
 ) {
   const user = await getCurrentUser();
   if (!user) throw new Error('Not authenticated');
@@ -59,7 +69,8 @@ export async function addSubCategories(
 
   revalidatePath('/collections');
   revalidatePath('/home');
-  redirect(`/collections?archetype=${archetype}`);
+  const target = safeNext(next) ?? `/collections?archetype=${archetype}`;
+  redirect(target);
 }
 
 // Removes a single sub-category key from the user's selected_collections.

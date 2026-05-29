@@ -135,7 +135,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
 
       <Link
         href="/items/new"
-        className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 pl-4 pr-5 h-14 rounded-full bg-forest text-cream shadow-xl hover:bg-forest-deep transition-colors font-medium"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 inline-flex items-center gap-2 pl-4 pr-5 h-12 sm:h-14 rounded-full bg-forest text-cream shadow-xl hover:bg-forest-deep transition-colors font-medium"
         aria-label="Add a new piece"
       >
         <PlusIcon className="w-5 h-5" />
@@ -214,7 +214,7 @@ function SidebarItem({
   return (
     <Link
       href={href}
-      className={`flex items-center gap-3 px-3 py-3 rounded-xl whitespace-nowrap lg:whitespace-normal min-w-fit lg:min-w-0 transition-colors ${
+      className={`flex items-center gap-3 px-3 py-3 rounded-xl whitespace-nowrap lg:whitespace-normal min-w-0 lg:min-w-0 transition-colors ${
         active
           ? 'bg-gold-soft border border-gold/40 text-ink shadow-card'
           : 'bg-paper border border-hairline text-ink-soft hover:border-ink/20 hover:text-ink'
