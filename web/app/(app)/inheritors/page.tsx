@@ -39,7 +39,7 @@ export default async function InheritorsPage() {
         </Link>
       </header>
 
-      <HeroCard hasInheritors={inheritors.length > 0} />
+      <HeroCard />
 
       <InheritorTypesSection />
 
@@ -62,10 +62,10 @@ export default async function InheritorsPage() {
 //  Hero card                                                      //
 // ============================================================== //
 
-function HeroCard({ hasInheritors }: { hasInheritors: boolean }) {
+function HeroCard() {
   const bullets = [
-    'Primary Inheritor',
-    'Alternate Inheritor',
+    'Primary Inheritors',
+    'Alternate Inheritors',
     'Transfer Notes',
     'Special Instructions',
   ];
@@ -96,16 +96,22 @@ function HeroCard({ hasInheritors }: { hasInheritors: boolean }) {
             <KeyIcon className="w-7 h-7" />
           </div>
           <h2 className="font-serif text-2xl sm:text-3xl text-ink leading-tight">
-            Plan Your Family Legacy
+            Protect Your Wishes
           </h2>
-          <p className="text-ink-soft text-sm sm:text-base mt-3 max-w-md leading-relaxed">
-            Designate who should receive your heirlooms, collections, and
-            treasured possessions in the future.
-          </p>
+          <div className="text-ink-soft text-sm sm:text-base mt-3 max-w-md leading-relaxed space-y-3">
+            <p>
+              Record who should receive your heirlooms, collections, and
+              treasured possessions.
+            </p>
+            <p>
+              Create a clear plan for future generations with designated
+              inheritors, alternates, and special instructions.
+            </p>
+          </div>
 
           <div className="mt-6">
             <div className="text-[11px] uppercase tracking-widest text-muted mb-3">
-              Every item can have:
+              Every assignment includes:
             </div>
             <ul className="space-y-2.5">
               {bullets.map((b) => (
@@ -125,9 +131,7 @@ function HeroCard({ hasInheritors }: { hasInheritors: boolean }) {
               className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
             >
               <PlusIcon className="w-4 h-4" />
-              {hasInheritors
-                ? 'Add Another Inheritor'
-                : 'Add Your First Inheritor'}
+              Add Inheritor
             </Link>
           </div>
         </div>

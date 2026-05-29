@@ -38,8 +38,7 @@ export default async function ConservatorsPage() {
           </h1>
           <p className="text-muted text-sm sm:text-base mt-2 max-w-xl">
             Invite trusted family members, historians, or caretakers to
-            help preserve your archive. Every change is permanently
-            logged.
+            help preserve your archive.
           </p>
         </div>
         <Link
@@ -51,11 +50,10 @@ export default async function ConservatorsPage() {
         </Link>
       </header>
 
-      {conservators.length === 0 ? (
-        <HeroCard hasConservators={false} />
-      ) : (
+      <HeroCard />
+
+      {conservators.length > 0 && (
         <>
-          <HeroCard hasConservators={true} />
           <SummaryGrid summary={summary} />
           <section className="space-y-4">
             <h2 className="font-serif text-2xl text-ink">Your conservators</h2>
@@ -79,12 +77,12 @@ export default async function ConservatorsPage() {
 //  Hero card                                                      //
 // ============================================================== //
 
-function HeroCard({ hasConservators }: { hasConservators: boolean }) {
+function HeroCard() {
   const bullets = [
     'View Access',
     'Edit Access',
-    'Audit Logs',
-    'Permission Control',
+    'Activity Tracking',
+    'Permanent Audit Log',
   ];
 
   return (
@@ -115,15 +113,20 @@ function HeroCard({ hasConservators }: { hasConservators: boolean }) {
           <h2 className="font-serif text-2xl sm:text-3xl text-ink leading-tight">
             Protect Your Family Archive
           </h2>
-          <p className="text-ink-soft text-sm sm:text-base mt-3 max-w-md leading-relaxed">
-            Invite family members, historians, or trusted friends to help
-            preserve your collections. Every change they make is
-            permanently logged.
-          </p>
+          <div className="text-ink-soft text-sm sm:text-base mt-3 max-w-md leading-relaxed space-y-3">
+            <p>
+              Invite trusted family members, historians, or friends to
+              help preserve your collections.
+            </p>
+            <p>
+              Give them view or edit access, and every change is
+              permanently recorded in the archive log.
+            </p>
+          </div>
 
           <div className="mt-6">
             <div className="text-[11px] uppercase tracking-widest text-muted mb-3">
-              Every conservator can have:
+              Every conservator comes with:
             </div>
             <ul className="space-y-2.5">
               {bullets.map((b) => (
@@ -143,9 +146,7 @@ function HeroCard({ hasConservators }: { hasConservators: boolean }) {
               className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
             >
               <UserPlusIcon className="w-4 h-4" />
-              {hasConservators
-                ? 'Invite Another Conservator'
-                : 'Invite Your First Conservator'}
+              Invite Conservator
             </Link>
             <Link
               href="#permission-levels"

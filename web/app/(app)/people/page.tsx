@@ -21,9 +21,8 @@ export default async function PeoplePage() {
             Legacy People
           </h1>
           <p className="text-muted text-sm sm:text-base mt-2 max-w-xl">
-            The family, friends, and previous owners behind every
-            heirloom. Answer the question: who is part of this item&rsquo;s
-            story?
+            The family, friends, makers, and previous owners behind every
+            heirloom.
           </p>
         </div>
         <Link
@@ -31,11 +30,11 @@ export default async function PeoplePage() {
           className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors shrink-0"
         >
           <UserPlusIcon className="w-4 h-4" />
-          Add Person
+          Add Legacy Person
         </Link>
       </header>
 
-      <HeroCard hasPeople={people.length > 0} />
+      <HeroCard />
 
       <PeopleRolesSection />
 
@@ -57,12 +56,12 @@ export default async function PeoplePage() {
 //  Hero card                                                      //
 // ============================================================== //
 
-function HeroCard({ hasPeople }: { hasPeople: boolean }) {
+function HeroCard() {
   const bullets = [
-    'Identify',
-    'Connect',
-    'Remember',
-    'Pass Down',
+    'Identify who owned an item',
+    'Connect people to stories and photographs',
+    'Preserve family history',
+    'Pass names and memories to future generations',
   ];
 
   return (
@@ -91,21 +90,28 @@ function HeroCard({ hasPeople }: { hasPeople: boolean }) {
             <FamilyIcon className="w-7 h-7" />
           </div>
           <h2 className="font-serif text-2xl sm:text-3xl text-ink leading-tight">
-            Preserve the People Behind Every Heirloom
+            Plan Your Family Legacy
           </h2>
-          <p className="text-ink-soft text-sm sm:text-base mt-3 max-w-md leading-relaxed">
-            An heirloom without a name is just an object. Legacy People
-            are the human thread that runs through your archive.
-          </p>
+          <div className="text-ink-soft text-sm sm:text-base mt-3 max-w-md leading-relaxed space-y-3">
+            <p>An heirloom without a name is just an object.</p>
+            <p>
+              Legacy People are the family members, friends, makers, and
+              previous owners whose stories are inseparable from the
+              items you preserve.
+            </p>
+          </div>
 
           <div className="mt-6">
             <div className="text-[11px] uppercase tracking-widest text-muted mb-3">
-              Every legacy person helps you:
+              With Legacy People you can:
             </div>
             <ul className="space-y-2.5">
               {bullets.map((b) => (
-                <li key={b} className="flex items-center gap-3 text-sm text-ink">
-                  <span className="shrink-0 w-5 h-5 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+                <li
+                  key={b}
+                  className="flex items-start gap-3 text-sm text-ink"
+                >
+                  <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
                     <CheckIcon className="w-3 h-3" />
                   </span>
                   <span>{b}</span>
@@ -120,7 +126,7 @@ function HeroCard({ hasPeople }: { hasPeople: boolean }) {
               className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
             >
               <UserPlusIcon className="w-4 h-4" />
-              {hasPeople ? 'Add Another Person' : 'Add Your First Person'}
+              Add Legacy Person
             </Link>
           </div>
         </div>
