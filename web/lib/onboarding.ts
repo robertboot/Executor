@@ -21,7 +21,7 @@ export const ARCHETYPES: ArchetypeDef[] = [
     title: 'Family Legacy',
     tagline: 'Preserve your family history and memories.',
     bestFor: 'Heirlooms · photos · letters · recipes · keepsakes',
-    bgImage: `/archetypes/family-legacy.jpg?v=${ARCHETYPE_BG_VERSION}`,
+    bgImage: `/archetypes/family-legacy.png?v=${ARCHETYPE_BG_VERSION}`,
     recommendedKeys: [
       'family-keepsakes',
       'art-photography',
@@ -38,7 +38,7 @@ export const ARCHETYPES: ArchetypeDef[] = [
     title: 'Collector',
     tagline: 'Organize and track curated collectibles.',
     bestFor: 'Sports · cards · coins · comics · hobbies',
-    bgImage: `/archetypes/collector.jpg?v=${ARCHETYPE_BG_VERSION}`,
+    bgImage: `/archetypes/collector.png?v=${ARCHETYPE_BG_VERSION}`,
     recommendedKeys: [
       'sports-memorabilia',
       'collectibles-curiosities',
@@ -53,7 +53,7 @@ export const ARCHETYPES: ArchetypeDef[] = [
     title: 'Luxury & Fine Art',
     tagline: 'Curate a refined private collection.',
     bestFor: 'High-value items · watches · art · antiques',
-    bgImage: `/archetypes/luxury.jpg?v=${ARCHETYPE_BG_VERSION}`,
+    bgImage: `/archetypes/luxury.png?v=${ARCHETYPE_BG_VERSION}`,
     recommendedKeys: [
       'art-photography',
       'jewelry-watches',
@@ -69,7 +69,7 @@ export const ARCHETYPES: ArchetypeDef[] = [
     title: 'Historical Archive',
     tagline: 'Document artifacts with historical significance.',
     bestFor: 'Military · historical documents · genealogy · preservation',
-    bgImage: `/archetypes/historical.jpg?v=${ARCHETYPE_BG_VERSION}`,
+    bgImage: `/archetypes/historical.png?v=${ARCHETYPE_BG_VERSION}`,
     recommendedKeys: [
       'military-historical',
       'books-documents',
@@ -84,7 +84,7 @@ export const ARCHETYPES: ArchetypeDef[] = [
     title: 'Mixed Household',
     tagline: 'A little bit of everything.',
     bestFor: 'Most everyday collections',
-    bgImage: `/archetypes/mixed.jpg?v=${ARCHETYPE_BG_VERSION}`,
+    bgImage: `/archetypes/mixed.png?v=${ARCHETYPE_BG_VERSION}`,
     recommendedKeys: [
       'antiques-decor',
       'jewelry-watches',
