@@ -109,6 +109,8 @@ export const ARCHETYPES: ArchetypeDef[] = [
     tagline: 'A little bit of everything.',
     bestFor: 'Most everyday collections',
     bgImage: `/archetypes/mixed.png?v=${ARCHETYPE_BG_VERSION}`,
+    fullImage: `/archetypes/mixed-full.png?v=${ARCHETYPE_BG_VERSION}`,
+    heroOverlayStyle: 'scrim',
     recommendedKeys: [
       'antiques-decor',
       'jewelry-watches',
