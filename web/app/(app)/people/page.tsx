@@ -59,70 +59,74 @@ export default async function PeoplePage() {
 
 function HeroCard({ hasPeople }: { hasPeople: boolean }) {
   const bullets = [
-    {
-      title: 'Identify',
-      body: 'Record who owned, made, or appeared in the items you preserve.',
-    },
-    {
-      title: 'Connect',
-      body: 'Link each person to the items and stories they belong to.',
-    },
-    {
-      title: 'Remember',
-      body: 'Capture biographies, life dates, and photos so they are not lost.',
-    },
-    {
-      title: 'Pass Down',
-      body: 'Give future generations the names and faces behind every heirloom.',
-    },
+    'Identify',
+    'Connect',
+    'Remember',
+    'Pass Down',
   ];
 
   return (
-    <section className="bg-paper border border-hairline rounded-2xl p-6 sm:p-10 shadow-card">
-      <div className="flex flex-col items-center text-center">
-        <div className="w-16 h-16 rounded-full bg-gold-soft flex items-center justify-center text-gold-deep mb-4">
-          <FamilyIcon className="w-8 h-8" />
-        </div>
-        <h2 className="font-serif text-2xl sm:text-3xl text-ink">
-          Preserve the People Behind Every Heirloom
-        </h2>
-        <p className="text-muted text-sm sm:text-base mt-3 max-w-xl">
-          An heirloom without a name is just an object. Legacy People are
-          the human thread that runs through your archive — the
-          grandparents, friends, makers, and previous owners whose stories
-          are inseparable from the items you keep.
-        </p>
-      </div>
+    <section className="relative overflow-hidden bg-paper border border-hairline rounded-2xl shadow-card">
+      {/* Background image — fills the whole hero block */}
+      <Image
+        src="/legacy-people-hero.png"
+        alt=""
+        fill
+        sizes="100vw"
+        className="object-cover object-right"
+        priority
+      />
 
-      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 max-w-3xl mx-auto">
-        {bullets.map((b) => (
-          <li
-            key={b.title}
-            className="flex items-start gap-3 bg-cream-soft/50 border border-hairline rounded-xl p-4"
-          >
-            <span className="shrink-0 mt-0.5 w-7 h-7 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
-              <CheckIcon className="w-3.5 h-3.5" />
-            </span>
-            <div className="min-w-0">
-              <div className="font-serif text-base text-ink leading-tight">
-                {b.title}
-              </div>
-              <div className="text-xs text-ink-soft mt-1 leading-relaxed">
-                {b.body}
-              </div>
+      {/* Cream-to-transparent overlay so the text stays readable on the left */}
+      <div
+        className="absolute inset-0 bg-gradient-to-r from-paper/90 via-paper/75 to-transparent lg:from-paper/90 lg:via-paper/60 lg:to-transparent"
+        aria-hidden
+      />
+
+      {/* Content overlay */}
+      <div className="relative grid grid-cols-1 lg:grid-cols-2">
+        {/* Left: copy */}
+        <div className="p-6 sm:p-10 flex flex-col">
+          <div className="w-14 h-14 rounded-full bg-gold-soft flex items-center justify-center text-gold-deep mb-5">
+            <FamilyIcon className="w-7 h-7" />
+          </div>
+          <h2 className="font-serif text-2xl sm:text-3xl text-ink leading-tight">
+            Preserve the People Behind Every Heirloom
+          </h2>
+          <p className="text-ink-soft text-sm sm:text-base mt-3 max-w-md leading-relaxed">
+            An heirloom without a name is just an object. Legacy People
+            are the human thread that runs through your archive.
+          </p>
+
+          <div className="mt-6">
+            <div className="text-[11px] uppercase tracking-widest text-muted mb-3">
+              Every legacy person helps you:
             </div>
-          </li>
-        ))}
-      </ul>
+            <ul className="space-y-2.5">
+              {bullets.map((b) => (
+                <li key={b} className="flex items-center gap-3 text-sm text-ink">
+                  <span className="shrink-0 w-5 h-5 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+                    <CheckIcon className="w-3 h-3" />
+                  </span>
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-      <div className="flex justify-center mt-8">
-        <Link
-          href="/people/new"
-          className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
-        >
-          <UserPlusIcon className="w-4 h-4" />
-          {hasPeople ? 'Add Another Person' : 'Add Your First Person'}
-        </Link>
+          <div className="mt-8">
+            <Link
+              href="/people/new"
+              className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
+            >
+              <UserPlusIcon className="w-4 h-4" />
+              {hasPeople ? 'Add Another Person' : 'Add Your First Person'}
+            </Link>
+          </div>
+        </div>
+
+        {/* Right: spacer so the image shows through */}
+        <div className="hidden lg:block min-h-[420px]" aria-hidden />
       </div>
     </section>
   );
