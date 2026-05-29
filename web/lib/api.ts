@@ -9,6 +9,7 @@ import { createSupabaseServerClient } from './supabase/server';
 import type {
   CollectionWithStats,
   Conservator,
+  CustomCollection,
   Inventory,
   InventoryWithRole,
   Item,
@@ -663,6 +664,65 @@ export async function listItemPeople(itemId: string): Promise<ItemPersonRow[]> {
     const { people: person, ...link } = r;
     return { link, person };
   });
+}
+
+// ---------- Custom Collections ----------
+
+export const CUSTOM_COLLECTION_PHOTO_BUCKET = 'custom-collection-photos';
+
+export function customCollectionImageUrl(storagePath: string): string {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  return `${base}/storage/v1/object/public/${CUSTOM_COLLECTION_PHOTO_BUCKET}/${storagePath}`;
+}
+
+export interface CustomCollectionWithStats extends CustomCollection {
+  itemCount: number;
+  imageUrl: string | null;
+}
+
+export async function listMyCustomCollections(): Promise<
+  CustomCollectionWithStats[]
+> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('custom_collections')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+
+  const rows = (data ?? []) as CustomCollection[];
+  if (rows.length === 0) return [];
+
+  // Count items per custom collection in a single query.
+  const ids = rows.map((r) => r.id);
+  const { data: itemRows } = await supabase
+    .from('items')
+    .select('category')
+    .in('category', ids);
+  const counts = new Map<string, number>();
+  for (const r of itemRows ?? []) {
+    if (!r.category) continue;
+    counts.set(r.category, (counts.get(r.category) ?? 0) + 1);
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    itemCount: counts.get(r.id) ?? 0,
+    imageUrl: r.image_path ? customCollectionImageUrl(r.image_path) : null,
+  }));
+}
+
+export async function getCustomCollection(
+  id: string,
+): Promise<CustomCollection | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('custom_collections')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as CustomCollection | null) ?? null;
 }
 
 // ---------- Profile ----------

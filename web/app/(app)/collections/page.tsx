@@ -4,8 +4,10 @@ import { createSupabaseServerClient, getCurrentUser } from '@/lib/supabase/serve
 import {
   dashboardStats,
   listCollectionsWithSamples,
+  listMyCustomCollections,
   type CollectionBucket,
   type CollectionSampleItem,
+  type CustomCollectionWithStats,
 } from '@/lib/api';
 import { formatMoney } from '@/lib/format';
 import {
@@ -50,7 +52,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
   const user = await getCurrentUser();
   const supabase = await createSupabaseServerClient();
 
-  const [profileRes, stats, buckets, params] = await Promise.all([
+  const [profileRes, stats, buckets, customCollections, params] = await Promise.all([
     user
       ? supabase
           .from('profiles')
@@ -61,6 +63,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
       : Promise.resolve({ data: null }),
     dashboardStats(),
     listCollectionsWithSamples(4),
+    listMyCustomCollections(),
     searchParams,
   ]);
 
@@ -112,7 +115,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
           isUserArchetype={profileArchetypeKey === activeArchetype.key}
         />
 
-        {rows.length === 0 && !hasUnselected ? (
+        {rows.length === 0 && !hasUnselected && customCollections.length === 0 ? (
           <EmptyState />
         ) : (
           <ul className="space-y-4">
@@ -124,6 +127,20 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
                 />
               </li>
             ))}
+            {customCollections.map((c) => {
+              const bucket = bucketByCore.get(c.id) ?? null;
+              return (
+                <li key={c.id}>
+                  <CustomCollectionRowCard
+                    collection={c}
+                    itemCount={bucket?.itemCount ?? 0}
+                    totalValue={bucket?.totalValue ?? 0}
+                    totalCurrency={bucket?.totalCurrency ?? 'USD'}
+                    samples={bucket?.sampleItems ?? []}
+                  />
+                </li>
+              );
+            })}
             {hasUnselected && (
               <li>
                 <AddCollectionCard archetypeKey={activeArchetype.key} />
@@ -434,6 +451,84 @@ function SampleItems({
         <ChevronRightIcon className="w-4 h-4" />
       </Link>
     </div>
+  );
+}
+
+function CustomCollectionRowCard({
+  collection,
+  itemCount,
+  totalValue,
+  totalCurrency,
+  samples,
+}: {
+  collection: CustomCollectionWithStats;
+  itemCount: number;
+  totalValue: number;
+  totalCurrency: string;
+  samples: CollectionSampleItem[];
+}) {
+  const target = `/collections/${encodeURIComponent(collection.id)}?custom=1`;
+  return (
+    <article className="bg-paper border border-hairline rounded-2xl overflow-hidden">
+      <div className="flex flex-col lg:flex-row">
+        <Link
+          href={target}
+          className="relative w-full lg:w-56 shrink-0 aspect-square bg-cream-soft overflow-hidden group"
+        >
+          {collection.imageUrl ? (
+            <Image
+              src={collection.imageUrl}
+              alt=""
+              fill
+              sizes="(max-width: 1024px) 100vw, 224px"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-5xl text-gold-deep bg-gold-soft/40">
+              ✦
+            </div>
+          )}
+        </Link>
+
+        <div className="p-5 lg:w-64 shrink-0 border-b lg:border-b-0 lg:border-r border-hairline flex flex-col justify-between gap-3">
+          <div>
+            <div className="text-[10px] uppercase tracking-widest text-gold-deep">
+              Custom
+            </div>
+            <h3 className="font-serif text-xl text-ink leading-tight mt-1">
+              {collection.name}
+            </h3>
+            <div className="text-xs text-muted mt-1">
+              {itemCount} {itemCount === 1 ? 'Item' : 'Items'}
+              {totalValue > 0 && (
+                <>
+                  <span className="mx-1.5">·</span>
+                  {formatMoney(totalValue, totalCurrency)}
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={target}
+              className="inline-flex items-center px-4 h-9 rounded-lg border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors"
+            >
+              View Collection
+            </Link>
+            <Link
+              href={`/collections/custom/${collection.id}/edit`}
+              className="text-xs text-muted hover:text-ink underline"
+            >
+              Edit
+            </Link>
+          </div>
+        </div>
+
+        <div className="flex-1 min-w-0 p-5">
+          <SampleItems samples={samples} coreKey={collection.id} />
+        </div>
+      </div>
+    </article>
   );
 }
 

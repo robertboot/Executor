@@ -171,3 +171,16 @@ export interface PersonRelationship {
   relationship_type: FamilyRelationshipType;
   created_at: string;
 }
+
+// ============================================================== //
+//  Custom Collections                                             //
+// ============================================================== //
+
+export interface CustomCollection {
+  id: string;
+  owner_id: string;
+  name: string;
+  image_path: string | null;
+  created_at: string;
+  updated_at: string;
+}

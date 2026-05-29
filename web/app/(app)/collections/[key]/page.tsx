@@ -4,13 +4,19 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { findCategory, labelForCategory } from '@/lib/categories';
 import { findSubCategory } from '@/lib/onboarding';
 import { formatMoney } from '@/lib/format';
-import { photoPublicUrl } from '@/lib/api';
+import {
+  photoPublicUrl,
+  getCustomCollection,
+  customCollectionImageUrl,
+} from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 interface PageProps {
   params: Promise<{ key: string }>;
-  searchParams: Promise<{ sub?: string }>;
+  searchParams: Promise<{ sub?: string; custom?: string }>;
 }
 
 export default async function CollectionDetailPage({
@@ -19,12 +25,20 @@ export default async function CollectionDetailPage({
 }: PageProps) {
   const [{ key: rawKey }, search] = await Promise.all([params, searchParams]);
   const coreKey = decodeURIComponent(rawKey);
-  const preset = findCategory(coreKey);
-  const sub = search?.sub ? findSubCategory(search.sub) : null;
+
+  // Custom collections use a UUID for their key. When the URL looks
+  // like one (or ?custom=1 is set), try to load it and short-circuit
+  // to the custom view.
+  const couldBeCustom = search?.custom === '1' || UUID_RE.test(coreKey);
+  const custom = couldBeCustom ? await getCustomCollection(coreKey) : null;
+
+  const preset = !custom ? findCategory(coreKey) : null;
+  const sub = !custom && search?.sub ? findSubCategory(search.sub) : null;
 
   // The display layer is sub-cat-aware, but item storage is still core-
-  // keyed — so we always filter by the parent core key.
-  const filterKey = sub?.parent ?? coreKey;
+  // keyed — so we always filter by the parent core key (or by the
+  // custom collection's UUID).
+  const filterKey = custom ? custom.id : sub?.parent ?? coreKey;
 
   const supabase = await createSupabaseServerClient();
   const { data: items } = await supabase
@@ -33,10 +47,17 @@ export default async function CollectionDetailPage({
     .eq('category', filterKey)
     .order('created_at', { ascending: false });
 
-  const title = sub?.label ?? preset?.label ?? labelForCategory(coreKey);
+  const title =
+    custom?.name ??
+    sub?.label ??
+    preset?.label ??
+    labelForCategory(coreKey);
   const description = sub?.description ?? null;
-  const heroImage = sub?.bgImage ?? null;
-  const heroZoom = sub?.thumbZoom ?? 1;
+  const heroImage = custom?.image_path
+    ? customCollectionImageUrl(custom.image_path)
+    : sub?.bgImage ?? null;
+  const heroZoom = custom ? 1 : sub?.thumbZoom ?? 1;
+  const editHref = custom ? `/collections/custom/${custom.id}/edit` : null;
   const count = items?.length ?? 0;
   const itemList =
     (items ?? []) as Array<{
@@ -57,6 +78,7 @@ export default async function CollectionDetailPage({
         heroZoom={heroZoom}
         count={count}
         addItemHref={`/items/new?category=${encodeURIComponent(filterKey)}`}
+        editHref={editHref}
       />
 
       {count === 0 ? (
@@ -126,6 +148,7 @@ function Hero({
   heroZoom,
   count,
   addItemHref,
+  editHref,
 }: {
   title: string;
   description: string | null;
@@ -133,6 +156,7 @@ function Hero({
   heroZoom: number;
   count: number;
   addItemHref: string;
+  editHref: string | null;
 }) {
   if (heroImage) {
     return (
@@ -181,6 +205,14 @@ function Hero({
             >
               + Add item
             </Link>
+            {editHref && (
+              <Link
+                href={editHref}
+                className="text-sm text-cream/90 underline hover:text-cream"
+              >
+                Edit
+              </Link>
+            )}
           </div>
         </div>
       </section>
@@ -196,12 +228,22 @@ function Hero({
           {count} {count === 1 ? 'item' : 'items'}
         </p>
       </div>
-      <Link
-        href={addItemHref}
-        className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
-      >
-        + Add item
-      </Link>
+      <div className="flex items-center gap-3">
+        {editHref && (
+          <Link
+            href={editHref}
+            className="text-sm text-muted hover:text-ink underline"
+          >
+            Edit
+          </Link>
+        )}
+        <Link
+          href={addItemHref}
+          className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
+        >
+          + Add item
+        </Link>
+      </div>
     </header>
   );
 }

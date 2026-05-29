@@ -185,11 +185,7 @@ export default function AddCollectionsClient({
                 <h2 className="text-xs uppercase tracking-widest text-muted">
                   Or start your own
                 </h2>
-                <CustomTile
-                  sub={customOption}
-                  checked={selected.has(customOption.key)}
-                  onToggle={() => toggle(customOption.key)}
-                />
+                <CustomTile sub={customOption} archetypeKey={archetypeKey} />
               </section>
             )}
           </div>
@@ -294,23 +290,16 @@ function SubCatCheckbox({
 
 function CustomTile({
   sub,
-  checked,
-  onToggle,
+  archetypeKey,
 }: {
   sub: SubCategory;
-  checked: boolean;
-  onToggle: () => void;
+  archetypeKey: OnboardingArchetype;
 }) {
+  const back = `/collections?archetype=${archetypeKey}`;
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className={`group relative w-full text-left flex items-center gap-4 bg-paper border-2 rounded-2xl p-5 transition-all ${
-        checked
-          ? 'border-forest shadow-card'
-          : 'border-dashed border-gold hover:border-forest'
-      }`}
-      aria-pressed={checked}
+    <Link
+      href={`/collections/custom/new?next=${encodeURIComponent(back)}`}
+      className="group relative w-full text-left flex items-center gap-4 bg-paper border-2 border-dashed border-gold rounded-2xl p-5 hover:border-forest hover:shadow-card transition-all"
     >
       <div className="shrink-0 relative w-16 h-16 rounded-xl overflow-hidden bg-gold-soft/60">
         <Image
@@ -326,18 +315,16 @@ function CustomTile({
           <h3 className="font-serif text-base sm:text-lg text-ink leading-tight">
             {sub.label}
           </h3>
-          {!checked && (
-            <span className="text-[10px] uppercase tracking-widest text-gold-deep">
-              New
-            </span>
-          )}
+          <span className="text-[10px] uppercase tracking-widest text-gold-deep">
+            New
+          </span>
         </div>
         <p className="text-xs sm:text-sm text-ink-soft mt-1 leading-snug">
           {sub.description}
         </p>
       </div>
-      <Checkbox checked={checked} />
-    </button>
+      <span className="shrink-0 text-forest text-lg">→</span>
+    </Link>
   );
 }
 
