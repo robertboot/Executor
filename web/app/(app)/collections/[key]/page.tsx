@@ -176,12 +176,12 @@ function Hero({
           className="absolute inset-0 pointer-events-none bg-black/60"
           aria-hidden="true"
         />
-        <div className="relative z-10 h-full p-6 sm:p-8 max-w-md flex flex-col justify-end text-cream">
+        <div className="relative z-10 h-full p-6 sm:p-8 max-w-md flex flex-col justify-end text-white">
           <h1 className="font-serif text-3xl sm:text-4xl leading-tight">
             {title}
           </h1>
           {description && (
-            <p className="text-sm sm:text-base mt-2 text-cream/90 max-w-xs">
+            <p className="text-sm sm:text-base mt-2 text-white/90 max-w-xs">
               {description}
             </p>
           )}
@@ -191,14 +191,14 @@ function Hero({
             </span>
             <Link
               href={addItemHref}
-              className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-[#C68A2E] text-cream text-sm font-medium hover:bg-[#A8741F] transition-colors"
+              className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-[#C68A2E] text-white text-sm font-medium hover:bg-[#A8741F] transition-colors"
             >
               + Add item
             </Link>
             {editHref && (
               <Link
                 href={editHref}
-                className="text-sm text-cream/90 underline hover:text-cream"
+                className="text-sm text-white/90 underline hover:text-white"
               >
                 Edit
               </Link>
