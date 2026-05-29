@@ -302,14 +302,14 @@ function CollectionRowCard({ row }: { row: CollectionRow }) {
       <div className="flex flex-col lg:flex-row">
         <Link
           href={`/collections/${encodeURIComponent(row.coreKey)}`}
-          className="relative lg:w-56 shrink-0 aspect-[5/3] lg:aspect-auto bg-cream-soft overflow-hidden group"
+          className="relative w-full lg:w-56 shrink-0 aspect-square bg-cream-soft overflow-hidden group"
         >
           <Image
             src={row.heroImage}
             alt=""
             fill
             sizes="(max-width: 1024px) 100vw, 224px"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover object-right transition-transform duration-500 group-hover:scale-105"
           />
         </Link>
 
