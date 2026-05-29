@@ -25,6 +25,13 @@ interface WizardProps {
 
 const REVEAL_DURATION_MS = 2400;
 
+// Single source of truth for the cream-to-image gradient that overlays
+// every card with a background photo (archetype cards in Step 1 + the
+// sub-category cards in Step 2). Keeping it shared so every card reads
+// identically.
+const CARD_OVERLAY_GRADIENT =
+  'linear-gradient(to right, rgba(255,253,247,0.78) 0%, rgba(255,253,247,0.55) 35%, rgba(255,253,247,0.15) 70%, rgba(255,253,247,0) 100%)';
+
 export default function Wizard({ archetypes, focusModes, allCollections }: WizardProps) {
   const router = useRouter();
   const [step, setStep] = useState<Step>('archetype');
@@ -232,10 +239,7 @@ function ArchetypeStep({
               />
               <div
                 className="absolute inset-0 pointer-events-none"
-                style={{
-                  background:
-                    'linear-gradient(to right, rgba(255,253,247,0.85) 0%, rgba(255,253,247,0.65) 35%, rgba(255,253,247,0.2) 70%, rgba(255,253,247,0) 100%)',
-                }}
+                style={{ background: CARD_OVERLAY_GRADIENT }}
                 aria-hidden="true"
               />
               <div className="relative z-10 p-5 sm:p-6 max-w-[60%]">
@@ -349,10 +353,7 @@ function SubCategoriesStep({
                 />
                 <div
                   className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background:
-                      'linear-gradient(to right, rgba(255,253,247,0.96) 0%, rgba(255,253,247,0.85) 40%, rgba(255,253,247,0.35) 70%, rgba(255,253,247,0) 100%)',
-                  }}
+                  style={{ background: CARD_OVERLAY_GRADIENT }}
                   aria-hidden="true"
                 />
                 <div className="relative z-10 flex items-start gap-3 p-4 max-w-[65%]">
