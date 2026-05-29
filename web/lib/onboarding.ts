@@ -74,6 +74,8 @@ export const ARCHETYPES: ArchetypeDef[] = [
     tagline: 'Curate a refined private collection.',
     bestFor: 'High-value items · watches · art · antiques',
     bgImage: `/archetypes/luxury.png?v=${ARCHETYPE_BG_VERSION}`,
+    fullImage: `/archetypes/luxury-full.png?v=${ARCHETYPE_BG_VERSION}`,
+    heroOverlayStyle: 'scrim',
     recommendedKeys: [
       'art-photography',
       'jewelry-watches',
