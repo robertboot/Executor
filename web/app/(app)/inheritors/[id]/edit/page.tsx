@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getInheritor, inheritorPhotoUrl } from '@/lib/api';
 import { updateInheritor } from '../../actions';
 import InheritorForm from '../../InheritorForm';
+import StatusDefinitions from '../../StatusDefinitions';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,7 @@ export default async function EditInheritorPage({ params }: PageProps) {
     : null;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 pb-24">
+    <div className="max-w-2xl mx-auto space-y-8 pb-24">
       <Link
         href={`/inheritors/${inheritor.id}`}
         className="inline-flex items-center text-sm text-muted hover:text-ink"
@@ -48,6 +49,8 @@ export default async function EditInheritorPage({ params }: PageProps) {
         }}
         initialPhotoUrl={photoUrl}
       />
+
+      <StatusDefinitions collapsedByDefault />
     </div>
   );
 }

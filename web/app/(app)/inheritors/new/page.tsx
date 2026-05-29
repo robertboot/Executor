@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { createInheritor } from '../actions';
 import InheritorForm from '../InheritorForm';
+import StatusDefinitions from '../StatusDefinitions';
 
 export const dynamic = 'force-dynamic';
 
 export default function NewInheritorPage() {
   return (
-    <div className="max-w-2xl mx-auto space-y-6 pb-24">
+    <div className="max-w-2xl mx-auto space-y-8 pb-24">
       <Link
         href="/inheritors"
         className="inline-flex items-center text-sm text-muted hover:text-ink"
@@ -30,6 +31,8 @@ export default function NewInheritorPage() {
         action={createInheritor}
         submitLabel="Save inheritor"
       />
+
+      <StatusDefinitions />
     </div>
   );
 }
