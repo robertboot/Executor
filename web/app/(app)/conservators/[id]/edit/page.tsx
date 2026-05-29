@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getConservator, conservatorPhotoUrl } from '@/lib/api';
 import { updateConservator } from '../../actions';
-import { ConservatorForm } from '../../new/page';
+import ConservatorForm from '../../ConservatorForm';
 
 export const dynamic = 'force-dynamic';
 
