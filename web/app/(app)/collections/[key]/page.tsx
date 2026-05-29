@@ -161,29 +161,19 @@ function Hero({
   if (heroImage) {
     return (
       <section className="relative overflow-hidden rounded-2xl border border-hairline shadow-card aspect-[16/9] sm:aspect-[5/2] lg:aspect-[3/1]">
-        <div
-          className="absolute inset-0"
-          style={{ transformOrigin: '100% 50%' }}
-        >
-          <Image
-            src={heroImage}
-            alt=""
-            fill
-            sizes="100vw"
-            className="object-cover object-right"
-            style={{
-              transform: heroZoom !== 1 ? `scale(${heroZoom})` : undefined,
-              transformOrigin: '100% 50%',
-            }}
-            priority
-          />
-        </div>
-        <div
-          className="absolute inset-0 pointer-events-none"
+        <Image
+          src={heroImage}
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover"
           style={{
-            background:
-              'linear-gradient(to right, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.4) 45%, rgba(0,0,0,0.1) 80%, rgba(0,0,0,0) 100%)',
+            transform: heroZoom !== 1 ? `scale(${heroZoom})` : undefined,
           }}
+          priority
+        />
+        <div
+          className="absolute inset-0 pointer-events-none bg-black/60"
           aria-hidden="true"
         />
         <div className="relative z-10 h-full p-6 sm:p-8 max-w-md flex flex-col justify-end text-cream">
