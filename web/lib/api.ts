@@ -272,6 +272,83 @@ export async function listRecentItemsWithPhotos(
   });
 }
 
+// ---------- Items grouped by collection ----------
+
+export interface CollectionSampleItem {
+  id: string;
+  name: string;
+  primaryPhotoUrl: string | null;
+}
+
+export interface CollectionBucket {
+  key: string;
+  label: string;
+  itemCount: number;
+  totalValue: number;
+  totalCurrency: string;
+  sampleItems: CollectionSampleItem[];
+}
+
+// One query that pulls every item I can see, normalizes the category
+// to a Core 12 key, and buckets them with their primary photo. Used by
+// the Collections page so every collection row can render four sample
+// thumbnails without firing N queries.
+export async function listCollectionsWithSamples(
+  samplesPerCollection = 4,
+): Promise<CollectionBucket[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('items')
+    .select(
+      'id, name, category, value_amount, value_currency, created_at, item_photos(storage_path, sort_order)',
+    )
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+
+  const buckets = new Map<string, CollectionBucket>();
+  for (const row of data ?? []) {
+    const r = row as {
+      id: string;
+      name: string;
+      category: string | null;
+      value_amount: number | null;
+      value_currency: string | null;
+      item_photos?: Array<{ storage_path: string; sort_order: number }>;
+    };
+    const key = normalizeCategoryKey(r.category) || 'uncategorized';
+    let bucket = buckets.get(key);
+    if (!bucket) {
+      bucket = {
+        key,
+        label: labelForCategory(key),
+        itemCount: 0,
+        totalValue: 0,
+        totalCurrency: r.value_currency || 'USD',
+        sampleItems: [],
+      };
+      buckets.set(key, bucket);
+    }
+    bucket.itemCount += 1;
+    if (typeof r.value_amount === 'number') {
+      bucket.totalValue += r.value_amount;
+      bucket.totalCurrency = r.value_currency || bucket.totalCurrency;
+    }
+    if (bucket.sampleItems.length < samplesPerCollection) {
+      const photos = (r.item_photos ?? []).slice().sort(
+        (a, b) => a.sort_order - b.sort_order,
+      );
+      bucket.sampleItems.push({
+        id: r.id,
+        name: r.name,
+        primaryPhotoUrl: photos[0]
+          ? photoPublicUrl(photos[0].storage_path)
+          : null,
+      });
+    }
+  }
+  return [...buckets.values()].sort((a, b) => b.itemCount - a.itemCount);
+}
+
 // ---------- Cataloging status ----------
 
 export type CatalogingGap =
