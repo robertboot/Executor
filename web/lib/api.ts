@@ -12,8 +12,11 @@ import type {
   Inventory,
   InventoryWithRole,
   Item,
+  ItemPerson,
+  ItemPersonRole,
   ItemPhoto,
   ItemRevision,
+  Person,
   Profile,
   Role,
 } from './types';
@@ -543,6 +546,123 @@ export async function listInventoryPeople(): Promise<SharedPerson[]> {
     });
   }
   return result;
+}
+
+// ---------- People & Provenance ----------
+
+export const PEOPLE_PHOTO_BUCKET = 'people-photos';
+
+export function personPhotoPublicUrl(storagePath: string): string {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  return `${base}/storage/v1/object/public/${PEOPLE_PHOTO_BUCKET}/${storagePath}`;
+}
+
+export interface PersonWithStats extends Person {
+  itemCount: number;
+  primaryPhotoUrl: string | null;
+}
+
+export async function listPeople(): Promise<PersonWithStats[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('people')
+    .select('*, item_people(id)')
+    .order('first_name', { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map((row) => {
+    const r = row as Person & { item_people?: Array<{ id: string }> };
+    const { item_people: links, ...person } = r;
+    return {
+      ...person,
+      itemCount: links?.length ?? 0,
+      primaryPhotoUrl: person.profile_photo_path
+        ? personPhotoPublicUrl(person.profile_photo_path)
+        : null,
+    } as PersonWithStats;
+  });
+}
+
+export async function getPerson(id: string): Promise<Person | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('people')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data as Person | null;
+}
+
+export interface PersonItemSummary {
+  id: string;
+  name: string;
+  category: string | null;
+  role: ItemPersonRole;
+  primaryPhotoUrl: string | null;
+}
+
+// All items associated with a person, with their role and first photo.
+export async function listPersonItems(personId: string): Promise<PersonItemSummary[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('item_people')
+    .select(
+      'role, items!inner(id, name, category, item_photos(storage_path, sort_order))',
+    )
+    .eq('person_id', personId);
+  if (error) throw error;
+  return (data ?? []).map((row) => {
+    const r = row as unknown as {
+      role: ItemPersonRole;
+      items:
+        | {
+            id: string;
+            name: string;
+            category: string | null;
+            item_photos?: Array<{ storage_path: string; sort_order: number }>;
+          }
+        | {
+            id: string;
+            name: string;
+            category: string | null;
+            item_photos?: Array<{ storage_path: string; sort_order: number }>;
+          }[];
+    };
+    // Supabase types !inner joins as array even though our FK is N-to-1.
+    const item = Array.isArray(r.items) ? r.items[0] : r.items;
+    const photos = (item.item_photos ?? []).slice().sort(
+      (a, b) => a.sort_order - b.sort_order,
+    );
+    return {
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      role: r.role,
+      primaryPhotoUrl: photos[0]
+        ? photoPublicUrl(photos[0].storage_path)
+        : null,
+    };
+  });
+}
+
+// People associated with a given item.
+export interface ItemPersonRow {
+  link: ItemPerson;
+  person: Person;
+}
+
+export async function listItemPeople(itemId: string): Promise<ItemPersonRow[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('item_people')
+    .select('*, people!inner(*)')
+    .eq('item_id', itemId);
+  if (error) throw error;
+  return (data ?? []).map((row) => {
+    const r = row as ItemPerson & { people: Person };
+    const { people: person, ...link } = r;
+    return { link, person };
+  });
 }
 
 // ---------- Profile ----------

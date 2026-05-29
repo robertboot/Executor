@@ -7,9 +7,10 @@ import MobileNav from './MobileNav';
 const NAV = [
   { href: '/home', label: 'Home' },
   { href: '/collections', label: 'Collections' },
+  { href: '/people', label: 'People' },
   { href: '/search', label: 'Search' },
   { href: '/scan', label: 'Scan' },
-  { href: '/conservators', label: 'People' },
+  { href: '/conservators', label: 'Conservators' },
   { href: '/settings', label: 'Settings' },
 ];
 

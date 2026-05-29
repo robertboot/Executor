@@ -1,0 +1,180 @@
+import Link from 'next/link';
+import Image from 'next/image';
+import { notFound } from 'next/navigation';
+import {
+  getPerson,
+  listPersonItems,
+  personPhotoPublicUrl,
+} from '@/lib/api';
+import {
+  displayName,
+  lifeDates,
+  personInitials,
+  ROLE_LABEL,
+  ROLE_ORDER,
+  SIDE_LABEL,
+} from '@/lib/people';
+import type { ItemPersonRole } from '@/lib/types';
+import { glyphForCategory } from '@/lib/categories';
+import { deletePerson } from '../actions';
+
+export const dynamic = 'force-dynamic';
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function PersonProfilePage({ params }: PageProps) {
+  const { id } = await params;
+  const person = await getPerson(id);
+  if (!person) notFound();
+
+  const items = await listPersonItems(id);
+
+  const grouped = new Map<ItemPersonRole, typeof items>();
+  for (const it of items) {
+    const existing = grouped.get(it.role) ?? [];
+    existing.push(it);
+    grouped.set(it.role, existing);
+  }
+
+  const name = displayName(person);
+  const dates = lifeDates(person);
+  const photoUrl = person.profile_photo_path
+    ? personPhotoPublicUrl(person.profile_photo_path)
+    : null;
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-8 pb-24">
+      <Link
+        href="/people"
+        className="inline-flex items-center text-sm text-muted hover:text-ink"
+      >
+        ← All people
+      </Link>
+
+      {/* Hero */}
+      <section className="flex flex-col sm:flex-row items-start gap-6">
+        <div className="shrink-0 relative w-40 h-40 sm:w-48 sm:h-48 rounded-2xl overflow-hidden bg-cream-soft border border-hairline">
+          {photoUrl ? (
+            <Image
+              src={photoUrl}
+              alt={name}
+              fill
+              sizes="(max-width: 640px) 160px, 192px"
+              className="object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-5xl font-serif text-gold-deep bg-gold-soft/60">
+              {personInitials(person)}
+            </div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0 space-y-2">
+          <h1 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
+            {name}
+          </h1>
+          {person.relationship && (
+            <div className="text-base text-gold-deep">
+              {person.relationship}
+            </div>
+          )}
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-ink-soft">
+            {dates && <span>{dates}</span>}
+            {dates && person.side_of_family && (
+              <span className="text-muted">·</span>
+            )}
+            {person.side_of_family && (
+              <span>{SIDE_LABEL[person.side_of_family]}</span>
+            )}
+          </div>
+          <div className="text-xs uppercase tracking-wider text-muted pt-2">
+            {items.length} connected {items.length === 1 ? 'item' : 'items'}
+          </div>
+        </div>
+      </section>
+
+      {/* Biography */}
+      {person.biography && (
+        <section className="space-y-2">
+          <h2 className="font-serif text-xl text-ink">Biography</h2>
+          <p className="text-ink-soft leading-relaxed whitespace-pre-line bg-paper border border-hairline rounded-2xl p-5">
+            {person.biography}
+          </p>
+        </section>
+      )}
+
+      {/* Connected items grouped by role */}
+      <section className="space-y-4">
+        <h2 className="font-serif text-2xl text-ink">Connected items</h2>
+        {items.length === 0 ? (
+          <div className="bg-paper border border-hairline rounded-2xl p-8 text-center">
+            <p className="text-muted text-sm">
+              No items connected yet. Open any item and use{' '}
+              <span className="text-ink">Associated People</span> to link
+              them here.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {ROLE_ORDER.map((role) => {
+              const list = grouped.get(role) ?? [];
+              if (list.length === 0) return null;
+              return (
+                <div key={role} className="space-y-2">
+                  <h3 className="text-xs uppercase tracking-widest text-muted">
+                    {ROLE_LABEL[role]}
+                  </h3>
+                  <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {list.map((it) => (
+                      <li key={`${role}-${it.id}`}>
+                        <Link
+                          href={`/items/${it.id}`}
+                          className="group block bg-paper border border-hairline rounded-xl overflow-hidden hover:shadow-card transition-shadow"
+                        >
+                          <div className="relative aspect-square bg-cream-soft overflow-hidden">
+                            {it.primaryPhotoUrl ? (
+                              <Image
+                                src={it.primaryPhotoUrl}
+                                alt={it.name}
+                                fill
+                                sizes="(max-width: 640px) 50vw, 200px"
+                                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                              />
+                            ) : (
+                              <div className="absolute inset-0 flex items-center justify-center text-4xl text-muted/50">
+                                {glyphForCategory(it.category)}
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-2.5">
+                            <div className="text-sm font-medium text-ink truncate">
+                              {it.name}
+                            </div>
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* Delete (foot) */}
+      <section className="pt-6 border-t border-hairline">
+        <form action={deletePerson}>
+          <input type="hidden" name="id" value={person.id} />
+          <button
+            type="submit"
+            className="text-xs text-red-700 hover:text-red-900 underline"
+          >
+            Delete this person
+          </button>
+        </form>
+      </section>
+    </div>
+  );
+}

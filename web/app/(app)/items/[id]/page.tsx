@@ -1,9 +1,24 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { getItem, listPhotos, photoPublicUrl } from '@/lib/api';
+import {
+  getItem,
+  listPhotos,
+  photoPublicUrl,
+  listItemPeople,
+  listPeople,
+  personPhotoPublicUrl,
+} from '@/lib/api';
 import { findCategory, labelForCategory } from '@/lib/categories';
 import { formatDate, formatMoney } from '@/lib/format';
+import {
+  displayName,
+  lifeDates,
+  personInitials,
+  ROLE_LABEL,
+} from '@/lib/people';
 import { Button } from '@/components/ui/Button';
+import { addPersonToItem, removePersonFromItem } from '@/app/(app)/people/actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,8 +31,17 @@ export default async function ItemDetailPage({
   const item = await getItem(id);
   if (!item) notFound();
 
-  const photos = await listPhotos(id);
+  const [photos, peopleLinks, allPeople] = await Promise.all([
+    listPhotos(id),
+    listItemPeople(id),
+    listPeople(),
+  ]);
   const preset = findCategory(item.category);
+
+  const connectedPersonIds = new Set(peopleLinks.map((l) => l.person.id));
+  const availablePeople = allPeople.filter(
+    (p) => !connectedPersonIds.has(p.id),
+  );
 
   return (
     <div className="space-y-6">
@@ -100,6 +124,139 @@ export default async function ItemDetailPage({
           </dl>
         </Section>
       )}
+
+      <Section title="Associated People">
+        {peopleLinks.length === 0 ? (
+          <p className="text-sm text-muted italic">
+            Nobody linked yet. Use the form below to add someone.
+          </p>
+        ) : (
+          <ul className="space-y-2 mb-4">
+            {peopleLinks.map(({ link, person }) => {
+              const name = displayName(person);
+              const dates = lifeDates(person);
+              const photoUrl = person.profile_photo_path
+                ? personPhotoPublicUrl(person.profile_photo_path)
+                : null;
+              return (
+                <li
+                  key={link.id}
+                  className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-cream-soft transition-colors"
+                >
+                  <Link
+                    href={`/people/${person.id}`}
+                    className="shrink-0 relative w-10 h-10 rounded-full overflow-hidden bg-gold-soft/60 flex items-center justify-center"
+                  >
+                    {photoUrl ? (
+                      <Image
+                        src={photoUrl}
+                        alt=""
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm font-semibold text-gold-deep">
+                        {personInitials(person)}
+                      </span>
+                    )}
+                  </Link>
+                  <Link
+                    href={`/people/${person.id}`}
+                    className="flex-1 min-w-0"
+                  >
+                    <div className="text-sm font-medium text-ink truncate">
+                      {name}
+                    </div>
+                    <div className="text-xs text-muted truncate">
+                      {[person.relationship, dates]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </div>
+                  </Link>
+                  <span className="text-xs uppercase tracking-wider text-gold-deep shrink-0">
+                    {ROLE_LABEL[link.role]}
+                  </span>
+                  <form action={removePersonFromItem}>
+                    <input type="hidden" name="link_id" value={link.id} />
+                    <input type="hidden" name="item_id" value={item.id} />
+                    <button
+                      type="submit"
+                      className="text-muted hover:text-red-700 text-xs px-1"
+                      aria-label="Unlink person"
+                    >
+                      ×
+                    </button>
+                  </form>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {availablePeople.length > 0 ? (
+          <form
+            action={addPersonToItem}
+            className="flex flex-wrap items-end gap-2 pt-3 border-t border-hairline"
+          >
+            <input type="hidden" name="item_id" value={item.id} />
+            <label className="flex-1 min-w-[160px]">
+              <span className="block text-xs uppercase tracking-wider text-muted mb-1">
+                Person
+              </span>
+              <select
+                name="person_id"
+                required
+                className="w-full bg-paper border border-hairline rounded-lg px-3 h-10 text-sm"
+              >
+                {availablePeople.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {displayName(p)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="min-w-[160px]">
+              <span className="block text-xs uppercase tracking-wider text-muted mb-1">
+                Role
+              </span>
+              <select
+                name="role"
+                defaultValue="owner"
+                className="w-full bg-paper border border-hairline rounded-lg px-3 h-10 text-sm"
+              >
+                <option value="owner">Owner</option>
+                <option value="inherited_from">Inherited From</option>
+                <option value="current_custodian">Current Custodian</option>
+                <option value="created_by">Created By</option>
+                <option value="photographed">Photographed</option>
+                <option value="mentioned_in">Mentioned In</option>
+                <option value="related_to">Related To</option>
+              </select>
+            </label>
+            <button
+              type="submit"
+              className="inline-flex items-center px-4 h-10 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep"
+            >
+              Link
+            </button>
+          </form>
+        ) : (
+          <p className="text-xs text-muted italic pt-3 border-t border-hairline">
+            {allPeople.length === 0 ? (
+              <>
+                No people in your archive yet.{' '}
+                <Link href="/people/new" className="text-forest underline">
+                  Add a person
+                </Link>{' '}
+                to start linking them to items.
+              </>
+            ) : (
+              <>All your people are already linked here.</>
+            )}
+          </p>
+        )}
+      </Section>
     </div>
   );
 }

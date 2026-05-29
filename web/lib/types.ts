@@ -112,3 +112,61 @@ export interface CollectionWithStats {
   totalValue: number;
   totalCurrency: string;
 }
+
+// ============================================================== //
+//  People & Provenance                                            //
+// ============================================================== //
+
+export type SideOfFamily = 'paternal' | 'maternal' | 'other';
+export type Confidence = 'confirmed' | 'likely' | 'unknown';
+
+export type ItemPersonRole =
+  | 'owner'
+  | 'inherited_from'
+  | 'current_custodian'
+  | 'photographed'
+  | 'created_by'
+  | 'mentioned_in'
+  | 'related_to';
+
+export type FamilyRelationshipType =
+  | 'parent'
+  | 'child'
+  | 'spouse'
+  | 'sibling'
+  | 'grandparent'
+  | 'other';
+
+export interface Person {
+  id: string;
+  owner_id: string;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string | null;
+  relationship: string | null;
+  side_of_family: SideOfFamily | null;
+  birth_date: string | null;
+  death_date: string | null;
+  biography: string | null;
+  profile_photo_path: string | null;
+  confidence: Confidence;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ItemPerson {
+  id: string;
+  item_id: string;
+  person_id: string;
+  role: ItemPersonRole;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface PersonRelationship {
+  id: string;
+  person_a: string;
+  person_b: string;
+  relationship_type: FamilyRelationshipType;
+  created_at: string;
+}
