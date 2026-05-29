@@ -509,13 +509,96 @@ const HISTORICAL_SUBCATEGORIES: SubCategory[] = [
   },
 ];
 
-// Other archetypes don't have sub-category lists yet — the wizard falls back
-// to the existing 12-icon grid for those until you ship per-archetype copy.
+const MIXED_SUBCATEGORIES: SubCategory[] = [
+  {
+    key: 'family-heirlooms',
+    label: 'Family Heirlooms',
+    description: 'Inherited pieces and meaningful keepsakes.',
+    parent: 'family-keepsakes',
+    bgImage: sub('family-heirlooms'),
+    defaultSelected: true,
+  },
+  {
+    key: 'jewelry-watches-mixed',
+    label: 'Jewelry & Watches',
+    description: 'Personal and inherited treasures worn or kept close.',
+    parent: 'jewelry-watches',
+    bgImage: sub('jewelry-watches-mixed'),
+    defaultSelected: true,
+  },
+  {
+    key: 'art-wall-pieces',
+    label: 'Art & Wall Pieces',
+    description: 'Paintings, prints, and framed photographs in your home.',
+    parent: 'art-photography',
+    bgImage: sub('art-wall-pieces'),
+    defaultSelected: true,
+  },
+  {
+    key: 'books-records',
+    label: 'Books & Records',
+    description: 'Personal library, vinyl, and well-loved volumes.',
+    parent: 'books-documents',
+    bgImage: sub('books-records'),
+    defaultSelected: true,
+  },
+  {
+    key: 'china-tableware',
+    label: 'China & Tableware',
+    description: 'Sets passed down or collected over the years.',
+    parent: 'silver-china-tableware',
+    bgImage: sub('china-tableware'),
+    defaultSelected: true,
+  },
+  {
+    key: 'furniture-antiques',
+    label: 'Furniture & Antiques',
+    description: 'Statement pieces and inherited household furniture.',
+    parent: 'antiques-decor',
+    bgImage: sub('furniture-antiques'),
+    defaultSelected: true,
+  },
+  {
+    key: 'holiday-treasures',
+    label: 'Holiday Treasures',
+    description: 'Ornaments and seasonal décor with stories of their own.',
+    parent: 'collectibles-curiosities',
+    bgImage: sub('holiday-treasures'),
+    defaultSelected: false,
+  },
+  {
+    key: 'outdoor-garden',
+    label: 'Outdoor & Garden',
+    description: 'Garden tools, patio finds, and well-loved sporting gear.',
+    parent: 'outdoor-sporting',
+    bgImage: sub('outdoor-garden'),
+    defaultSelected: false,
+  },
+  {
+    key: 'hobby-collections',
+    label: 'Hobby Collections',
+    description: 'The small things you collect that don’t fit anywhere else.',
+    parent: 'collectibles-curiosities',
+    bgImage: sub('hobby-collections'),
+    defaultSelected: false,
+  },
+  {
+    key: 'travel-mementos',
+    label: 'Travel & Mementos',
+    description: 'Souvenirs, gifts, and keepsakes from life’s milestones.',
+    parent: 'family-keepsakes',
+    bgImage: sub('travel-mementos'),
+    defaultSelected: false,
+  },
+];
+
+// All five archetypes now ship with curated sub-category lists.
 export const ARCHETYPE_SUBCATEGORIES: Partial<Record<OnboardingArchetype, SubCategory[]>> = {
   'family-legacy': FAMILY_LEGACY_SUBCATEGORIES,
   'collector': COLLECTOR_SUBCATEGORIES,
   'luxury': LUXURY_SUBCATEGORIES,
   'historical': HISTORICAL_SUBCATEGORIES,
+  'mixed': MIXED_SUBCATEGORIES,
 };
 
 const ALL_SUBCATEGORIES: SubCategory[] = [
@@ -523,6 +606,7 @@ const ALL_SUBCATEGORIES: SubCategory[] = [
   ...COLLECTOR_SUBCATEGORIES,
   ...LUXURY_SUBCATEGORIES,
   ...HISTORICAL_SUBCATEGORIES,
+  ...MIXED_SUBCATEGORIES,
 ];
 
 const SUBCATEGORY_BY_KEY = new Map<string, SubCategory>(
