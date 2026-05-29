@@ -10,7 +10,7 @@ export default function Logo({ variant = 'default', className }: Props) {
   const height = variant === 'compact' ? 48 : 80;
   return (
     <Image
-      src="/heirloom-logo-horizontal.png"
+      src="/hor_logo.png"
       alt="Heirloom"
       width={width}
       height={height}
