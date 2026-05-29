@@ -94,6 +94,12 @@ export interface InventoryWithRole extends Inventory {
   role: 'owner' | Role;
 }
 
+export type ConservatorPermissionLevel =
+  | 'viewer'
+  | 'contributor'
+  | 'curator'
+  | 'owner';
+
 export interface Conservator {
   id: string;
   owner_id: string;
@@ -102,6 +108,9 @@ export interface Conservator {
   email: string | null;
   phone: string | null;
   notes: string | null;
+  permission_level: ConservatorPermissionLevel;
+  profile_photo_path: string | null;
+  last_active_at: string | null;
   created_at: string;
 }
 

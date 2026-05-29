@@ -666,6 +666,26 @@ export async function listItemPeople(itemId: string): Promise<ItemPersonRow[]> {
   });
 }
 
+// ---------- Conservator photos ----------
+
+export const CONSERVATOR_PHOTO_BUCKET = 'conservator-photos';
+
+export function conservatorPhotoUrl(storagePath: string): string {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  return `${base}/storage/v1/object/public/${CONSERVATOR_PHOTO_BUCKET}/${storagePath}`;
+}
+
+export async function getConservator(id: string): Promise<Conservator | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('conservators')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as Conservator | null) ?? null;
+}
+
 // ---------- Custom Collections ----------
 
 export const CUSTOM_COLLECTION_PHOTO_BUCKET = 'custom-collection-photos';
