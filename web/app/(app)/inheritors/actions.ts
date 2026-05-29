@@ -17,18 +17,26 @@ async function uploadPhoto(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   userId: string,
   file: File,
-): Promise<string> {
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-  const path = `${userId}/${crypto.randomUUID()}.${ext}`;
-  const buffer = await file.arrayBuffer();
-  const { error } = await supabase.storage
-    .from(INHERITOR_PHOTO_BUCKET)
-    .upload(path, buffer, {
-      contentType: file.type || 'image/jpeg',
-      upsert: false,
-    });
-  if (error) throw new Error(`Photo upload failed: ${error.message}`);
-  return path;
+): Promise<string | null> {
+  try {
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+    const buffer = await file.arrayBuffer();
+    const { error } = await supabase.storage
+      .from(INHERITOR_PHOTO_BUCKET)
+      .upload(path, buffer, {
+        contentType: file.type || 'image/jpeg',
+        upsert: false,
+      });
+    if (error) {
+      console.error('inheritor photo upload failed:', error.message);
+      return null;
+    }
+    return path;
+  } catch (err) {
+    console.error('inheritor photo upload threw:', err);
+    return null;
+  }
 }
 
 export async function createInheritor(formData: FormData) {
