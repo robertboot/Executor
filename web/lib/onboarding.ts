@@ -343,16 +343,101 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
   },
 ];
 
+const LUXURY_SUBCATEGORIES: SubCategory[] = [
+  {
+    key: 'fine-art',
+    label: 'Fine Art',
+    description: 'Old Masters, prints, and gallery acquisitions.',
+    parent: 'art-photography',
+    bgImage: sub('fine-art'),
+    defaultSelected: true,
+  },
+  {
+    key: 'jewelry-watches-fine',
+    label: 'Jewelry & Watches',
+    description: 'Precious metals, gemstones, and signed timepieces.',
+    parent: 'jewelry-watches',
+    bgImage: sub('jewelry-watches-fine'),
+    defaultSelected: true,
+  },
+  {
+    key: 'antiques-decor-fine',
+    label: 'Antiques & Decor',
+    description: 'Period pieces, brass, and refined home objects.',
+    parent: 'antiques-decor',
+    bgImage: sub('antiques-decor-fine'),
+    defaultSelected: true,
+  },
+  {
+    key: 'rare-books-manuscripts',
+    label: 'Rare Books & Manuscripts',
+    description: 'First editions, signed copies, and antiquarian volumes.',
+    parent: 'books-documents',
+    bgImage: sub('rare-books-manuscripts'),
+    defaultSelected: true,
+  },
+  {
+    key: 'luxury-accessories',
+    label: 'Luxury Accessories',
+    description: 'Designer handbags, scarves, and refined personal goods.',
+    parent: 'fashion-textiles',
+    bgImage: sub('luxury-accessories'),
+    defaultSelected: false,
+  },
+  {
+    key: 'sculpture-decorative-arts',
+    label: 'Sculpture & Decorative Arts',
+    description: 'Bronzes, marble, and gallery-grade objets d’art.',
+    parent: 'antiques-decor',
+    bgImage: sub('sculpture-decorative-arts'),
+    defaultSelected: false,
+  },
+  {
+    key: 'wine-spirits',
+    label: 'Wine & Spirits',
+    description: 'Aged vintages, rare bottlings, and crystal decanters.',
+    parent: 'collectibles-curiosities',
+    bgImage: sub('wine-spirits'),
+    defaultSelected: false,
+  },
+  {
+    key: 'estate-furnishings',
+    label: 'Estate Furnishings',
+    description: 'Mahogany, leather, and inherited furniture pieces.',
+    parent: 'antiques-decor',
+    bgImage: sub('estate-furnishings'),
+    defaultSelected: true,
+  },
+  {
+    key: 'fine-photography',
+    label: 'Fine Photography',
+    description: 'Archival prints, signed editions, and pedigreed cameras.',
+    parent: 'art-photography',
+    bgImage: sub('fine-photography'),
+    defaultSelected: false,
+  },
+  {
+    key: 'silver-crystal',
+    label: 'Silver & Crystal',
+    description: 'Sterling tableware, crystal stemware, and formal serving sets.',
+    parent: 'silver-china-tableware',
+    bgImage: sub('silver-crystal'),
+    defaultSelected: true,
+  },
+];
+
 // Other archetypes don't have sub-category lists yet — the wizard falls back
 // to the existing 12-icon grid for those until you ship per-archetype copy.
 export const ARCHETYPE_SUBCATEGORIES: Partial<Record<OnboardingArchetype, SubCategory[]>> = {
   'family-legacy': FAMILY_LEGACY_SUBCATEGORIES,
   'collector': COLLECTOR_SUBCATEGORIES,
+  'luxury': LUXURY_SUBCATEGORIES,
 };
 
 const ALL_SUBCATEGORIES: SubCategory[] = [
   ...FAMILY_LEGACY_SUBCATEGORIES,
   ...COLLECTOR_SUBCATEGORIES,
+  ...LUXURY_SUBCATEGORIES,
 ];
 
 const SUBCATEGORY_BY_KEY = new Map<string, SubCategory>(
