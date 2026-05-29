@@ -274,6 +274,11 @@ const SUBSTEP_COPY: Partial<Record<OnboardingArchetype, { title: string; subtitl
     subtitle:
       "Pick a few to start. You can always add more collections later.",
   },
+  'collector': {
+    title: 'What kinds of collections do you keep?',
+    subtitle:
+      "Pick a few to start. You can always add more collections later.",
+  },
 };
 
 function SubCategoriesStep({

@@ -260,14 +260,99 @@ const FAMILY_LEGACY_SUBCATEGORIES: SubCategory[] = [
   },
 ];
 
+const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
+  {
+    key: 'sports-memorabilia-items',
+    label: 'Sports Memorabilia',
+    description: 'Game-worn jerseys, signed balls, and team treasures.',
+    parent: 'sports-memorabilia',
+    bgImage: sub('sports-memorabilia'),
+    defaultSelected: true,
+  },
+  {
+    key: 'trading-cards',
+    label: 'Trading Cards',
+    description: 'Sports cards, gaming sets, and rare singles.',
+    parent: 'collectibles-curiosities',
+    bgImage: sub('trading-cards'),
+    defaultSelected: true,
+  },
+  {
+    key: 'coins-currency',
+    label: 'Coins & Currency',
+    description: 'Rare coins, paper money, and minting curiosities.',
+    parent: 'collectibles-curiosities',
+    bgImage: sub('coins-currency'),
+    defaultSelected: true,
+  },
+  {
+    key: 'comics-graphic-novels',
+    label: 'Comics & Graphic Novels',
+    description: 'Issues, runs, and collector editions.',
+    parent: 'collectibles-curiosities',
+    bgImage: sub('comics-graphic-novels'),
+    defaultSelected: true,
+  },
+  {
+    key: 'autographs-signatures',
+    label: 'Autographs & Signatures',
+    description: 'Signed memorabilia, letters, and certificates of authenticity.',
+    parent: 'books-documents',
+    bgImage: sub('autographs-signatures'),
+    defaultSelected: false,
+  },
+  {
+    key: 'toys-action-figures',
+    label: 'Toys & Action Figures',
+    description: 'Vintage figurines, playsets, and in-the-box rarities.',
+    parent: 'collectibles-curiosities',
+    bgImage: sub('toys-action-figures'),
+    defaultSelected: true,
+  },
+  {
+    key: 'vinyl-music',
+    label: 'Vinyl & Music',
+    description: 'Records, sleeves, and pressings worth keeping.',
+    parent: 'music-instruments',
+    bgImage: sub('vinyl-music'),
+    defaultSelected: true,
+  },
+  {
+    key: 'advertising-americana',
+    label: 'Advertising & Americana',
+    description: 'Tin signs, vintage ads, and slice-of-life Americana.',
+    parent: 'collectibles-curiosities',
+    bgImage: sub('advertising-americana'),
+    defaultSelected: false,
+  },
+  {
+    key: 'hunting-fishing-gear',
+    label: 'Hunting & Fishing',
+    description: 'Lures, rods, decoys, and outdoor sporting heritage.',
+    parent: 'outdoor-sporting',
+    bgImage: sub('hunting-fishing'),
+    defaultSelected: false,
+  },
+  {
+    key: 'pop-culture',
+    label: 'Pop Culture',
+    description: 'Movie props, TV memorabilia, and cultural touchstones.',
+    parent: 'collectibles-curiosities',
+    bgImage: sub('pop-culture'),
+    defaultSelected: false,
+  },
+];
+
 // Other archetypes don't have sub-category lists yet — the wizard falls back
 // to the existing 12-icon grid for those until you ship per-archetype copy.
 export const ARCHETYPE_SUBCATEGORIES: Partial<Record<OnboardingArchetype, SubCategory[]>> = {
   'family-legacy': FAMILY_LEGACY_SUBCATEGORIES,
+  'collector': COLLECTOR_SUBCATEGORIES,
 };
 
 const ALL_SUBCATEGORIES: SubCategory[] = [
   ...FAMILY_LEGACY_SUBCATEGORIES,
+  ...COLLECTOR_SUBCATEGORIES,
 ];
 
 const SUBCATEGORY_BY_KEY = new Map<string, SubCategory>(
