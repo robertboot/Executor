@@ -208,7 +208,7 @@ function ArchetypeStep({
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   background:
-                    'linear-gradient(to right, rgba(255,253,247,0.97) 0%, rgba(255,253,247,0.92) 35%, rgba(255,253,247,0.55) 60%, rgba(255,253,247,0) 100%)',
+                    'linear-gradient(to right, rgba(255,253,247,0.85) 0%, rgba(255,253,247,0.65) 35%, rgba(255,253,247,0.2) 70%, rgba(255,253,247,0) 100%)',
                 }}
                 aria-hidden="true"
               />
