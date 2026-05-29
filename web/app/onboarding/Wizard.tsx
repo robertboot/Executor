@@ -343,7 +343,7 @@ function SubCategoriesStep({
                 type="button"
                 onClick={() => onToggle(s.key)}
                 className="group relative w-full text-left overflow-hidden bg-paper border border-hairline rounded-2xl hover:border-forest hover:shadow-card transition-all"
-                style={{ minHeight: 100 }}
+                style={{ minHeight: 124 }}
                 aria-pressed={isSelected}
               >
                 <div
@@ -356,7 +356,7 @@ function SubCategoriesStep({
                   style={{ background: CARD_OVERLAY_GRADIENT }}
                   aria-hidden="true"
                 />
-                <div className="relative z-10 flex items-start gap-3 p-4 max-w-[65%]">
+                <div className="relative z-10 flex items-start gap-3 p-4 pr-6 max-w-[56%] sm:max-w-[58%]">
                   <Checkbox checked={isSelected} />
                   <div className="min-w-0 flex-1">
                     <h3 className="font-serif text-base sm:text-lg text-ink leading-tight">
