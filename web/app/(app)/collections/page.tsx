@@ -33,6 +33,7 @@ interface CollectionRow {
   label: string;
   description: string | null;
   heroImage: string;
+  heroZoom: number;
   itemCount: number;
   totalValue: number;
   totalCurrency: string;
@@ -310,6 +311,10 @@ function CollectionRowCard({ row }: { row: CollectionRow }) {
             fill
             sizes="(max-width: 1024px) 100vw, 224px"
             className="object-cover object-right transition-transform duration-500 group-hover:scale-105"
+            style={{
+              transform: row.heroZoom !== 1 ? `scale(${row.heroZoom})` : undefined,
+              transformOrigin: '100% 50%',
+            }}
           />
         </Link>
 
@@ -433,6 +438,7 @@ function makeRow(
     label: sub.label,
     description: sub.description,
     heroImage: sub.bgImage,
+    heroZoom: sub.thumbZoom ?? 1,
     itemCount: bucket?.itemCount ?? 0,
     totalValue: bucket?.totalValue ?? 0,
     totalCurrency: bucket?.totalCurrency ?? 'USD',

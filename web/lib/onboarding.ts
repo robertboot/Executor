@@ -11,7 +11,10 @@ export type HeroOverlayStyle =
   // Subtle dark scrim across the whole image, intended for dark
   // cinematic source images where the full photo should remain visible
   // and text needs gentle contrast.
-  | 'scrim';
+  | 'scrim'
+  // No overlay at all — image rendered raw. Useful when the source
+  // image is already balanced for legible text on its own.
+  | 'none';
 
 export interface ArchetypeDef {
   key: OnboardingArchetype;
@@ -54,7 +57,7 @@ export const ARCHETYPES: ArchetypeDef[] = [
     tagline: 'Organize and track curated collectibles.',
     bestFor: 'Sports · cards · coins · comics · hobbies',
     bgImage: `/archetypes/collector.png?v=${ARCHETYPE_BG_VERSION}`,
-    heroOverlayStyle: 'scrim',
+    heroOverlayStyle: 'none',
     recommendedKeys: [
       'sports-memorabilia',
       'collectibles-curiosities',
@@ -188,6 +191,10 @@ export interface SubCategory {
   parent: string;
   bgImage: string;
   defaultSelected: boolean;
+  // Optional zoom factor (1 = no zoom, 1.2 = 20% in). Applied to the
+  // square thumbnail on the Collections page, anchored to the right
+  // edge so the subject stays in frame.
+  thumbZoom?: number;
 }
 
 const SUBCATEGORY_BG_VERSION = '1';
@@ -308,6 +315,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     parent: 'collectibles-curiosities',
     bgImage: sub('comics-graphic-novels'),
     defaultSelected: true,
+    thumbZoom: 1.2,
   },
   {
     key: 'autographs-signatures',
@@ -324,6 +332,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     parent: 'collectibles-curiosities',
     bgImage: sub('toys-action-figures'),
     defaultSelected: true,
+    thumbZoom: 1.15,
   },
   {
     key: 'vinyl-music',
@@ -332,6 +341,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     parent: 'music-instruments',
     bgImage: sub('vinyl-music'),
     defaultSelected: true,
+    thumbZoom: 1.1,
   },
   {
     key: 'advertising-americana',
@@ -340,6 +350,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     parent: 'collectibles-curiosities',
     bgImage: sub('advertising-americana'),
     defaultSelected: false,
+    thumbZoom: 1.1,
   },
   {
     key: 'hunting-fishing-gear',
@@ -348,6 +359,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     parent: 'outdoor-sporting',
     bgImage: sub('hunting-fishing'),
     defaultSelected: false,
+    thumbZoom: 1.15,
   },
   {
     key: 'pop-culture',
