@@ -66,17 +66,24 @@ export async function middleware(request: NextRequest) {
       (p) => pathname === p || pathname.startsWith(`${p}/`),
     );
     if (!exempt) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('onboarding_completed_at')
-        .eq('id', data.user.id)
-        .maybeSingle();
+      // If the profiles table doesn't have the onboarding column yet
+      // (migration not run), silently skip the redirect so the rest of
+      // the app stays functional.
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('onboarding_completed_at')
+          .eq('id', data.user.id)
+          .maybeSingle();
 
-      if (!profile?.onboarding_completed_at) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/onboarding';
-        url.search = '';
-        return NextResponse.redirect(url);
+        if (!error && profile && !profile.onboarding_completed_at) {
+          const url = request.nextUrl.clone();
+          url.pathname = '/onboarding';
+          url.search = '';
+          return NextResponse.redirect(url);
+        }
+      } catch {
+        // Migration not applied yet — let the request through.
       }
     }
   }

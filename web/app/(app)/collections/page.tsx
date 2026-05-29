@@ -34,6 +34,7 @@ export default async function CollectionsPage() {
           .select('selected_collections')
           .eq('id', user.id)
           .maybeSingle()
+          .then((res) => res, () => ({ data: null }))
       : Promise.resolve({ data: null }),
   ]);
 

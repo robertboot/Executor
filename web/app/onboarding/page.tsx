@@ -11,14 +11,19 @@ export default async function OnboardingPage() {
   if (!user) redirect('/login');
 
   const supabase = await createSupabaseServerClient();
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('onboarding_completed_at')
-    .eq('id', user.id)
-    .maybeSingle();
+  try {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarding_completed_at')
+      .eq('id', user.id)
+      .maybeSingle();
 
-  if (profile?.onboarding_completed_at) {
-    redirect('/home');
+    if (profile?.onboarding_completed_at) {
+      redirect('/home');
+    }
+  } catch {
+    // Migration not run yet — show the wizard anyway so the user can
+    // at least see what they're meant to do.
   }
 
   return (
