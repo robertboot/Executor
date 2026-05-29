@@ -55,7 +55,7 @@ export default async function CollectionDetailPage({
   const description = sub?.description ?? null;
   const heroImage = custom?.image_path
     ? customCollectionImageUrl(custom.image_path)
-    : sub?.bgImage ?? null;
+    : sub?.bgImage ?? preset?.iconUrl ?? null;
   const heroZoom = custom ? 1 : sub?.thumbZoom ?? 1;
   const editHref = custom ? `/collections/custom/${custom.id}/edit` : null;
   const count = items?.length ?? 0;
