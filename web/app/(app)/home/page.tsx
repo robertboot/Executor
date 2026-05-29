@@ -90,13 +90,25 @@ export default async function HomePage() {
   return (
     <>
       <div className="space-y-10 pb-24">
-        <Header
-          firstName={firstName}
-          archetypeTitle={archetype?.title ?? null}
-          itemCount={stats.itemCount}
-          collectionCount={stats.collectionCount}
-          conservatorCount={stats.conservatorCount}
-        />
+        {/* Top row: header on the left, hero card on the right */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-5 xl:col-span-4 space-y-4">
+            <Header
+              firstName={firstName}
+              archetypeTitle={archetype?.title ?? null}
+              itemCount={stats.itemCount}
+              collectionCount={stats.collectionCount}
+              conservatorCount={stats.conservatorCount}
+            />
+          </div>
+          <div className="lg:col-span-7 xl:col-span-8">
+            <HeroCard
+              archetype={archetype}
+              itemCount={stats.itemCount}
+              lastUpdatedAt={stats.lastUpdatedAt}
+            />
+          </div>
+        </div>
 
         {pendingInviteCount > 0 && (
           <Link
@@ -113,32 +125,33 @@ export default async function HomePage() {
           </Link>
         )}
 
-        <HeroCard
-          archetype={archetype}
-          itemCount={stats.itemCount}
-          lastUpdatedAt={stats.lastUpdatedAt}
-        />
-
         {needsAttention.length > 0 && (
           <ContinueCataloging items={needsAttention} />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-4">
             <YourCollections
               subCats={featuredSubCats}
               itemCountByCoreKey={itemCountByCoreKey}
               fallbackStats={collectionsStats}
             />
           </div>
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-4">
             <RecentlyAdded items={recent} />
+          </div>
+          <div className="lg:col-span-4">
+            {timeline.length > 0 ? (
+              <Timeline entries={timeline} />
+            ) : (
+              people.length > 0 && <SharedWith people={people} />
+            )}
           </div>
         </div>
 
-        {timeline.length > 0 && <Timeline entries={timeline} />}
-
-        {people.length > 0 && <SharedWith people={people} />}
+        {timeline.length > 0 && people.length > 0 && (
+          <SharedWith people={people} />
+        )}
       </div>
 
       <Link
@@ -244,54 +257,59 @@ function HeroCard({
     );
   }
 
+  const heroImage = archetype.fullImage ?? archetype.bgImage;
   return (
-    <section className="relative overflow-hidden bg-paper border border-hairline rounded-2xl shadow-card">
+    <section className="relative overflow-hidden bg-paper border border-hairline rounded-2xl shadow-card aspect-[16/9] lg:aspect-[2/1] xl:aspect-[5/2]">
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url('${archetype.bgImage}')` }}
+        style={{ backgroundImage: `url('${heroImage}')` }}
         aria-hidden="true"
       />
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'linear-gradient(to right, rgba(255,253,247,0.92) 0%, rgba(255,253,247,0.78) 35%, rgba(255,253,247,0.35) 60%, rgba(255,253,247,0) 100%)',
+            'linear-gradient(to right, rgba(15,61,46,0.78) 0%, rgba(15,61,46,0.55) 35%, rgba(15,61,46,0.15) 65%, rgba(15,61,46,0) 100%)',
         }}
         aria-hidden="true"
       />
-      <div className="relative z-10 p-6 sm:p-8 max-w-2xl space-y-4">
+      <div className="relative z-10 h-full p-6 sm:p-8 max-w-md flex flex-col justify-between text-cream">
         <div>
-          <div className="text-[11px] uppercase tracking-widest text-muted">
+          <div className="text-[11px] uppercase tracking-widest text-cream/70">
             Archive
           </div>
-          <h2 className="font-serif text-3xl sm:text-4xl text-ink leading-tight mt-1">
+          <h2 className="font-serif text-3xl sm:text-4xl leading-tight mt-1">
             {archetype.title}
           </h2>
         </div>
-        <div className="text-sm text-ink-soft space-y-0.5">
-          <div>
-            <strong className="text-ink">{itemCount.toLocaleString()}</strong>{' '}
-            {itemCount === 1 ? 'Item' : 'Items'} Cataloged
+        <div className="space-y-3">
+          <div className="text-sm space-y-0.5">
+            <div>
+              <strong>{itemCount.toLocaleString()}</strong>{' '}
+              {itemCount === 1 ? 'Item' : 'Items'} Cataloged
+            </div>
+            {lastUpdatedAt && (
+              <div className="text-cream/80">
+                Last updated {formatRelativeTime(lastUpdatedAt)}
+              </div>
+            )}
           </div>
-          {lastUpdatedAt && (
-            <div>Last updated {formatRelativeTime(lastUpdatedAt)}</div>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-2 pt-1">
-          <Link
-            href="/items/new"
-            className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-gold text-cream text-sm font-medium hover:bg-gold-deep transition-colors"
-          >
-            <PlusIcon className="w-4 h-4" />
-            Add item
-          </Link>
-          <Link
-            href="/scan"
-            className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-paper border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors"
-          >
-            <CameraIcon className="w-4 h-4" />
-            Scan item
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/items/new"
+              className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-gold text-cream text-sm font-medium hover:bg-gold-deep transition-colors"
+            >
+              <PlusIcon className="w-4 h-4" />
+              Add Item
+            </Link>
+            <Link
+              href="/scan"
+              className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-cream/10 backdrop-blur-sm border border-cream/30 text-cream text-sm font-medium hover:bg-cream/20 transition-colors"
+            >
+              <CameraIcon className="w-4 h-4" />
+              Scan Item
+            </Link>
+          </div>
         </div>
       </div>
     </section>

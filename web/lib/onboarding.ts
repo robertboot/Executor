@@ -11,6 +11,9 @@ export interface ArchetypeDef {
   bestFor: string;
   recommendedKeys: string[];
   bgImage: string;
+  // Optional higher-resolution, full-bleed image used on the Home hero
+  // card. Falls back to bgImage when not provided.
+  fullImage?: string;
 }
 
 const ARCHETYPE_BG_VERSION = '1';
@@ -22,6 +25,7 @@ export const ARCHETYPES: ArchetypeDef[] = [
     tagline: 'Preserve your family history and memories.',
     bestFor: 'Heirlooms · photos · letters · recipes · keepsakes',
     bgImage: `/archetypes/family-legacy.png?v=${ARCHETYPE_BG_VERSION}`,
+    fullImage: `/archetypes/family-legacy-full.png?v=${ARCHETYPE_BG_VERSION}`,
     recommendedKeys: [
       'family-keepsakes',
       'art-photography',
