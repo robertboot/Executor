@@ -1,16 +1,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { listPeople } from '@/lib/api';
-import { displayName, lifeDates, personInitials } from '@/lib/people';
+import PeopleList from './PeopleList';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PeoplePage() {
   const people = await listPeople();
-
-  const totalItems = people.reduce((acc, p) => acc + p.itemCount, 0);
-  const withPhotos = people.filter((p) => p.primaryPhotoUrl).length;
-  const withDates = people.filter((p) => p.birth_date || p.death_date).length;
 
   return (
     <div className="space-y-8 pb-24">
@@ -40,14 +36,9 @@ export default async function PeoplePage() {
 
       <HowProvenanceWorksSection />
 
-      {people.length > 0 && (
-        <PeopleDirectorySection
-          people={people}
-          totalItems={totalItems}
-          withPhotos={withPhotos}
-          withDates={withDates}
-        />
-      )}
+      {people.length > 0 && <PeopleList people={people} />}
+
+      <TipBanner />
     </div>
   );
 }
@@ -347,103 +338,29 @@ function HowProvenanceWorksSection() {
 }
 
 // ============================================================== //
-//  People directory                                               //
+//  Tip banner                                                     //
 // ============================================================== //
 
-function PeopleDirectorySection({
-  people,
-  totalItems,
-  withPhotos,
-  withDates,
-}: {
-  people: Awaited<ReturnType<typeof listPeople>>;
-  totalItems: number;
-  withPhotos: number;
-  withDates: number;
-}) {
-  const cards = [
-    { value: people.length, label: 'People', icon: <PeopleIcon /> },
-    { value: totalItems, label: 'Linked Items', icon: <ArchiveIcon /> },
-    { value: withPhotos, label: 'With Photos', icon: <PortraitIcon /> },
-    { value: withDates, label: 'With Life Dates', icon: <CalendarIcon /> },
-  ];
-
+function TipBanner() {
   return (
-    <section className="space-y-6">
-      <div>
-        <h2 className="font-serif text-2xl text-ink">Your People</h2>
-        <p className="text-muted text-sm max-w-2xl mt-1">
-          The cast of characters across your archive today.
+    <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-cream-soft/70 border border-hairline rounded-2xl px-5 py-4">
+      <div className="flex items-start gap-3 min-w-0">
+        <span className="shrink-0 mt-0.5 w-7 h-7 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+          <LightbulbIcon />
+        </span>
+        <p className="text-sm text-ink-soft leading-relaxed">
+          <span className="font-medium text-ink">Tip:</span> You can
+          connect a Legacy Person to an item directly from the
+          item&rsquo;s detail page.
         </p>
       </div>
-
-      <ul className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {cards.map((c) => (
-          <li
-            key={c.label}
-            className="bg-paper border border-hairline rounded-2xl p-4 flex items-center gap-3 shadow-card"
-          >
-            <div className="shrink-0 w-12 h-12 rounded-full bg-cream-soft text-gold-deep flex items-center justify-center">
-              {c.icon}
-            </div>
-            <div className="min-w-0">
-              <div className="font-serif text-xl sm:text-2xl text-ink leading-none truncate">
-                {c.value}
-              </div>
-              <div className="text-[11px] uppercase tracking-wider text-muted mt-1.5 leading-tight">
-                {c.label}
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
-
-      <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
-        {people.map((p) => {
-          const name = displayName(p);
-          const dates = lifeDates(p);
-          return (
-            <li key={p.id}>
-              <Link
-                href={`/people/${p.id}`}
-                className="group block bg-paper border border-hairline rounded-xl overflow-hidden hover:shadow-card transition-shadow"
-              >
-                <div className="relative aspect-square bg-cream-soft overflow-hidden">
-                  {p.primaryPhotoUrl ? (
-                    <Image
-                      src={p.primaryPhotoUrl}
-                      alt={name}
-                      fill
-                      sizes="(max-width: 640px) 50vw, 240px"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-3xl font-serif text-gold-deep bg-gold-soft/60">
-                      {personInitials(p)}
-                    </div>
-                  )}
-                </div>
-                <div className="p-3 space-y-0.5">
-                  <div className="font-serif text-lg text-ink leading-tight truncate">
-                    {name}
-                  </div>
-                  {p.relationship && (
-                    <div className="text-xs text-ink-soft truncate">
-                      {p.relationship}
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between gap-2 text-xs text-muted pt-1">
-                    <span>{dates ?? '—'}</span>
-                    <span>
-                      {p.itemCount} {p.itemCount === 1 ? 'item' : 'items'}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      <Link
+        href="/people/new"
+        className="shrink-0 text-sm font-medium text-forest hover:text-forest-deep inline-flex items-center gap-1"
+      >
+        Learn How
+        <ChevronRightIcon />
+      </Link>
     </section>
   );
 }
@@ -533,22 +450,6 @@ function HammerIcon() {
   );
 }
 
-function ArchiveIcon() {
-  return svg('M4 7h16v12H4zM3 4h18v4H3zM10 12h4');
-}
-
-function PortraitIcon() {
-  return svg(
-    'M4 4h16v16H4zM12 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM7 17c1-2.5 3-3.5 5-3.5s4 1 5 3.5',
-  );
-}
-
-function CalendarIcon() {
-  return svg(
-    'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
-  );
-}
-
 function WatchIcon() {
   return svg(
     'M12 7v5l3 2M8 3l1 3M16 3l-1 3M8 21l1-3M16 21l-1-3M5 12a7 7 0 1 0 14 0 7 7 0 0 0-14 0z',
@@ -594,4 +495,40 @@ function UserIcon({ className }: { className?: string }) {
 
 function ArrowDownIcon() {
   return svg('M12 4v16M6 14l6 6 6-6');
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width={14}
+      height={14}
+      aria-hidden="true"
+    >
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+function LightbulbIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width={14}
+      height={14}
+      aria-hidden="true"
+    >
+      <path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c1 1 1.5 2 1.5 3.5h5c0-1.5.5-2.5 1.5-3.5A6 6 0 0 0 12 2z" />
+    </svg>
+  );
 }
