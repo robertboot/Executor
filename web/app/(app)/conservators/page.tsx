@@ -11,14 +11,16 @@ import {
   conservatorInitials,
 } from '@/lib/conservators';
 import { formatRelativeTime } from '@/lib/format';
+import { getMyDisplayName } from '@/lib/me';
 import type { Conservator } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ConservatorsPage() {
-  const [conservators, collections] = await Promise.all([
+  const [conservators, collections, myName] = await Promise.all([
     listConservators(),
     listMyCollectionsRich(),
+    getMyDisplayName(),
   ]);
 
   const summary = {
@@ -52,20 +54,19 @@ export default async function ConservatorsPage() {
 
       <HeroCard />
 
+      <WorkflowAndOverviewRow myName={myName} summary={summary} />
+
       {conservators.length > 0 && (
-        <>
-          <SummaryGrid summary={summary} />
-          <section className="space-y-4">
-            <h2 className="font-serif text-2xl text-ink">Your conservators</h2>
-            <ul className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {conservators.map((c) => (
-                <li key={c.id}>
-                  <ConservatorCard conservator={c} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        </>
+        <section className="space-y-4">
+          <h2 className="font-serif text-2xl text-ink">Your conservators</h2>
+          <ul className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {conservators.map((c) => (
+              <li key={c.id}>
+                <ConservatorCard conservator={c} />
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <PermissionLevelsSection />
@@ -162,54 +163,190 @@ function HeroCard() {
 }
 
 // ============================================================== //
-//  Summary cards                                                  //
+//  Workflow + overview row                                        //
 // ============================================================== //
 
-function SummaryGrid({
+type SummaryShape = {
+  active: number;
+  sharedCollections: number;
+  recentChanges: number;
+  auditCoverage: number;
+};
+
+function WorkflowAndOverviewRow({
+  myName,
   summary,
 }: {
-  summary: {
-    active: number;
-    sharedCollections: number;
-    recentChanges: number;
-    auditCoverage: number;
-  };
+  myName: string;
+  summary: SummaryShape;
 }) {
-  const cards = [
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <HowStewardshipWorksCard myName={myName} />
+      <StewardshipOverviewCard summary={summary} />
+    </div>
+  );
+}
+
+function HowStewardshipWorksCard({ myName }: { myName: string }) {
+  const steps = [
+    {
+      kicker: 'Owner',
+      name: myName,
+      body: 'You hold full access and decide who else can help.',
+      tone: 'muted' as const,
+    },
+    {
+      kicker: 'Conservator',
+      name: 'Trusted helper',
+      body: 'A family member, historian, or friend with view or edit access.',
+      tone: 'forest' as const,
+    },
+    {
+      kicker: 'Archive Log',
+      name: 'Permanent record',
+      body: 'Every change a conservator makes is captured for the future.',
+      tone: 'soft' as const,
+    },
+  ];
+
+  return (
+    <section className="bg-paper border border-hairline rounded-2xl p-6 sm:p-8 shadow-card">
+      <h3 className="font-serif text-xl text-ink">How Stewardship Works</h3>
+      <p className="text-sm text-muted mt-1 leading-relaxed">
+        You stay in control, conservators help with the work, and the
+        archive log keeps everyone honest.
+      </p>
+
+      <ol className="mt-6 space-y-5 relative">
+        {steps.map((s, idx) => (
+          <WorkflowStep
+            key={s.kicker}
+            kicker={s.kicker}
+            name={s.name}
+            body={s.body}
+            tone={s.tone}
+            isLast={idx === steps.length - 1}
+          />
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function StewardshipOverviewCard({ summary }: { summary: SummaryShape }) {
+  const stats = [
     { value: summary.active, label: 'Active Conservators', icon: <PeopleIcon /> },
     {
       value: summary.sharedCollections,
       label: 'Shared Collections',
       icon: <ArchiveIcon />,
     },
-    { value: summary.recentChanges, label: 'Recent Changes', icon: <DocIcon /> },
+    {
+      value: summary.recentChanges,
+      label: 'Recent Changes',
+      icon: <DocIcon />,
+    },
     {
       value: `${summary.auditCoverage}%`,
       label: 'Audit Coverage',
       icon: <CheckBadgeIcon />,
     },
   ];
+
   return (
-    <ul className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      {cards.map((c) => (
-        <li
-          key={c.label}
-          className="bg-paper border border-hairline rounded-2xl p-4 flex items-center gap-3 shadow-card"
+    <section className="bg-paper border border-hairline rounded-2xl p-6 sm:p-8 shadow-card flex flex-col">
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="font-serif text-xl text-ink">Stewardship Overview</h3>
+        <Link
+          href="#permission-levels"
+          className="text-xs font-medium text-forest hover:text-forest-deep inline-flex items-center gap-1"
         >
-          <div className="shrink-0 w-12 h-12 rounded-full bg-cream-soft text-gold-deep flex items-center justify-center">
-            {c.icon}
-          </div>
-          <div className="min-w-0">
-            <div className="font-serif text-2xl sm:text-3xl text-ink leading-none">
-              {c.value}
+          View Full Summary
+          <ChevronRightIcon />
+        </Link>
+      </div>
+
+      <ul className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-5">
+        {stats.map((s) => (
+          <li
+            key={s.label}
+            className="bg-cream-soft/60 border border-hairline rounded-xl p-3 text-center"
+          >
+            <div className="mx-auto w-9 h-9 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+              {s.icon}
             </div>
-            <div className="text-[11px] uppercase tracking-wider text-muted mt-1.5 leading-tight">
-              {c.label}
+            <div className="font-serif text-lg text-ink leading-none mt-2 truncate">
+              {s.value}
             </div>
+            <div className="text-[10px] uppercase tracking-wider text-muted mt-1.5 leading-tight">
+              {s.label}
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <p className="text-sm text-ink-soft mt-6 leading-relaxed">
+        {summary.active > 0
+          ? 'Your conservators are helping keep the archive accurate and complete.'
+          : 'Invite a conservator to share the work of preserving the archive without giving up control.'}
+      </p>
+
+      <div className="mt-auto pt-6 flex justify-center text-gold-soft">
+        <ShieldDecorIcon />
+      </div>
+    </section>
+  );
+}
+
+function WorkflowStep({
+  kicker,
+  name,
+  body,
+  tone,
+  isLast,
+}: {
+  kicker: string;
+  name: string;
+  body: string;
+  tone: 'muted' | 'forest' | 'soft';
+  isLast: boolean;
+}) {
+  const avatarClass =
+    tone === 'forest'
+      ? 'bg-forest text-cream border-forest'
+      : tone === 'soft'
+        ? 'bg-gold-soft text-gold-deep border-gold-soft'
+        : 'bg-cream-soft text-ink-soft border-hairline';
+  return (
+    <li className="grid grid-cols-[44px_minmax(0,1fr)] gap-4">
+      <div className="relative flex flex-col items-center">
+        <span
+          className={`w-10 h-10 rounded-full flex items-center justify-center border ${avatarClass}`}
+        >
+          <UserIconSmall />
+        </span>
+        {!isLast && (
+          <span
+            className="absolute top-10 left-1/2 -translate-x-1/2 w-px h-full border-l border-dashed border-hairline"
+            aria-hidden
+          />
+        )}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-1 sm:gap-3 pb-3">
+        <div className="min-w-0">
+          <div className="text-[11px] uppercase tracking-widest text-gold-deep">
+            {kicker}
           </div>
-        </li>
-      ))}
-    </ul>
+          <div className="font-serif text-base text-ink leading-tight mt-0.5 truncate">
+            {name}
+          </div>
+        </div>
+        <p className="text-xs text-ink-soft leading-relaxed sm:mt-0.5">
+          {body}
+        </p>
+      </div>
+    </li>
   );
 }
 
@@ -583,6 +720,63 @@ function CrossIcon({ className }: { className?: string }) {
       aria-hidden="true"
     >
       <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width={14}
+      height={14}
+      aria-hidden="true"
+    >
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+function UserIconSmall() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width={16}
+      height={16}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 21c0-3.5 3-6 7-6s7 2.5 7 6" />
+    </svg>
+  );
+}
+
+function ShieldDecorIcon() {
+  return (
+    <svg
+      viewBox="0 0 120 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width={120}
+      height={24}
+      aria-hidden="true"
+    >
+      <path d="M0 12h45M75 12h45" />
+      <path d="M60 6l5 2v4c0 3-2.2 5-5 5.5-2.8-.5-5-2.5-5-5.5V8z" />
+      <path d="M57 11.5l1.8 1.8 3.2-3.2" />
     </svg>
   );
 }

@@ -1,12 +1,20 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { listPeople } from '@/lib/api';
+import { getMyDisplayName } from '@/lib/me';
 import PeopleList from './PeopleList';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PeoplePage() {
-  const people = await listPeople();
+  const [people, myName] = await Promise.all([
+    listPeople(),
+    getMyDisplayName(),
+  ]);
+
+  const totalItems = people.reduce((acc, p) => acc + p.itemCount, 0);
+  const withPhotos = people.filter((p) => p.primaryPhotoUrl).length;
+  const withDates = people.filter((p) => p.birth_date || p.death_date).length;
 
   return (
     <div className="space-y-8 pb-24">
@@ -34,7 +42,13 @@ export default async function PeoplePage() {
 
       <PeopleRolesSection />
 
-      <HowProvenanceWorksSection />
+      <WorkflowAndOverviewRow
+        myName={myName}
+        peopleCount={people.length}
+        totalItems={totalItems}
+        withPhotos={withPhotos}
+        withDates={withDates}
+      />
 
       {people.length > 0 && <PeopleList people={people} />}
 
@@ -229,111 +243,192 @@ function PeopleRolesSection() {
 }
 
 // ============================================================== //
-//  How provenance works                                           //
+//  Workflow + overview row                                        //
 // ============================================================== //
 
-function HowProvenanceWorksSection() {
+function WorkflowAndOverviewRow({
+  myName,
+  peopleCount,
+  totalItems,
+  withPhotos,
+  withDates,
+}: {
+  myName: string;
+  peopleCount: number;
+  totalItems: number;
+  withPhotos: number;
+  withDates: number;
+}) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <HowProvenanceWorksCard myName={myName} />
+      <ProvenanceOverviewCard
+        peopleCount={peopleCount}
+        totalItems={totalItems}
+        withPhotos={withPhotos}
+        withDates={withDates}
+      />
+    </div>
+  );
+}
+
+function HowProvenanceWorksCard({ myName }: { myName: string }) {
   const steps = [
     {
-      kicker: 'Generation 1',
-      title: 'Original Owner',
-      sample: 'Great-Grandpa Henry',
-      body: 'Bought new in 1912 and carried for forty years.',
-      icon: <CrownIcon />,
+      kicker: 'Original Owner',
+      name: 'Great-Grandpa Henry',
+      body: 'The first person to own the item — where the story begins.',
+      tone: 'muted' as const,
     },
     {
-      kicker: 'Generation 2',
-      title: 'Inherited From',
-      sample: 'Grandpa Joe',
-      body: 'Received the watch in 1952 and wore it for every holiday.',
-      icon: <ScrollIcon />,
+      kicker: 'Inherited From',
+      name: 'Grandpa Joe',
+      body: 'The person who passed the item to its next custodian.',
+      tone: 'forest' as const,
     },
     {
-      kicker: 'Today',
-      title: 'Current Custodian',
-      sample: 'You',
-      body: 'Keeping the watch safe and the story alive.',
-      icon: <UserIcon className="w-5 h-5" />,
+      kicker: 'Current Custodian',
+      name: myName,
+      body: 'The person responsible for the item today.',
+      tone: 'soft' as const,
     },
   ];
 
   return (
-    <section className="space-y-4">
-      <div>
-        <h2 className="font-serif text-2xl text-ink">How Provenance Works</h2>
-        <p className="text-muted text-sm max-w-2xl mt-1">
-          Provenance is the chain of custody an item travels through. Each
-          person on the chain adds a chapter to the story you&rsquo;re
-          preserving.
-        </p>
+    <section className="bg-paper border border-hairline rounded-2xl p-6 sm:p-8 shadow-card">
+      <h3 className="font-serif text-xl text-ink">How Provenance Works</h3>
+      <p className="text-sm text-muted mt-1 leading-relaxed">
+        Provenance is the chain of custody an item travels through —
+        each person on the chain adds a chapter.
+      </p>
+
+      <ol className="mt-6 space-y-5 relative">
+        {steps.map((s, idx) => (
+          <WorkflowStep
+            key={s.kicker}
+            kicker={s.kicker}
+            name={s.name}
+            body={s.body}
+            tone={s.tone}
+            isLast={idx === steps.length - 1}
+          />
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function ProvenanceOverviewCard({
+  peopleCount,
+  totalItems,
+  withPhotos,
+  withDates,
+}: {
+  peopleCount: number;
+  totalItems: number;
+  withPhotos: number;
+  withDates: number;
+}) {
+  const stats = [
+    { value: peopleCount, label: 'People', icon: <PeopleIcon /> },
+    { value: totalItems, label: 'Linked Items', icon: <ArchiveIcon /> },
+    { value: withPhotos, label: 'With Photos', icon: <PortraitIcon /> },
+    { value: withDates, label: 'With Life Dates', icon: <CalendarIcon /> },
+  ];
+
+  return (
+    <section className="bg-paper border border-hairline rounded-2xl p-6 sm:p-8 shadow-card flex flex-col">
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="font-serif text-xl text-ink">Provenance Overview</h3>
+        <Link
+          href="#your-people"
+          className="text-xs font-medium text-forest hover:text-forest-deep inline-flex items-center gap-1"
+        >
+          View Full Summary
+          <ChevronRightIcon />
+        </Link>
       </div>
-      <div className="bg-paper border border-hairline rounded-2xl p-6 sm:p-8 shadow-card">
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-hairline">
-          <span className="shrink-0 w-10 h-10 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
-            <WatchIcon />
-          </span>
-          <div className="min-w-0">
-            <div className="text-[11px] uppercase tracking-widest text-muted">
-              Example
-            </div>
-            <div className="font-serif text-lg text-ink leading-tight">
-              The Family Pocket Watch
-            </div>
-          </div>
-        </div>
 
-        <ol className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 md:items-stretch">
-          {steps.map((s, idx) => (
-            <li
-              key={s.kicker}
-              className="relative flex flex-col items-start md:items-center md:text-center md:px-4 md:flex-1"
-            >
-              <div className="flex md:flex-col items-center md:items-center gap-3 md:gap-2 w-full">
-                <span className="shrink-0 w-12 h-12 rounded-full bg-cream-soft text-gold-deep flex items-center justify-center border border-hairline">
-                  {s.icon}
-                </span>
-                {idx < steps.length - 1 && (
-                  <span
-                    className="hidden md:block absolute top-6 left-1/2 w-full h-px bg-hairline"
-                    aria-hidden
-                  />
-                )}
-                <div className="min-w-0 md:mt-2">
-                  <div className="text-[10px] uppercase tracking-widest text-muted">
-                    {s.kicker}
-                  </div>
-                  <div className="font-serif text-base text-ink leading-tight mt-0.5">
-                    {s.title}
-                  </div>
-                </div>
-              </div>
-              <div className="md:mt-3 mt-2 ml-15 md:ml-0 w-full">
-                <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-gold-soft text-[11px] font-medium text-gold-deep">
-                  {s.sample}
-                </div>
-                <p className="text-xs text-ink-soft mt-2 leading-relaxed">
-                  {s.body}
-                </p>
-              </div>
-              {idx < steps.length - 1 && (
-                <span
-                  className="md:hidden mt-3 ml-5 text-muted"
-                  aria-hidden
-                >
-                  <ArrowDownIcon />
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
+      <ul className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-5">
+        {stats.map((s) => (
+          <li
+            key={s.label}
+            className="bg-cream-soft/60 border border-hairline rounded-xl p-3 text-center"
+          >
+            <div className="mx-auto w-9 h-9 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+              {s.icon}
+            </div>
+            <div className="font-serif text-lg text-ink leading-none mt-2 truncate">
+              {s.value}
+            </div>
+            <div className="text-[10px] uppercase tracking-wider text-muted mt-1.5 leading-tight">
+              {s.label}
+            </div>
+          </li>
+        ))}
+      </ul>
 
-        <p className="text-xs text-muted mt-6 pt-4 border-t border-hairline leading-relaxed">
-          Provenance is about memory, not ownership. Adding a person to an
-          item&rsquo;s chain records their place in the story — it
-          doesn&rsquo;t move the item itself.
-        </p>
+      <p className="text-sm text-ink-soft mt-6 leading-relaxed">
+        {peopleCount > 0
+          ? 'These people anchor the stories behind every item in your archive.'
+          : 'Start by adding a Legacy Person — the first link in your archive’s human chain.'}
+      </p>
+
+      <div className="mt-auto pt-6 flex justify-center text-gold-soft">
+        <FamilyDecorIcon />
       </div>
     </section>
+  );
+}
+
+function WorkflowStep({
+  kicker,
+  name,
+  body,
+  tone,
+  isLast,
+}: {
+  kicker: string;
+  name: string;
+  body: string;
+  tone: 'muted' | 'forest' | 'soft';
+  isLast: boolean;
+}) {
+  const avatarClass =
+    tone === 'forest'
+      ? 'bg-forest text-cream border-forest'
+      : tone === 'soft'
+        ? 'bg-gold-soft text-gold-deep border-gold-soft'
+        : 'bg-cream-soft text-ink-soft border-hairline';
+  return (
+    <li className="grid grid-cols-[44px_minmax(0,1fr)] gap-4">
+      <div className="relative flex flex-col items-center">
+        <span
+          className={`w-10 h-10 rounded-full flex items-center justify-center border ${avatarClass}`}
+        >
+          <UserIconSmall />
+        </span>
+        {!isLast && (
+          <span
+            className="absolute top-10 left-1/2 -translate-x-1/2 w-px h-full border-l border-dashed border-hairline"
+            aria-hidden
+          />
+        )}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-1 sm:gap-3 pb-3">
+        <div className="min-w-0">
+          <div className="text-[11px] uppercase tracking-widest text-gold-deep">
+            {kicker}
+          </div>
+          <div className="font-serif text-base text-ink leading-tight mt-0.5 truncate">
+            {name}
+          </div>
+        </div>
+        <p className="text-xs text-ink-soft leading-relaxed sm:mt-0.5">
+          {body}
+        </p>
+      </div>
+    </li>
   );
 }
 
@@ -406,28 +501,6 @@ function UserPlusIcon({ className }: { className?: string }) {
   );
 }
 
-function FamilyIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      width={20}
-      height={20}
-      aria-hidden="true"
-    >
-      <circle cx="7" cy="8" r="2.5" />
-      <circle cx="17" cy="8" r="2.5" />
-      <circle cx="12" cy="16" r="2" />
-      <path d="M3 21c0-2.5 1.8-4.5 4-4.5M21 21c0-2.5-1.8-4.5-4-4.5M8 21c0-2 1.5-3.5 4-3.5s4 1.5 4 3.5" />
-    </svg>
-  );
-}
-
 function PeopleIcon() {
   return svg(
     'M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM15 14h2c2.2 0 4 1.8 4 4',
@@ -450,9 +523,57 @@ function HammerIcon() {
   );
 }
 
-function WatchIcon() {
+function ArchiveIcon() {
+  return svg('M4 7h16v12H4zM3 4h18v4H3zM10 12h4', 16);
+}
+
+function PortraitIcon() {
   return svg(
-    'M12 7v5l3 2M8 3l1 3M16 3l-1 3M8 21l1-3M16 21l-1-3M5 12a7 7 0 1 0 14 0 7 7 0 0 0-14 0z',
+    'M4 4h16v16H4zM12 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM7 17c1-2.5 3-3.5 5-3.5s4 1 5 3.5',
+    16,
+  );
+}
+
+function CalendarIcon() {
+  return svg('M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', 16);
+}
+
+function UserIconSmall() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width={16}
+      height={16}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 21c0-3.5 3-6 7-6s7 2.5 7 6" />
+    </svg>
+  );
+}
+
+function FamilyDecorIcon() {
+  return (
+    <svg
+      viewBox="0 0 120 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width={120}
+      height={24}
+      aria-hidden="true"
+    >
+      <path d="M0 12h45M75 12h45" />
+      <circle cx="56" cy="12" r="4" />
+      <circle cx="64" cy="12" r="4" />
+    </svg>
   );
 }
 
@@ -473,28 +594,6 @@ function CheckIcon({ className }: { className?: string }) {
       <path d="M5 12l5 5 9-12" />
     </svg>
   );
-}
-
-function UserIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" />
-    </svg>
-  );
-}
-
-function ArrowDownIcon() {
-  return svg('M12 4v16M6 14l6 6 6-6');
 }
 
 function ChevronRightIcon() {

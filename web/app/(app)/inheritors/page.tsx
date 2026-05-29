@@ -2,12 +2,16 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { listInheritors } from '@/lib/api';
 import { formatMoney } from '@/lib/format';
+import { getMyDisplayName } from '@/lib/me';
 import InheritorsList from './InheritorsList';
 
 export const dynamic = 'force-dynamic';
 
 export default async function InheritorsPage() {
-  const inheritors = await listInheritors();
+  const [inheritors, myName] = await Promise.all([
+    listInheritors(),
+    getMyDisplayName(),
+  ]);
 
   const totalItems = inheritors.reduce((acc, i) => acc + i.itemCount, 0);
   const totalCollections = inheritors.reduce(
@@ -44,6 +48,7 @@ export default async function InheritorsPage() {
       <InheritorTypesSection />
 
       <WorkflowAndOverviewRow
+        myName={myName}
         inheritorCount={inheritors.length}
         itemCount={totalItems}
         collectionCount={totalCollections}
@@ -231,12 +236,14 @@ function InheritorTypesSection() {
 // ============================================================== //
 
 function WorkflowAndOverviewRow({
+  myName,
   inheritorCount,
   itemCount,
   collectionCount,
   totalValue,
   totalCurrency,
 }: {
+  myName: string;
   inheritorCount: number;
   itemCount: number;
   collectionCount: number;
@@ -245,7 +252,7 @@ function WorkflowAndOverviewRow({
 }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <HowInheritanceWorksCard />
+      <HowInheritanceWorksCard myName={myName} />
       <InheritanceOverviewCard
         inheritorCount={inheritorCount}
         itemCount={itemCount}
@@ -257,11 +264,11 @@ function WorkflowAndOverviewRow({
   );
 }
 
-function HowInheritanceWorksCard() {
+function HowInheritanceWorksCard({ myName }: { myName: string }) {
   const steps = [
     {
       kicker: 'Current Custodian',
-      name: 'You',
+      name: myName,
       body: 'The person currently responsible for the item.',
       tone: 'muted' as const,
     },
@@ -289,45 +296,68 @@ function HowInheritanceWorksCard() {
 
       <ol className="mt-6 space-y-5 relative">
         {steps.map((s, idx) => (
-          <li key={s.kicker} className="relative flex gap-4">
-            <div className="relative shrink-0 flex flex-col items-center">
-              <span
-                className={`w-10 h-10 rounded-full flex items-center justify-center border ${
-                  s.tone === 'forest'
-                    ? 'bg-forest text-cream border-forest'
-                    : s.tone === 'soft'
-                      ? 'bg-gold-soft text-gold-deep border-gold-soft'
-                      : 'bg-cream-soft text-ink-soft border-hairline'
-                }`}
-              >
-                {s.tone === 'forest' ? (
-                  <KeyIcon className="w-4 h-4" />
-                ) : (
-                  <UserIconSmall />
-                )}
-              </span>
-              {idx < steps.length - 1 && (
-                <span
-                  className="absolute top-10 left-1/2 -translate-x-1/2 w-px h-full border-l border-dashed border-hairline"
-                  aria-hidden
-                />
-              )}
-            </div>
-            <div className="flex-1 min-w-0 pb-1">
-              <div className="text-[11px] uppercase tracking-widest text-muted">
-                {s.kicker}
-              </div>
-              <div className="font-serif text-base text-ink leading-tight mt-0.5">
-                {s.name}
-              </div>
-              <p className="text-xs text-ink-soft mt-1 leading-relaxed">
-                {s.body}
-              </p>
-            </div>
-          </li>
+          <WorkflowStep
+            key={s.kicker}
+            kicker={s.kicker}
+            name={s.name}
+            body={s.body}
+            tone={s.tone}
+            isLast={idx === steps.length - 1}
+          />
         ))}
       </ol>
     </section>
+  );
+}
+
+function WorkflowStep({
+  kicker,
+  name,
+  body,
+  tone,
+  isLast,
+}: {
+  kicker: string;
+  name: string;
+  body: string;
+  tone: 'muted' | 'forest' | 'soft';
+  isLast: boolean;
+}) {
+  const avatarClass =
+    tone === 'forest'
+      ? 'bg-forest text-cream border-forest'
+      : tone === 'soft'
+        ? 'bg-gold-soft text-gold-deep border-gold-soft'
+        : 'bg-cream-soft text-ink-soft border-hairline';
+  return (
+    <li className="grid grid-cols-[44px_minmax(0,1fr)] gap-4">
+      <div className="relative flex flex-col items-center">
+        <span
+          className={`w-10 h-10 rounded-full flex items-center justify-center border ${avatarClass}`}
+        >
+          <UserIconSmall />
+        </span>
+        {!isLast && (
+          <span
+            className="absolute top-10 left-1/2 -translate-x-1/2 w-px h-full border-l border-dashed border-hairline"
+            aria-hidden
+          />
+        )}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-1 sm:gap-3 pb-3">
+        <div className="min-w-0">
+          <div className="text-[11px] uppercase tracking-widest text-gold-deep">
+            {kicker}
+          </div>
+          <div className="font-serif text-base text-ink leading-tight mt-0.5 truncate">
+            {name}
+          </div>
+        </div>
+        <p className="text-xs text-ink-soft leading-relaxed sm:mt-0.5">
+          {body}
+        </p>
+      </div>
+    </li>
   );
 }
 
@@ -465,26 +495,6 @@ function PlusIcon({ className }: { className?: string }) {
       aria-hidden="true"
     >
       <path d="M10 4v12M4 10h12" />
-    </svg>
-  );
-}
-
-function KeyIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      width={18}
-      height={18}
-      aria-hidden="true"
-    >
-      <circle cx="8" cy="14" r="4" />
-      <path d="M11 12l10-10M15 6l3 3M18 4l2 2" />
     </svg>
   );
 }
