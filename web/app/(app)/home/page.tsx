@@ -305,7 +305,7 @@ function HeroCard({
           <div className="flex flex-wrap gap-2">
             <Link
               href="/items/new"
-              className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-gold text-cream text-sm font-medium hover:bg-gold-deep transition-colors"
+              className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-[#C68A2E] text-cream text-sm font-medium hover:bg-[#A8741F] transition-colors shadow-sm"
             >
               <PlusIcon className="w-4 h-4" />
               Add Item
