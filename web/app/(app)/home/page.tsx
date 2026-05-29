@@ -263,9 +263,10 @@ function HeroCard({
     overlayStyle === 'none'
       ? null
       : overlayStyle === 'scrim'
-        ? // Subtle dark wash across the whole image — slightly heavier
-          // in the bottom-left corner where the text + buttons sit.
-          'linear-gradient(to top right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.2) 100%)'
+        ? // Flat 18% dark wash for legibility without dimming the
+          // photo. Just enough lift for cream text to read against
+          // a bright background.
+          'rgba(0,0,0,0.18)'
         : // Left-to-right forest-green fade — matches images that bake
           // a light left half into the source.
           'linear-gradient(to right, rgba(15,61,46,0.78) 0%, rgba(15,61,46,0.55) 35%, rgba(15,61,46,0.15) 65%, rgba(15,61,46,0) 100%)';

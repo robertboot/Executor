@@ -58,7 +58,7 @@ export const ARCHETYPES: ArchetypeDef[] = [
     bestFor: 'Sports · cards · coins · comics · hobbies',
     bgImage: `/archetypes/collector.png?v=${ARCHETYPE_BG_VERSION}`,
     fullImage: `/archetypes/collector-full.png?v=${ARCHETYPE_BG_VERSION}`,
-    heroOverlayStyle: 'none',
+    heroOverlayStyle: 'scrim',
     recommendedKeys: [
       'sports-memorabilia',
       'collectibles-curiosities',
