@@ -8,107 +8,583 @@ export const dynamic = 'force-dynamic';
 export default async function PeoplePage() {
   const people = await listPeople();
 
+  const totalItems = people.reduce((acc, p) => acc + p.itemCount, 0);
+  const withPhotos = people.filter((p) => p.primaryPhotoUrl).length;
+  const withDates = people.filter((p) => p.birth_date || p.death_date).length;
+
   return (
-    <div className="space-y-6 pb-24">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+    <div className="space-y-8 pb-24">
+      {/* Header */}
+      <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-ink leading-tight">
+          <h1 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
             Legacy People
           </h1>
-          <p className="text-muted text-sm mt-1">
+          <p className="text-muted text-sm sm:text-base mt-2 max-w-xl">
             The family, friends, and previous owners behind every
-            heirloom.
+            heirloom. Answer the question: who is part of this item&rsquo;s
+            story?
           </p>
         </div>
         <Link
           href="/people/new"
-          className="inline-flex items-center gap-2 px-4 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
+          className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors shrink-0"
         >
-          <PlusIcon className="w-4 h-4" />
-          Add person
+          <UserPlusIcon className="w-4 h-4" />
+          Add Person
         </Link>
       </header>
 
-      {people.length === 0 ? (
-        <div className="bg-paper border border-hairline rounded-2xl p-10 text-center">
-          <h2 className="font-serif text-2xl text-ink">No people yet</h2>
-          <p className="text-muted text-sm mt-2 mb-4">
-            Add your first person — a parent, grandparent, sibling, or
-            friend — and start connecting items to the people they
-            matter to.
-          </p>
-          <Link
-            href="/people/new"
-            className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep"
-          >
-            <PlusIcon className="w-4 h-4" />
-            Add your first person
-          </Link>
-        </div>
-      ) : (
-        <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
-          {people.map((p) => {
-            const name = displayName(p);
-            const dates = lifeDates(p);
-            return (
-              <li key={p.id}>
-                <Link
-                  href={`/people/${p.id}`}
-                  className="group block bg-paper border border-hairline rounded-xl overflow-hidden hover:shadow-card transition-shadow"
-                >
-                  <div className="relative aspect-square bg-cream-soft overflow-hidden">
-                    {p.primaryPhotoUrl ? (
-                      <Image
-                        src={p.primaryPhotoUrl}
-                        alt={name}
-                        fill
-                        sizes="(max-width: 640px) 50vw, 240px"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center text-3xl font-serif text-gold-deep bg-gold-soft/60">
-                        {personInitials(p)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3 space-y-0.5">
-                    <div className="font-serif text-lg text-ink leading-tight truncate">
-                      {name}
-                    </div>
-                    {p.relationship && (
-                      <div className="text-xs text-ink-soft truncate">
-                        {p.relationship}
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between gap-2 text-xs text-muted pt-1">
-                      <span>{dates ?? '—'}</span>
-                      <span>
-                        {p.itemCount} {p.itemCount === 1 ? 'item' : 'items'}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+      <HeroCard hasPeople={people.length > 0} />
+
+      <PeopleRolesSection />
+
+      <HowProvenanceWorksSection />
+
+      {people.length > 0 && (
+        <PeopleDirectorySection
+          people={people}
+          totalItems={totalItems}
+          withPhotos={withPhotos}
+          withDates={withDates}
+        />
       )}
     </div>
   );
 }
 
-function PlusIcon({ className }: { className?: string }) {
+// ============================================================== //
+//  Hero card                                                      //
+// ============================================================== //
+
+function HeroCard({ hasPeople }: { hasPeople: boolean }) {
+  const bullets = [
+    {
+      title: 'Identify',
+      body: 'Record who owned, made, or appeared in the items you preserve.',
+    },
+    {
+      title: 'Connect',
+      body: 'Link each person to the items and stories they belong to.',
+    },
+    {
+      title: 'Remember',
+      body: 'Capture biographies, life dates, and photos so they are not lost.',
+    },
+    {
+      title: 'Pass Down',
+      body: 'Give future generations the names and faces behind every heirloom.',
+    },
+  ];
+
+  return (
+    <section className="bg-paper border border-hairline rounded-2xl p-6 sm:p-10 shadow-card">
+      <div className="flex flex-col items-center text-center">
+        <div className="w-16 h-16 rounded-full bg-gold-soft flex items-center justify-center text-gold-deep mb-4">
+          <FamilyIcon className="w-8 h-8" />
+        </div>
+        <h2 className="font-serif text-2xl sm:text-3xl text-ink">
+          Preserve the People Behind Every Heirloom
+        </h2>
+        <p className="text-muted text-sm sm:text-base mt-3 max-w-xl">
+          An heirloom without a name is just an object. Legacy People are
+          the human thread that runs through your archive — the
+          grandparents, friends, makers, and previous owners whose stories
+          are inseparable from the items you keep.
+        </p>
+      </div>
+
+      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 max-w-3xl mx-auto">
+        {bullets.map((b) => (
+          <li
+            key={b.title}
+            className="flex items-start gap-3 bg-cream-soft/50 border border-hairline rounded-xl p-4"
+          >
+            <span className="shrink-0 mt-0.5 w-7 h-7 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+              <CheckIcon className="w-3.5 h-3.5" />
+            </span>
+            <div className="min-w-0">
+              <div className="font-serif text-base text-ink leading-tight">
+                {b.title}
+              </div>
+              <div className="text-xs text-ink-soft mt-1 leading-relaxed">
+                {b.body}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <div className="flex justify-center mt-8">
+        <Link
+          href="/people/new"
+          className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
+        >
+          <UserPlusIcon className="w-4 h-4" />
+          {hasPeople ? 'Add Another Person' : 'Add Your First Person'}
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================== //
+//  People roles                                                   //
+// ============================================================== //
+
+function PeopleRolesSection() {
+  const roles = [
+    {
+      key: 'owner',
+      title: 'Original Owner',
+      icon: <CrownIcon />,
+      body: 'The person who first owned, commissioned, or acquired the item.',
+      examples: [
+        'Grandparent who bought a watch new',
+        'Ancestor who commissioned a portrait',
+        'First owner of a family bible',
+      ],
+    },
+    {
+      key: 'inherited',
+      title: 'Inherited From',
+      icon: <ScrollIcon />,
+      body: 'The person you (or a previous custodian) received the item from.',
+      examples: [
+        'Parent who passed down a ring',
+        'Aunt who bequeathed a quilt',
+        'Estate of a great-uncle',
+      ],
+    },
+    {
+      key: 'maker',
+      title: 'Maker or Creator',
+      icon: <HammerIcon />,
+      body: 'The person who made, painted, photographed, or crafted the item.',
+      examples: [
+        'Artist who painted a portrait',
+        'Photographer behind a family print',
+        'Grandparent who built the cradle',
+      ],
+    },
+    {
+      key: 'connected',
+      title: 'Family & Friends',
+      icon: <PeopleIcon />,
+      body: 'People photographed in, mentioned by, or otherwise connected to the item.',
+      examples: [
+        'Children in a holiday photograph',
+        'Friend named in a letter',
+        'Sibling who appears in a journal entry',
+      ],
+    },
+  ];
+
+  return (
+    <section className="space-y-4">
+      <div>
+        <h2 className="font-serif text-2xl text-ink">
+          How People Connect to Items
+        </h2>
+        <p className="text-muted text-sm max-w-2xl mt-1">
+          A single heirloom can carry the fingerprints of many people. We
+          group their roles into four common categories so you can capture
+          the full story without losing the details.
+        </p>
+      </div>
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {roles.map((r) => (
+          <li
+            key={r.key}
+            className="bg-paper border border-hairline rounded-2xl p-5 space-y-3 shadow-card"
+          >
+            <div className="flex items-center gap-2">
+              <span className="shrink-0 w-10 h-10 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+                {r.icon}
+              </span>
+              <h3 className="font-serif text-xl text-ink leading-tight">
+                {r.title}
+              </h3>
+            </div>
+            <p className="text-sm text-ink-soft leading-relaxed">{r.body}</p>
+            <div className="space-y-1 pt-1">
+              <div className="text-[11px] uppercase tracking-wider text-muted">
+                Examples
+              </div>
+              <ul className="space-y-1">
+                {r.examples.map((ex) => (
+                  <li
+                    key={ex}
+                    className="flex items-start gap-2 text-sm text-ink-soft"
+                  >
+                    <span className="mt-1.5 w-1 h-1 rounded-full bg-gold-deep shrink-0" />
+                    <span>{ex}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+// ============================================================== //
+//  How provenance works                                           //
+// ============================================================== //
+
+function HowProvenanceWorksSection() {
+  const steps = [
+    {
+      kicker: 'Generation 1',
+      title: 'Original Owner',
+      sample: 'Great-Grandpa Henry',
+      body: 'Bought new in 1912 and carried for forty years.',
+      icon: <CrownIcon />,
+    },
+    {
+      kicker: 'Generation 2',
+      title: 'Inherited From',
+      sample: 'Grandpa Joe',
+      body: 'Received the watch in 1952 and wore it for every holiday.',
+      icon: <ScrollIcon />,
+    },
+    {
+      kicker: 'Today',
+      title: 'Current Custodian',
+      sample: 'You',
+      body: 'Keeping the watch safe and the story alive.',
+      icon: <UserIcon className="w-5 h-5" />,
+    },
+  ];
+
+  return (
+    <section className="space-y-4">
+      <div>
+        <h2 className="font-serif text-2xl text-ink">How Provenance Works</h2>
+        <p className="text-muted text-sm max-w-2xl mt-1">
+          Provenance is the chain of custody an item travels through. Each
+          person on the chain adds a chapter to the story you&rsquo;re
+          preserving.
+        </p>
+      </div>
+      <div className="bg-paper border border-hairline rounded-2xl p-6 sm:p-8 shadow-card">
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-hairline">
+          <span className="shrink-0 w-10 h-10 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+            <WatchIcon />
+          </span>
+          <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-widest text-muted">
+              Example
+            </div>
+            <div className="font-serif text-lg text-ink leading-tight">
+              The Family Pocket Watch
+            </div>
+          </div>
+        </div>
+
+        <ol className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 md:items-stretch">
+          {steps.map((s, idx) => (
+            <li
+              key={s.kicker}
+              className="relative flex flex-col items-start md:items-center md:text-center md:px-4 md:flex-1"
+            >
+              <div className="flex md:flex-col items-center md:items-center gap-3 md:gap-2 w-full">
+                <span className="shrink-0 w-12 h-12 rounded-full bg-cream-soft text-gold-deep flex items-center justify-center border border-hairline">
+                  {s.icon}
+                </span>
+                {idx < steps.length - 1 && (
+                  <span
+                    className="hidden md:block absolute top-6 left-1/2 w-full h-px bg-hairline"
+                    aria-hidden
+                  />
+                )}
+                <div className="min-w-0 md:mt-2">
+                  <div className="text-[10px] uppercase tracking-widest text-muted">
+                    {s.kicker}
+                  </div>
+                  <div className="font-serif text-base text-ink leading-tight mt-0.5">
+                    {s.title}
+                  </div>
+                </div>
+              </div>
+              <div className="md:mt-3 mt-2 ml-15 md:ml-0 w-full">
+                <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-gold-soft text-[11px] font-medium text-gold-deep">
+                  {s.sample}
+                </div>
+                <p className="text-xs text-ink-soft mt-2 leading-relaxed">
+                  {s.body}
+                </p>
+              </div>
+              {idx < steps.length - 1 && (
+                <span
+                  className="md:hidden mt-3 ml-5 text-muted"
+                  aria-hidden
+                >
+                  <ArrowDownIcon />
+                </span>
+              )}
+            </li>
+          ))}
+        </ol>
+
+        <p className="text-xs text-muted mt-6 pt-4 border-t border-hairline leading-relaxed">
+          Provenance is about memory, not ownership. Adding a person to an
+          item&rsquo;s chain records their place in the story — it
+          doesn&rsquo;t move the item itself.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================== //
+//  People directory                                               //
+// ============================================================== //
+
+function PeopleDirectorySection({
+  people,
+  totalItems,
+  withPhotos,
+  withDates,
+}: {
+  people: Awaited<ReturnType<typeof listPeople>>;
+  totalItems: number;
+  withPhotos: number;
+  withDates: number;
+}) {
+  const cards = [
+    { value: people.length, label: 'People', icon: <PeopleIcon /> },
+    { value: totalItems, label: 'Linked Items', icon: <ArchiveIcon /> },
+    { value: withPhotos, label: 'With Photos', icon: <PortraitIcon /> },
+    { value: withDates, label: 'With Life Dates', icon: <CalendarIcon /> },
+  ];
+
+  return (
+    <section className="space-y-6">
+      <div>
+        <h2 className="font-serif text-2xl text-ink">Your People</h2>
+        <p className="text-muted text-sm max-w-2xl mt-1">
+          The cast of characters across your archive today.
+        </p>
+      </div>
+
+      <ul className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {cards.map((c) => (
+          <li
+            key={c.label}
+            className="bg-paper border border-hairline rounded-2xl p-4 flex items-center gap-3 shadow-card"
+          >
+            <div className="shrink-0 w-12 h-12 rounded-full bg-cream-soft text-gold-deep flex items-center justify-center">
+              {c.icon}
+            </div>
+            <div className="min-w-0">
+              <div className="font-serif text-xl sm:text-2xl text-ink leading-none truncate">
+                {c.value}
+              </div>
+              <div className="text-[11px] uppercase tracking-wider text-muted mt-1.5 leading-tight">
+                {c.label}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+        {people.map((p) => {
+          const name = displayName(p);
+          const dates = lifeDates(p);
+          return (
+            <li key={p.id}>
+              <Link
+                href={`/people/${p.id}`}
+                className="group block bg-paper border border-hairline rounded-xl overflow-hidden hover:shadow-card transition-shadow"
+              >
+                <div className="relative aspect-square bg-cream-soft overflow-hidden">
+                  {p.primaryPhotoUrl ? (
+                    <Image
+                      src={p.primaryPhotoUrl}
+                      alt={name}
+                      fill
+                      sizes="(max-width: 640px) 50vw, 240px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-3xl font-serif text-gold-deep bg-gold-soft/60">
+                      {personInitials(p)}
+                    </div>
+                  )}
+                </div>
+                <div className="p-3 space-y-0.5">
+                  <div className="font-serif text-lg text-ink leading-tight truncate">
+                    {name}
+                  </div>
+                  {p.relationship && (
+                    <div className="text-xs text-ink-soft truncate">
+                      {p.relationship}
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between gap-2 text-xs text-muted pt-1">
+                    <span>{dates ?? '—'}</span>
+                    <span>
+                      {p.itemCount} {p.itemCount === 1 ? 'item' : 'items'}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+// ============================================================== //
+//  Icons                                                          //
+// ============================================================== //
+
+function svg(d: string, size = 18): React.ReactNode {
   return (
     <svg
-      viewBox="0 0 20 20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width={size}
+      height={size}
+      aria-hidden="true"
+    >
+      <path d={d} />
+    </svg>
+  );
+}
+
+function UserPlusIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
+      strokeLinejoin="round"
       className={className}
       aria-hidden="true"
     >
-      <path d="M10 4v12M4 10h12" />
+      <circle cx="10" cy="8" r="3.5" />
+      <path d="M3 21c0-3.5 3.5-6 7-6s7 2.5 7 6" />
+      <path d="M18 9v6M15 12h6" />
     </svg>
   );
+}
+
+function FamilyIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      width={20}
+      height={20}
+      aria-hidden="true"
+    >
+      <circle cx="7" cy="8" r="2.5" />
+      <circle cx="17" cy="8" r="2.5" />
+      <circle cx="12" cy="16" r="2" />
+      <path d="M3 21c0-2.5 1.8-4.5 4-4.5M21 21c0-2.5-1.8-4.5-4-4.5M8 21c0-2 1.5-3.5 4-3.5s4 1.5 4 3.5" />
+    </svg>
+  );
+}
+
+function PeopleIcon() {
+  return svg(
+    'M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM15 14h2c2.2 0 4 1.8 4 4',
+  );
+}
+
+function CrownIcon() {
+  return svg('M3 18h18M5 18l-1-9 5 4 3-6 3 6 5-4-1 9');
+}
+
+function ScrollIcon() {
+  return svg(
+    'M7 2h11a3 3 0 0 1 3 3v3h-3M7 2a3 3 0 0 0-3 3v14a3 3 0 0 0 3 3h11a3 3 0 0 0 3-3v-3H7M7 2v18M10 7h6M10 11h6',
+  );
+}
+
+function HammerIcon() {
+  return svg(
+    'M14 4l6 6-3 3-6-6zM11 9l-7 7v4h4l7-7M5 19l-1 1',
+  );
+}
+
+function ArchiveIcon() {
+  return svg('M4 7h16v12H4zM3 4h18v4H3zM10 12h4');
+}
+
+function PortraitIcon() {
+  return svg(
+    'M4 4h16v16H4zM12 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM7 17c1-2.5 3-3.5 5-3.5s4 1 5 3.5',
+  );
+}
+
+function CalendarIcon() {
+  return svg(
+    'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
+  );
+}
+
+function WatchIcon() {
+  return svg(
+    'M12 7v5l3 2M8 3l1 3M16 3l-1 3M8 21l1-3M16 21l-1-3M5 12a7 7 0 1 0 14 0 7 7 0 0 0-14 0z',
+  );
+}
+
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      width={14}
+      height={14}
+      aria-hidden="true"
+    >
+      <path d="M5 12l5 5 9-12" />
+    </svg>
+  );
+}
+
+function UserIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" />
+    </svg>
+  );
+}
+
+function ArrowDownIcon() {
+  return svg('M12 4v16M6 14l6 6 6-6');
 }
