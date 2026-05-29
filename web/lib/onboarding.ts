@@ -658,6 +658,23 @@ export function findSubCategory(key: string): SubCategory | null {
   return SUBCATEGORY_BY_KEY.get(key) ?? null;
 }
 
+// Reverse lookup: which archetype owns a given sub-category key. Built
+// once at module load by walking ARCHETYPE_SUBCATEGORIES.
+const ARCHETYPE_FOR_SUBCATEGORY = (() => {
+  const map = new Map<string, ArchetypeDef>();
+  for (const arch of ARCHETYPES) {
+    const subs = ARCHETYPE_SUBCATEGORIES[arch.key] ?? [];
+    for (const s of subs) {
+      if (!map.has(s.key)) map.set(s.key, arch);
+    }
+  }
+  return map;
+})();
+
+export function archetypeForSubCategory(key: string): ArchetypeDef | null {
+  return ARCHETYPE_FOR_SUBCATEGORY.get(key) ?? null;
+}
+
 // Given a list of selected sub-category keys, return the union of their
 // parent Core 12 keys. Used so the Collections page (which only knows
 // core keys) still sees everything the user selected.

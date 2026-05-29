@@ -22,6 +22,7 @@ import {
 import {
   findArchetype,
   findSubCategory,
+  archetypeForSubCategory,
   type SubCategory,
   type ArchetypeDef,
 } from '@/lib/onboarding';
@@ -534,6 +535,11 @@ function SubCatVisualCard({
         aria-hidden="true"
       />
       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 text-cream">
+        {archetypeForSubCategory(subCat.key) && (
+          <div className="text-[10px] uppercase tracking-widest opacity-80 mb-0.5 drop-shadow-sm">
+            {archetypeForSubCategory(subCat.key)!.title}
+          </div>
+        )}
         <h3 className="font-serif text-lg sm:text-xl leading-tight drop-shadow-sm">
           {subCat.label}
         </h3>
