@@ -57,6 +57,7 @@ export const ARCHETYPES: ArchetypeDef[] = [
     tagline: 'Organize and track curated collectibles.',
     bestFor: 'Sports · cards · coins · comics · hobbies',
     bgImage: `/archetypes/collector.png?v=${ARCHETYPE_BG_VERSION}`,
+    fullImage: `/archetypes/collector-full.png?v=${ARCHETYPE_BG_VERSION}`,
     heroOverlayStyle: 'none',
     recommendedKeys: [
       'sports-memorabilia',
