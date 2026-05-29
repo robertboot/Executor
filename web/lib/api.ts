@@ -216,6 +216,41 @@ export async function listRecentItems(limit = 6): Promise<Item[]> {
   return (data ?? []) as Item[];
 }
 
+export interface RecentItemWithPhoto extends Item {
+  primaryPhotoUrl: string | null;
+}
+
+// One query that joins each recent item with its first photo (lowest
+// sort_order). Returns the public storage URL so the caller can drop
+// it straight into an <img> or next/image.
+export async function listRecentItemsWithPhotos(
+  limit = 6,
+): Promise<RecentItemWithPhoto[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('items')
+    .select('*, item_photos(storage_path, sort_order)')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []).map((row) => {
+    const item = row as Item & {
+      item_photos?: Array<{ storage_path: string; sort_order: number }>;
+    };
+    const photos = (item.item_photos ?? []).slice().sort(
+      (a, b) => a.sort_order - b.sort_order,
+    );
+    const { item_photos: _drop, ...rest } = item;
+    void _drop;
+    return {
+      ...rest,
+      primaryPhotoUrl: photos[0]
+        ? photoPublicUrl(photos[0].storage_path)
+        : null,
+    } as RecentItemWithPhoto;
+  });
+}
+
 // ---------- Profile ----------
 
 export async function getProfile(userId: string): Promise<Profile | null> {
