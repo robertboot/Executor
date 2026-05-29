@@ -213,9 +213,9 @@ function PeopleRolesSection() {
                 {r.examples.map((ex) => (
                   <li
                     key={ex}
-                    className="flex items-start gap-2 text-sm text-ink-soft"
+                    className="flex items-center gap-2 text-sm text-ink-soft"
                   >
-                    <span className="mt-1.5 w-1 h-1 rounded-full bg-gold-deep shrink-0" />
+                    <CheckIcon className="w-3 h-3 text-forest shrink-0" />
                     <span>{ex}</span>
                   </li>
                 ))}
