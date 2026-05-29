@@ -513,24 +513,140 @@ function SubCatVisualCard({
         style={{ backgroundImage: `url('${subCat.bgImage}')` }}
         aria-hidden="true"
       />
+      {/* Light bottom darkening just for text legibility — no full
+          green gradient anymore. */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-x-0 bottom-0 h-3/5 pointer-events-none"
         style={{
           background:
-            'linear-gradient(to top, rgba(15,61,46,0.85) 0%, rgba(15,61,46,0.4) 45%, rgba(15,61,46,0) 100%)',
+            'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.2) 55%, rgba(0,0,0,0) 100%)',
         }}
         aria-hidden="true"
       />
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-3 sm:p-4 text-cream">
-        <h3 className="font-serif text-base sm:text-lg leading-tight">
+      <div className="absolute top-3 left-3 z-10">
+        <div className="w-11 h-11 rounded-full bg-cream/95 backdrop-blur-sm flex items-center justify-center text-gold-deep shadow-sm">
+          {subCatIcon(subCat)}
+        </div>
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 z-10 p-4 text-cream">
+        <h3 className="font-serif text-lg sm:text-xl leading-tight drop-shadow-sm">
           {subCat.label}
         </h3>
-        <div className="text-xs opacity-90 mt-0.5">
+        <div className="text-xs opacity-90 mt-0.5 drop-shadow-sm">
           {itemCount} {itemCount === 1 ? 'item' : 'items'}
         </div>
       </div>
     </Link>
   );
+}
+
+// Pick a glyph SVG for a sub-category. Falls back to the parent Core 12
+// when the sub-cat key isn't specifically mapped.
+function subCatIcon(subCat: SubCategory): React.ReactNode {
+  // Sub-cat–specific overrides
+  switch (subCat.key) {
+    case 'family-keepsakes-items':
+    case 'family-stories-memories':
+      return <PeopleIcon />;
+    case 'family-photographs':
+    case 'historical-photography':
+    case 'fine-photography':
+    case 'art-wall-pieces':
+      return <PhotoIcon />;
+    case 'letters-documents':
+    case 'period-correspondence':
+    case 'historical-documents':
+    case 'autographs-signatures':
+      return <DocumentIcon />;
+    case 'recipes-traditions':
+      return <PotIcon />;
+    case 'jewelry-personal-treasures':
+    case 'jewelry-watches-fine':
+    case 'jewelry-watches-mixed':
+      return <DiamondIcon />;
+    case 'military-service':
+    case 'military-war-history':
+      return <ShieldIcon />;
+    case 'furniture-home-heirlooms':
+    case 'furniture-antiques':
+    case 'antiques-decor-fine':
+    case 'estate-furnishings':
+      return <LampIcon />;
+    case 'holiday-special-keepsakes':
+    case 'holiday-treasures':
+      return <GiftIcon />;
+    case 'genealogy-family-history':
+    case 'genealogy-records':
+      return <TreeIcon />;
+    case 'sports-memorabilia-items':
+      return <BallIcon />;
+    case 'trading-cards':
+      return <CardIcon />;
+    case 'coins-currency':
+      return <CoinIcon />;
+    case 'comics-graphic-novels':
+    case 'antique-books':
+    case 'rare-books-manuscripts':
+    case 'books-records':
+      return <BookIcon />;
+    case 'toys-action-figures':
+      return <StarIcon />;
+    case 'vinyl-music':
+      return <DiscIcon />;
+    case 'advertising-americana':
+    case 'americana':
+      return <SignIcon />;
+    case 'hunting-fishing-gear':
+    case 'outdoor-garden':
+      return <CompassIcon />;
+    case 'pop-culture':
+    case 'hobby-collections':
+    case 'collectibles-curiosities':
+      return <StarIcon />;
+    case 'fine-art':
+    case 'sculpture-decorative-arts':
+      return <FrameIcon />;
+    case 'wine-spirits':
+      return <GlassIcon />;
+    case 'silver-crystal':
+    case 'china-tableware':
+      return <PlateIcon />;
+    case 'luxury-accessories':
+      return <BagIcon />;
+    case 'maps-atlases':
+    case 'political-memorabilia':
+    case 'artifacts-relics':
+      return <CompassIcon />;
+    case 'travel-mementos':
+      return <CompassIcon />;
+  }
+  // Parent fallback
+  switch (subCat.parent) {
+    case 'family-keepsakes':
+      return <PeopleIcon />;
+    case 'art-photography':
+      return <PhotoIcon />;
+    case 'books-documents':
+      return <BookIcon />;
+    case 'jewelry-watches':
+      return <DiamondIcon />;
+    case 'antiques-decor':
+      return <LampIcon />;
+    case 'music-instruments':
+      return <DiscIcon />;
+    case 'sports-memorabilia':
+      return <BallIcon />;
+    case 'military-historical':
+      return <ShieldIcon />;
+    case 'silver-china-tableware':
+      return <PlateIcon />;
+    case 'fashion-textiles':
+      return <BagIcon />;
+    case 'outdoor-sporting':
+      return <CompassIcon />;
+    default:
+      return <StarIcon />;
+  }
 }
 
 function RecentlyAdded({ items }: { items: RecentItemWithPhoto[] }) {
@@ -822,5 +938,233 @@ function ChevronRightIcon({ className }: { className?: string }) {
     >
       <path d="M6 4l4 4-4 4" />
     </svg>
+  );
+}
+
+// ----- Sub-category glyphs (24x24, line-drawn) ----------------- //
+
+function GlyphSvg({ children }: { children: React.ReactNode }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-5 h-5"
+      aria-hidden="true"
+    >
+      {children}
+    </svg>
+  );
+}
+
+function PeopleIcon() {
+  return (
+    <GlyphSvg>
+      <circle cx="9" cy="8" r="3" />
+      <path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+      <circle cx="17" cy="9.5" r="2.4" />
+      <path d="M15 14h2c2.2 0 4 1.8 4 4" />
+    </GlyphSvg>
+  );
+}
+
+function PhotoIcon() {
+  return (
+    <GlyphSvg>
+      <path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.7l1.5-2h6.6l1.5 2h2.7A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9z" />
+      <circle cx="12" cy="13" r="4" />
+    </GlyphSvg>
+  );
+}
+
+function DocumentIcon() {
+  return (
+    <GlyphSvg>
+      <path d="M6 3h9l3 3v15H6z" />
+      <path d="M15 3v3h3" />
+      <path d="M9 10h6M9 13h6M9 16h4" />
+    </GlyphSvg>
+  );
+}
+
+function DiamondIcon() {
+  return (
+    <GlyphSvg>
+      <path d="M6 9l6-6 6 6-6 12z" />
+      <path d="M6 9h12" />
+      <path d="M10 9l2 12 2-12" />
+    </GlyphSvg>
+  );
+}
+
+function PotIcon() {
+  return (
+    <GlyphSvg>
+      <path d="M4 9h16v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z" />
+      <path d="M3 9h18" />
+      <path d="M8 6c0-1 1-2 2-2M12 6c0-1 1-2 2-2" />
+    </GlyphSvg>
+  );
+}
+
+function ShieldIcon() {
+  return (
+    <GlyphSvg>
+      <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
+      <path d="M9 12l2 2 4-4" />
+    </GlyphSvg>
+  );
+}
+
+function LampIcon() {
+  return (
+    <GlyphSvg>
+      <path d="M8 3h8l3 7H5z" />
+      <path d="M12 10v8" />
+      <path d="M9 21h6" />
+      <path d="M9 18h6" />
+    </GlyphSvg>
+  );
+}
+
+function BookIcon() {
+  return (
+    <GlyphSvg>
+      <path d="M4 4h7v16H6a2 2 0 0 1-2-2z" />
+      <path d="M20 4h-7v16h5a2 2 0 0 0 2-2z" />
+      <path d="M12 4v16" />
+    </GlyphSvg>
+  );
+}
+
+function BallIcon() {
+  return (
+    <GlyphSvg>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12c3 0 6-2 9-2s6 2 9 2" />
+      <path d="M12 3c-2 3-2 6 0 9s2 6 0 9" />
+    </GlyphSvg>
+  );
+}
+
+function CardIcon() {
+  return (
+    <GlyphSvg>
+      <rect x="5" y="3" width="11" height="16" rx="1.5" />
+      <rect x="8" y="6" width="11" height="16" rx="1.5" />
+    </GlyphSvg>
+  );
+}
+
+function CoinIcon() {
+  return (
+    <GlyphSvg>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v10M9.5 10c0-1 1.1-2 2.5-2s2.5 1 2.5 2-1.1 1.5-2.5 1.5-2.5.5-2.5 1.5 1.1 2 2.5 2 2.5-1 2.5-2" />
+    </GlyphSvg>
+  );
+}
+
+function StarIcon() {
+  return (
+    <GlyphSvg>
+      <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z" />
+    </GlyphSvg>
+  );
+}
+
+function DiscIcon() {
+  return (
+    <GlyphSvg>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="3" />
+      <circle cx="12" cy="12" r="0.8" fill="currentColor" />
+    </GlyphSvg>
+  );
+}
+
+function SignIcon() {
+  return (
+    <GlyphSvg>
+      <path d="M4 6h11l4 4-4 4H4z" />
+      <path d="M8 14v6" />
+      <path d="M6 20h4" />
+    </GlyphSvg>
+  );
+}
+
+function CompassIcon() {
+  return (
+    <GlyphSvg>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M15.5 8.5l-2 5-5 2 2-5z" />
+    </GlyphSvg>
+  );
+}
+
+function GiftIcon() {
+  return (
+    <GlyphSvg>
+      <rect x="4" y="9" width="16" height="11" rx="1" />
+      <path d="M3 9h18" />
+      <path d="M12 9v11" />
+      <path d="M9 6c0-1 1-3 3-3s3 2 3 3-1 3-3 3-3-2-3-3z" />
+    </GlyphSvg>
+  );
+}
+
+function TreeIcon() {
+  return (
+    <GlyphSvg>
+      <circle cx="12" cy="4" r="1.5" />
+      <path d="M12 6v3" />
+      <path d="M8 12h8" />
+      <path d="M12 9v3" />
+      <path d="M8 12v3" />
+      <path d="M16 12v3" />
+      <circle cx="6" cy="17" r="1.5" />
+      <circle cx="12" cy="17" r="1.5" />
+      <circle cx="18" cy="17" r="1.5" />
+    </GlyphSvg>
+  );
+}
+
+function FrameIcon() {
+  return (
+    <GlyphSvg>
+      <rect x="4" y="4" width="16" height="16" />
+      <path d="M7 17l3-4 3 3 3-5 2 2" />
+    </GlyphSvg>
+  );
+}
+
+function GlassIcon() {
+  return (
+    <GlyphSvg>
+      <path d="M7 3h10l-1 8a4 4 0 0 1-4 4 4 4 0 0 1-4-4z" />
+      <path d="M12 15v5" />
+      <path d="M9 21h6" />
+    </GlyphSvg>
+  );
+}
+
+function PlateIcon() {
+  return (
+    <GlyphSvg>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="5" />
+    </GlyphSvg>
+  );
+}
+
+function BagIcon() {
+  return (
+    <GlyphSvg>
+      <path d="M5 8h14l-1 13H6z" />
+      <path d="M8 8V6c0-2 1.8-3 4-3s4 1 4 3v2" />
+    </GlyphSvg>
   );
 }
