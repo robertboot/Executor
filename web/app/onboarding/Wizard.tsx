@@ -288,6 +288,11 @@ const SUBSTEP_COPY: Partial<Record<OnboardingArchetype, { title: string; subtitl
     subtitle:
       "Pick a few to start. You can always add more collections later.",
   },
+  'historical': {
+    title: 'Which parts of history do you preserve?',
+    subtitle:
+      "Pick a few to start. You can always add more collections later.",
+  },
 };
 
 function SubCategoriesStep({

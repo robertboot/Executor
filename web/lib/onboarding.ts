@@ -426,18 +426,103 @@ const LUXURY_SUBCATEGORIES: SubCategory[] = [
   },
 ];
 
+const HISTORICAL_SUBCATEGORIES: SubCategory[] = [
+  {
+    key: 'military-war-history',
+    label: 'Military & War History',
+    description: 'Medals, ribbons, and artifacts from service and conflict.',
+    parent: 'military-historical',
+    bgImage: sub('military-war-history'),
+    defaultSelected: true,
+  },
+  {
+    key: 'historical-documents',
+    label: 'Historical Documents',
+    description: 'Treaties, declarations, and significant period papers.',
+    parent: 'books-documents',
+    bgImage: sub('historical-documents'),
+    defaultSelected: true,
+  },
+  {
+    key: 'maps-atlases',
+    label: 'Maps & Atlases',
+    description: 'Cartography, globes, and instruments of exploration.',
+    parent: 'collectibles-curiosities',
+    bgImage: sub('maps-atlases'),
+    defaultSelected: true,
+  },
+  {
+    key: 'genealogy-records',
+    label: 'Genealogy Records',
+    description: 'Family trees, lineage charts, and ancestral certificates.',
+    parent: 'books-documents',
+    bgImage: sub('genealogy-records'),
+    defaultSelected: true,
+  },
+  {
+    key: 'political-memorabilia',
+    label: 'Political Memorabilia',
+    description: 'Campaign buttons, sashes, and political ephemera.',
+    parent: 'collectibles-curiosities',
+    bgImage: sub('political-memorabilia'),
+    defaultSelected: false,
+  },
+  {
+    key: 'antique-books',
+    label: 'Antique Books',
+    description: 'First editions, leather-bound volumes, and rare imprints.',
+    parent: 'books-documents',
+    bgImage: sub('antique-books'),
+    defaultSelected: true,
+  },
+  {
+    key: 'historical-photography',
+    label: 'Historical Photography',
+    description: 'Daguerreotypes, tintypes, and early portrait photography.',
+    parent: 'art-photography',
+    bgImage: sub('historical-photography'),
+    defaultSelected: false,
+  },
+  {
+    key: 'artifacts-relics',
+    label: 'Artifacts & Relics',
+    description: 'Excavated objects, period tools, and physical history.',
+    parent: 'military-historical',
+    bgImage: sub('artifacts-relics'),
+    defaultSelected: false,
+  },
+  {
+    key: 'americana',
+    label: 'Americana',
+    description: 'Flags, eagles, and weathered patriotic objects.',
+    parent: 'collectibles-curiosities',
+    bgImage: sub('americana'),
+    defaultSelected: false,
+  },
+  {
+    key: 'period-correspondence',
+    label: 'Period Correspondence',
+    description: 'Letters, diaries, and personal writings of an era.',
+    parent: 'books-documents',
+    bgImage: sub('period-correspondence'),
+    defaultSelected: true,
+  },
+];
+
 // Other archetypes don't have sub-category lists yet — the wizard falls back
 // to the existing 12-icon grid for those until you ship per-archetype copy.
 export const ARCHETYPE_SUBCATEGORIES: Partial<Record<OnboardingArchetype, SubCategory[]>> = {
   'family-legacy': FAMILY_LEGACY_SUBCATEGORIES,
   'collector': COLLECTOR_SUBCATEGORIES,
   'luxury': LUXURY_SUBCATEGORIES,
+  'historical': HISTORICAL_SUBCATEGORIES,
 };
 
 const ALL_SUBCATEGORIES: SubCategory[] = [
   ...FAMILY_LEGACY_SUBCATEGORIES,
   ...COLLECTOR_SUBCATEGORIES,
   ...LUXURY_SUBCATEGORIES,
+  ...HISTORICAL_SUBCATEGORIES,
 ];
 
 const SUBCATEGORY_BY_KEY = new Map<string, SubCategory>(
