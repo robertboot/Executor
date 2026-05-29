@@ -1,12 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { listInheritors } from '@/lib/api';
-import {
-  STATUS_LABEL,
-  STATUS_BADGE_CLASS,
-  inheritorInitials,
-} from '@/lib/inheritors';
 import { formatMoney } from '@/lib/format';
+import InheritorsList from './InheritorsList';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,7 +34,7 @@ export default async function InheritorsPage() {
           href="/inheritors/new"
           className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors shrink-0"
         >
-          <UserPlusIcon className="w-4 h-4" />
+          <PlusIcon className="w-4 h-4" />
           Add Inheritor
         </Link>
       </header>
@@ -47,17 +43,17 @@ export default async function InheritorsPage() {
 
       <InheritorTypesSection />
 
-      <HowInheritanceWorksSection />
+      <WorkflowAndOverviewRow
+        inheritorCount={inheritors.length}
+        itemCount={totalItems}
+        collectionCount={totalCollections}
+        totalValue={totalValue}
+        totalCurrency={totalCurrency}
+      />
 
-      {inheritors.length > 0 && (
-        <InheritanceSummarySection
-          inheritors={inheritors}
-          totalItems={totalItems}
-          totalCollections={totalCollections}
-          totalValue={totalValue}
-          totalCurrency={totalCurrency}
-        />
-      )}
+      {inheritors.length > 0 && <InheritorsList inheritors={inheritors} />}
+
+      <TipBanner />
     </div>
   );
 }
@@ -68,69 +64,68 @@ export default async function InheritorsPage() {
 
 function HeroCard({ hasInheritors }: { hasInheritors: boolean }) {
   const bullets = [
-    {
-      title: 'Primary Inheritor',
-      body: 'The person you want to receive an item or collection first.',
-    },
-    {
-      title: 'Alternate Inheritor',
-      body: 'A backup recipient if the primary cannot or chooses not to accept.',
-    },
-    {
-      title: 'Transfer Notes',
-      body: 'Context for how and when each item should be passed on.',
-    },
-    {
-      title: 'Special Instructions',
-      body: 'Personal wishes, conditions, or stories that travel with the item.',
-    },
+    'Primary Inheritor',
+    'Alternate Inheritor',
+    'Transfer Notes',
+    'Special Instructions',
   ];
 
   return (
-    <section className="bg-paper border border-hairline rounded-2xl p-6 sm:p-10 shadow-card">
-      <div className="flex flex-col items-center text-center">
-        <div className="w-16 h-16 rounded-full bg-gold-soft flex items-center justify-center text-gold-deep mb-4">
-          <KeyIcon className="w-8 h-8" />
-        </div>
-        <h2 className="font-serif text-2xl sm:text-3xl text-ink">
-          Plan Your Family Legacy
-        </h2>
-        <p className="text-muted text-sm sm:text-base mt-3 max-w-xl">
-          Designate who should receive your items and collections in the
-          future. Inheritors let you document your wishes today so the
-          people you trust know exactly what comes next.
-        </p>
-      </div>
+    <section className="relative overflow-hidden bg-paper border border-hairline rounded-2xl shadow-card">
+      <div className="grid grid-cols-1 lg:grid-cols-2">
+        {/* Left: copy */}
+        <div className="p-6 sm:p-10 flex flex-col">
+          <div className="w-14 h-14 rounded-full bg-gold-soft flex items-center justify-center text-gold-deep mb-5">
+            <KeyIcon className="w-7 h-7" />
+          </div>
+          <h2 className="font-serif text-2xl sm:text-3xl text-ink leading-tight">
+            Plan Your Family Legacy
+          </h2>
+          <p className="text-ink-soft text-sm sm:text-base mt-3 max-w-md leading-relaxed">
+            Designate who should receive your heirlooms, collections, and
+            treasured possessions in the future.
+          </p>
 
-      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 max-w-3xl mx-auto">
-        {bullets.map((b) => (
-          <li
-            key={b.title}
-            className="flex items-start gap-3 bg-cream-soft/50 border border-hairline rounded-xl p-4"
-          >
-            <span className="shrink-0 mt-0.5 w-7 h-7 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
-              <CheckIcon className="w-3.5 h-3.5" />
-            </span>
-            <div className="min-w-0">
-              <div className="font-serif text-base text-ink leading-tight">
-                {b.title}
-              </div>
-              <div className="text-xs text-ink-soft mt-1 leading-relaxed">
-                {b.body}
-              </div>
+          <div className="mt-6">
+            <div className="text-[11px] uppercase tracking-widest text-muted mb-3">
+              Every item can have:
             </div>
-          </li>
-        ))}
-      </ul>
+            <ul className="space-y-2.5">
+              {bullets.map((b) => (
+                <li key={b} className="flex items-center gap-3 text-sm text-ink">
+                  <span className="shrink-0 w-5 h-5 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+                    <CheckIcon className="w-3 h-3" />
+                  </span>
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-      <div className="flex justify-center mt-8">
-        <Link
-          href="/inheritors/new"
-          className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
-        >
-          <UserPlusIcon className="w-4 h-4" />
-          {hasInheritors ? 'Add Another Inheritor' : 'Add Your First Inheritor'}
-        </Link>
+          <div className="mt-8">
+            <Link
+              href="/inheritors/new"
+              className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
+            >
+              <PlusIcon className="w-4 h-4" />
+              {hasInheritors
+                ? 'Add Another Inheritor'
+                : 'Add Your First Inheritor'}
+            </Link>
+          </div>
+        </div>
+
+        {/* Right: image */}
+        <div className="relative min-h-[260px] lg:min-h-[420px] bg-gradient-to-br from-cream-soft via-gold-soft/40 to-cream-soft">
+          <Image
+            src="/inheritors-hero.png"
+            alt="A pocket watch resting on a sepia family photograph beside an olive branch"
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="object-cover"
+            priority
+          />
+        </div>
       </div>
     </section>
   );
@@ -145,7 +140,7 @@ function InheritorTypesSection() {
     {
       key: 'designated_heir',
       title: 'Designated Heir',
-      icon: <PeopleIcon />,
+      icon: <UserIcon />,
       body: 'Receives an item or collection according to your wishes.',
       examples: ['Family members', 'Friends', 'Organizations'],
     },
@@ -183,40 +178,33 @@ function InheritorTypesSection() {
 
   return (
     <section className="space-y-4">
-      <div>
-        <h2 className="font-serif text-2xl text-ink">Inheritor Types</h2>
-        <p className="text-muted text-sm max-w-2xl mt-1">
-          Inheritors fall into a few common roles. You can mix and match
-          across your archive — each item or collection can have its own
-          chain of recipients.
-        </p>
-      </div>
+      <h2 className="font-serif text-2xl text-ink">Inheritor Types</h2>
       <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {types.map((t) => (
           <li
             key={t.key}
             className="bg-paper border border-hairline rounded-2xl p-5 space-y-3 shadow-card"
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <span className="shrink-0 w-10 h-10 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
                 {t.icon}
               </span>
-              <h3 className="font-serif text-xl text-ink leading-tight">
+              <h3 className="font-serif text-lg text-ink leading-tight">
                 {t.title}
               </h3>
             </div>
             <p className="text-sm text-ink-soft leading-relaxed">{t.body}</p>
-            <div className="space-y-1 pt-1">
+            <div className="space-y-2 pt-1">
               <div className="text-[11px] uppercase tracking-wider text-muted">
-                Examples
+                Examples:
               </div>
               <ul className="space-y-1">
                 {t.examples.map((ex) => (
                   <li
                     key={ex}
-                    className="flex items-start gap-2 text-sm text-ink-soft"
+                    className="flex items-center gap-2 text-sm text-ink-soft"
                   >
-                    <span className="mt-1.5 w-1 h-1 rounded-full bg-gold-deep shrink-0" />
+                    <CheckIcon className="w-3 h-3 text-forest shrink-0" />
                     <span>{ex}</span>
                   </li>
                 ))}
@@ -230,135 +218,128 @@ function InheritorTypesSection() {
 }
 
 // ============================================================== //
-//  How inheritance works                                          //
+//  Workflow + Overview row                                        //
 // ============================================================== //
 
-function HowInheritanceWorksSection() {
+function WorkflowAndOverviewRow({
+  inheritorCount,
+  itemCount,
+  collectionCount,
+  totalValue,
+  totalCurrency,
+}: {
+  inheritorCount: number;
+  itemCount: number;
+  collectionCount: number;
+  totalValue: number;
+  totalCurrency: string;
+}) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <HowInheritanceWorksCard />
+      <InheritanceOverviewCard
+        inheritorCount={inheritorCount}
+        itemCount={itemCount}
+        collectionCount={collectionCount}
+        totalValue={totalValue}
+        totalCurrency={totalCurrency}
+      />
+    </div>
+  );
+}
+
+function HowInheritanceWorksCard() {
   const steps = [
     {
-      kicker: 'Step 1',
-      title: 'Current Custodian',
-      sample: 'You',
-      body: 'The person who owns and cares for the item today.',
-      icon: <UserIcon className="w-5 h-5" />,
+      kicker: 'Current Custodian',
+      name: 'You',
+      body: 'The person currently responsible for the item.',
+      tone: 'muted' as const,
     },
     {
-      kicker: 'Step 2',
-      title: 'Primary Inheritor',
-      sample: 'Grandson Michael',
-      body: 'Designated to receive the item next.',
-      icon: <KeyIcon className="w-5 h-5" />,
+      kicker: 'Primary Inheritor',
+      name: 'Designated Heir',
+      body: 'First in line to receive the item in the future.',
+      tone: 'forest' as const,
     },
     {
-      kicker: 'Step 3',
-      title: 'Alternate Inheritor',
-      sample: 'Daughter Sarah',
+      kicker: 'Alternate Inheritor',
+      name: 'Backup Recipient',
       body: 'Receives the item if the primary inheritor cannot.',
-      icon: <RefreshIcon />,
+      tone: 'soft' as const,
     },
   ];
 
   return (
-    <section className="space-y-4">
-      <div>
-        <h2 className="font-serif text-2xl text-ink">How Inheritance Works</h2>
-        <p className="text-muted text-sm max-w-2xl mt-1">
-          Every item in your archive can carry an inheritance chain.
-          Here&rsquo;s the path a single heirloom follows from today into
-          the future.
-        </p>
-      </div>
-      <div className="bg-paper border border-hairline rounded-2xl p-6 sm:p-8 shadow-card">
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-hairline">
-          <span className="shrink-0 w-10 h-10 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
-            <WatchIcon />
-          </span>
-          <div className="min-w-0">
-            <div className="text-[11px] uppercase tracking-widest text-muted">
-              Example
-            </div>
-            <div className="font-serif text-lg text-ink leading-tight">
-              Grandpa Joe&rsquo;s Pocket Watch
-            </div>
-          </div>
-        </div>
+    <section className="bg-paper border border-hairline rounded-2xl p-6 sm:p-8 shadow-card">
+      <h3 className="font-serif text-xl text-ink">How Inheritance Works</h3>
+      <p className="text-sm text-muted mt-1 leading-relaxed">
+        Inheritance assignments document your wishes for future
+        generations.
+      </p>
 
-        <ol className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 md:items-stretch">
-          {steps.map((s, idx) => (
-            <li
-              key={s.kicker}
-              className="relative flex flex-col items-start md:items-center md:text-center md:px-4 md:flex-1"
-            >
-              <div className="flex md:flex-col items-center md:items-center gap-3 md:gap-2 w-full">
-                <span className="shrink-0 w-12 h-12 rounded-full bg-cream-soft text-gold-deep flex items-center justify-center border border-hairline">
-                  {s.icon}
-                </span>
-                {idx < steps.length - 1 && (
-                  <span
-                    className="hidden md:block absolute top-6 left-1/2 w-full h-px bg-hairline"
-                    aria-hidden
-                  />
+      <ol className="mt-6 space-y-5 relative">
+        {steps.map((s, idx) => (
+          <li key={s.kicker} className="relative flex gap-4">
+            <div className="relative shrink-0 flex flex-col items-center">
+              <span
+                className={`w-10 h-10 rounded-full flex items-center justify-center border ${
+                  s.tone === 'forest'
+                    ? 'bg-forest text-cream border-forest'
+                    : s.tone === 'soft'
+                      ? 'bg-gold-soft text-gold-deep border-gold-soft'
+                      : 'bg-cream-soft text-ink-soft border-hairline'
+                }`}
+              >
+                {s.tone === 'forest' ? (
+                  <KeyIcon className="w-4 h-4" />
+                ) : (
+                  <UserIconSmall />
                 )}
-                <div className="min-w-0 md:mt-2">
-                  <div className="text-[10px] uppercase tracking-widest text-muted">
-                    {s.kicker}
-                  </div>
-                  <div className="font-serif text-base text-ink leading-tight mt-0.5">
-                    {s.title}
-                  </div>
-                </div>
-              </div>
-              <div className="md:mt-3 mt-2 ml-15 md:ml-0 w-full">
-                <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-gold-soft text-[11px] font-medium text-gold-deep">
-                  {s.sample}
-                </div>
-                <p className="text-xs text-ink-soft mt-2 leading-relaxed">
-                  {s.body}
-                </p>
-              </div>
+              </span>
               {idx < steps.length - 1 && (
                 <span
-                  className="md:hidden mt-3 ml-5 text-muted"
+                  className="absolute top-10 left-1/2 -translate-x-1/2 w-px h-full border-l border-dashed border-hairline"
                   aria-hidden
-                >
-                  <ArrowDownIcon />
-                </span>
+                />
               )}
-            </li>
-          ))}
-        </ol>
-
-        <p className="text-xs text-muted mt-6 pt-4 border-t border-hairline leading-relaxed">
-          Inheritance assignments do not transfer ownership today. They
-          simply document your wishes for future generations.
-        </p>
-      </div>
+            </div>
+            <div className="flex-1 min-w-0 pb-1">
+              <div className="text-[11px] uppercase tracking-widest text-muted">
+                {s.kicker}
+              </div>
+              <div className="font-serif text-base text-ink leading-tight mt-0.5">
+                {s.name}
+              </div>
+              <p className="text-xs text-ink-soft mt-1 leading-relaxed">
+                {s.body}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
 
-// ============================================================== //
-//  Inheritance summary (only when there are inheritors)           //
-// ============================================================== //
-
-function InheritanceSummarySection({
-  inheritors,
-  totalItems,
-  totalCollections,
+function InheritanceOverviewCard({
+  inheritorCount,
+  itemCount,
+  collectionCount,
   totalValue,
   totalCurrency,
 }: {
-  inheritors: Awaited<ReturnType<typeof listInheritors>>;
-  totalItems: number;
-  totalCollections: number;
+  inheritorCount: number;
+  itemCount: number;
+  collectionCount: number;
   totalValue: number;
   totalCurrency: string;
 }) {
-  const cards = [
-    { value: inheritors.length, label: 'Inheritors', icon: <PeopleIcon /> },
-    { value: totalItems, label: 'Assigned Items', icon: <ArchiveIcon /> },
+  const stats = [
+    { value: inheritorCount, label: 'Inheritors', icon: <PeopleIcon /> },
+    { value: itemCount, label: 'Assigned Items', icon: <ArchiveIcon /> },
     {
-      value: totalCollections,
+      value: collectionCount,
       label: 'Assigned Collections',
       icon: <BookIcon />,
     },
@@ -368,137 +349,76 @@ function InheritanceSummarySection({
       icon: <TagIcon />,
     },
   ];
-
   return (
-    <section className="space-y-6">
-      <div>
-        <h2 className="font-serif text-2xl text-ink">Inheritance Summary</h2>
-        <p className="text-muted text-sm max-w-2xl mt-1">
-          A snapshot of your inheritance plan today.
-        </p>
+    <section className="bg-paper border border-hairline rounded-2xl p-6 sm:p-8 shadow-card flex flex-col">
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="font-serif text-xl text-ink">Inheritance Overview</h3>
+        <Link
+          href="#your-inheritors"
+          className="text-xs font-medium text-forest hover:text-forest-deep inline-flex items-center gap-1"
+        >
+          View Full Summary
+          <ChevronRightIcon />
+        </Link>
       </div>
 
-      <ul className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {cards.map((c) => (
+      <ul className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-5">
+        {stats.map((s) => (
           <li
-            key={c.label}
-            className="bg-paper border border-hairline rounded-2xl p-4 flex items-center gap-3 shadow-card"
+            key={s.label}
+            className="bg-cream-soft/60 border border-hairline rounded-xl p-3 text-center"
           >
-            <div className="shrink-0 w-12 h-12 rounded-full bg-cream-soft text-gold-deep flex items-center justify-center">
-              {c.icon}
+            <div className="mx-auto w-9 h-9 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+              {s.icon}
             </div>
-            <div className="min-w-0">
-              <div className="font-serif text-xl sm:text-2xl text-ink leading-none truncate">
-                {c.value}
-              </div>
-              <div className="text-[11px] uppercase tracking-wider text-muted mt-1.5 leading-tight">
-                {c.label}
-              </div>
+            <div className="font-serif text-lg text-ink leading-none mt-2 truncate">
+              {s.value}
+            </div>
+            <div className="text-[10px] uppercase tracking-wider text-muted mt-1.5 leading-tight">
+              {s.label}
             </div>
           </li>
         ))}
       </ul>
 
-      <div className="space-y-4">
-        <h3 className="font-serif text-xl text-ink">Your Inheritors</h3>
-        <ul className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {inheritors.map((i) => (
-            <li key={i.id}>
-              <InheritorCard inheritor={i} />
-            </li>
-          ))}
-        </ul>
+      <p className="text-sm text-ink-soft mt-6 leading-relaxed">
+        {inheritorCount > 0
+          ? 'These items and collections have been assigned to your inheritors according to your wishes.'
+          : 'Start by adding an inheritor to assign items, collections, and treasured possessions for the future.'}
+      </p>
+
+      <div className="mt-auto pt-6 flex justify-center text-gold-soft">
+        <KeyDecorIcon />
       </div>
     </section>
   );
 }
 
-function InheritorCard({
-  inheritor,
-}: {
-  inheritor: Awaited<ReturnType<typeof listInheritors>>[number];
-}) {
+// ============================================================== //
+//  Tip banner                                                     //
+// ============================================================== //
+
+function TipBanner() {
   return (
-    <article className="bg-paper border border-hairline rounded-2xl p-5 shadow-card">
-      <div className="flex items-start gap-4">
-        <div className="shrink-0 relative w-16 h-16 rounded-full overflow-hidden bg-gold-soft/60 flex items-center justify-center">
-          {inheritor.primaryPhotoUrl ? (
-            <Image
-              src={inheritor.primaryPhotoUrl}
-              alt={inheritor.display_name}
-              fill
-              sizes="64px"
-              className="object-cover"
-            />
-          ) : (
-            <span className="text-base font-serif font-semibold text-gold-deep">
-              {inheritorInitials(inheritor)}
-            </span>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <h4 className="font-serif text-xl text-ink leading-tight">
-              {inheritor.display_name}
-            </h4>
-            <span
-              className={`text-[10px] uppercase tracking-widest font-medium px-2 py-0.5 rounded ${STATUS_BADGE_CLASS[inheritor.status]}`}
-            >
-              {STATUS_LABEL[inheritor.status]}
-            </span>
-          </div>
-          {inheritor.relationship && (
-            <div className="text-sm text-ink-soft mt-0.5">
-              {inheritor.relationship}
-            </div>
-          )}
-          {inheritor.email && (
-            <div className="text-xs text-muted truncate mt-1">
-              {inheritor.email}
-            </div>
-          )}
-        </div>
+    <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-cream-soft/70 border border-hairline rounded-2xl px-5 py-4">
+      <div className="flex items-start gap-3 min-w-0">
+        <span className="shrink-0 mt-0.5 w-7 h-7 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+          <LightbulbIcon />
+        </span>
+        <p className="text-sm text-ink-soft leading-relaxed">
+          <span className="font-medium text-ink">Tip:</span> You can
+          assign or change inheritors directly from any item&rsquo;s
+          detail page.
+        </p>
       </div>
-
-      <div className="grid grid-cols-3 gap-2 mt-5 pt-4 border-t border-hairline">
-        <Stat value={String(inheritor.itemCount)} label="Items" />
-        <Stat value={String(inheritor.collectionCount)} label="Collections" />
-        <Stat
-          value={formatMoney(inheritor.totalValue, inheritor.totalCurrency)}
-          label="Value"
-        />
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-hairline">
-        <Link
-          href={`/inheritors/${inheritor.id}`}
-          className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors"
-        >
-          <EyeIcon className="w-3.5 h-3.5" />
-          View Profile
-        </Link>
-        <Link
-          href={`/inheritors/${inheritor.id}`}
-          className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg bg-cream-soft text-ink text-sm font-medium hover:bg-gold-soft transition-colors"
-        >
-          <ListIcon className="w-3.5 h-3.5" />
-          Manage Assignments
-        </Link>
-      </div>
-    </article>
-  );
-}
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="min-w-0">
-      <div className="font-serif text-base text-ink leading-none truncate">
-        {value}
-      </div>
-      <div className="text-[10px] uppercase tracking-wider text-muted mt-1">
-        {label}
-      </div>
-    </div>
+      <Link
+        href="/inheritors/new"
+        className="shrink-0 text-sm font-medium text-forest hover:text-forest-deep inline-flex items-center gap-1"
+      >
+        Learn How
+        <ChevronRightIcon />
+      </Link>
+    </section>
   );
 }
 
@@ -524,21 +444,18 @@ function svg(d: string, size = 18): React.ReactNode {
   );
 }
 
-function UserPlusIcon({ className }: { className?: string }) {
+function PlusIcon({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 24 24"
+      viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="2.2"
       strokeLinecap="round"
-      strokeLinejoin="round"
       className={className}
       aria-hidden="true"
     >
-      <circle cx="10" cy="8" r="3.5" />
-      <path d="M3 21c0-3.5 3.5-6 7-6s7 2.5 7 6" />
-      <path d="M18 9v6M15 12h6" />
+      <path d="M10 4v12M4 10h12" />
     </svg>
   );
 }
@@ -563,42 +480,6 @@ function KeyIcon({ className }: { className?: string }) {
   );
 }
 
-function PeopleIcon() {
-  return svg(
-    'M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM15 14h2c2.2 0 4 1.8 4 4',
-  );
-}
-
-function ArchiveIcon() {
-  return svg('M4 7h16v12H4zM3 4h18v4H3zM10 12h4');
-}
-
-function BookIcon() {
-  return svg(
-    'M4 4h7v16H6a2 2 0 0 1-2-2zM20 4h-7v16h5a2 2 0 0 0 2-2zM12 4v16',
-  );
-}
-
-function TagIcon() {
-  return svg('M3 12V4h8l10 10-8 8L3 12zM8 8a1 1 0 1 0 0-2 1 1 0 0 0 0 2z');
-}
-
-function RefreshIcon() {
-  return svg('M4 4v6h6M20 20v-6h-6M20 10a8 8 0 0 0-14.93-2.5M4 14a8 8 0 0 0 14.93 2.5');
-}
-
-function HeartIcon() {
-  return svg(
-    'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z',
-  );
-}
-
-function BuildingIcon() {
-  return svg(
-    'M4 21V7l8-4 8 4v14M4 21h16M9 21v-6h6v6M8 11h.01M12 11h.01M16 11h.01',
-  );
-}
-
 function CheckIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -618,7 +499,11 @@ function CheckIcon({ className }: { className?: string }) {
   );
 }
 
-function UserIcon({ className }: { className?: string }) {
+function UserIcon() {
+  return svg('M12 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.5-7 8-7s8 3 8 7');
+}
+
+function UserIconSmall() {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -627,44 +512,75 @@ function UserIcon({ className }: { className?: string }) {
       strokeWidth="1.7"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={className}
+      width={16}
+      height={16}
       aria-hidden="true"
     >
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" />
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 21c0-3.5 3-6 7-6s7 2.5 7 6" />
     </svg>
   );
 }
 
-function WatchIcon() {
+function RefreshIcon() {
   return svg(
-    'M12 7v5l3 2M8 3l1 3M16 3l-1 3M8 21l1-3M16 21l-1-3M5 12a7 7 0 1 0 14 0 7 7 0 0 0-14 0z',
+    'M4 4v6h6M20 20v-6h-6M20 10a8 8 0 0 0-14.93-2.5M4 14a8 8 0 0 0 14.93 2.5',
   );
 }
 
-function ArrowDownIcon() {
-  return svg('M12 4v16M6 14l6 6 6-6');
+function HeartIcon() {
+  return svg(
+    'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z',
+  );
 }
 
-function EyeIcon({ className }: { className?: string }) {
+function BuildingIcon() {
+  return svg(
+    'M4 21V7l8-4 8 4v14M4 21h16M9 21v-6h6v6M8 11h.01M12 11h.01M16 11h.01',
+  );
+}
+
+function PeopleIcon() {
+  return svg(
+    'M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM15 14h2c2.2 0 4 1.8 4 4',
+    16,
+  );
+}
+
+function ArchiveIcon() {
+  return svg('M4 7h16v12H4zM3 4h18v4H3zM10 12h4', 16);
+}
+
+function BookIcon() {
+  return svg(
+    'M4 4h7v16H6a2 2 0 0 1-2-2zM20 4h-7v16h5a2 2 0 0 0 2-2zM12 4v16',
+    16,
+  );
+}
+
+function TagIcon() {
+  return svg('M3 12V4h8l10 10-8 8L3 12zM8 8a1 1 0 1 0 0-2 1 1 0 0 0 0 2z', 16);
+}
+
+function ChevronRightIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.7"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={className}
+      width={14}
+      height={14}
       aria-hidden="true"
     >
-      <path d="M1.5 12s4-7 10.5-7 10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z" />
-      <circle cx="12" cy="12" r="3" />
+      <path d="M9 6l6 6-6 6" />
     </svg>
   );
 }
 
-function ListIcon({ className }: { className?: string }) {
+function LightbulbIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -673,11 +589,31 @@ function ListIcon({ className }: { className?: string }) {
       strokeWidth="1.7"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={className}
+      width={14}
+      height={14}
       aria-hidden="true"
     >
-      <path d="M4 6h16M4 12h16M4 18h10" />
-      <circle cx="20" cy="18" r="1.2" fill="currentColor" />
+      <path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c1 1 1.5 2 1.5 3.5h5c0-1.5.5-2.5 1.5-3.5A6 6 0 0 0 12 2z" />
+    </svg>
+  );
+}
+
+function KeyDecorIcon() {
+  return (
+    <svg
+      viewBox="0 0 120 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width={120}
+      height={24}
+      aria-hidden="true"
+    >
+      <path d="M0 12h45M75 12h45" />
+      <circle cx="60" cy="12" r="6" />
+      <path d="M66 12h4M68 10v4" />
     </svg>
   );
 }
