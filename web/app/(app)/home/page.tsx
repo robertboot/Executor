@@ -285,10 +285,7 @@ function HeroCard({
       )}
       <div className="relative z-10 h-full p-6 sm:p-8 max-w-md flex flex-col justify-between text-cream">
         <div>
-          <div className="text-[11px] uppercase tracking-widest text-cream/70">
-            Archive
-          </div>
-          <h2 className="font-serif text-3xl sm:text-4xl leading-tight mt-1">
+          <h2 className="font-serif text-3xl sm:text-4xl leading-tight">
             {archetype.title}
           </h2>
         </div>
