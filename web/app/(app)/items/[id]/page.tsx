@@ -8,7 +8,11 @@ import {
   listItemPeople,
   listPeople,
   personPhotoPublicUrl,
+  getInheritor,
+  listInheritorsLight,
 } from '@/lib/api';
+import { STATUS_LABEL, STATUS_BADGE_CLASS } from '@/lib/inheritors';
+import { setItemInheritance } from '@/app/(app)/inheritors/actions';
 import { findCategory, labelForCategory } from '@/lib/categories';
 import { formatDate, formatMoney } from '@/lib/format';
 import {
@@ -31,11 +35,19 @@ export default async function ItemDetailPage({
   const item = await getItem(id);
   if (!item) notFound();
 
-  const [photos, peopleLinks, allPeople] = await Promise.all([
-    listPhotos(id),
-    listItemPeople(id),
-    listPeople(),
-  ]);
+  const [photos, peopleLinks, allPeople, allInheritors, designated, alternate] =
+    await Promise.all([
+      listPhotos(id),
+      listItemPeople(id),
+      listPeople(),
+      listInheritorsLight(),
+      item.designated_inheritor_id
+        ? getInheritor(item.designated_inheritor_id)
+        : Promise.resolve(null),
+      item.alternate_inheritor_id
+        ? getInheritor(item.alternate_inheritor_id)
+        : Promise.resolve(null),
+    ]);
   const preset = findCategory(item.category);
 
   const connectedPersonIds = new Set(peopleLinks.map((l) => l.person.id));
@@ -124,6 +136,145 @@ export default async function ItemDetailPage({
           </dl>
         </Section>
       )}
+
+      <Section title="Inheritance">
+        <form
+          action={setItemInheritance}
+          className="space-y-4"
+        >
+          <input type="hidden" name="item_id" value={item.id} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="block space-y-1.5">
+              <span className="block text-xs uppercase tracking-wider text-muted">
+                Designated Inheritor
+              </span>
+              <select
+                name="designated_inheritor_id"
+                defaultValue={item.designated_inheritor_id ?? ''}
+                className="w-full bg-paper border border-hairline rounded-lg px-3 h-10 text-sm"
+              >
+                <option value="">— Unassigned —</option>
+                {allInheritors.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.display_name} · {STATUS_LABEL[i.status]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block space-y-1.5">
+              <span className="block text-xs uppercase tracking-wider text-muted">
+                Alternate Inheritor
+              </span>
+              <select
+                name="alternate_inheritor_id"
+                defaultValue={item.alternate_inheritor_id ?? ''}
+                className="w-full bg-paper border border-hairline rounded-lg px-3 h-10 text-sm"
+              >
+                <option value="">— Unassigned —</option>
+                {allInheritors.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.display_name} · {STATUS_LABEL[i.status]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <label className="block space-y-1.5">
+            <span className="block text-xs uppercase tracking-wider text-muted">
+              Assignment Confidence
+            </span>
+            <select
+              name="assignment_confidence"
+              defaultValue={item.assignment_confidence ?? ''}
+              className="w-full bg-paper border border-hairline rounded-lg px-3 h-10 text-sm"
+            >
+              <option value="">—</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="likely">Likely</option>
+              <option value="undecided">Undecided</option>
+            </select>
+          </label>
+          <label className="block space-y-1.5">
+            <span className="block text-xs uppercase tracking-wider text-muted">
+              Inheritance Notes
+            </span>
+            <textarea
+              name="inheritance_notes"
+              rows={2}
+              defaultValue={item.inheritance_notes ?? ''}
+              placeholder="To remain with the oldest grandchild in the family line."
+              className="w-full bg-paper border border-hairline rounded-lg px-3 py-2 text-sm resize-y"
+            />
+          </label>
+          <details className="text-sm text-ink-soft">
+            <summary className="cursor-pointer text-xs uppercase tracking-wider text-muted hover:text-ink">
+              Transfer instructions + legal reference
+            </summary>
+            <div className="mt-3 space-y-3">
+              <label className="block space-y-1.5">
+                <span className="block text-xs uppercase tracking-wider text-muted">
+                  Transfer Instructions
+                </span>
+                <textarea
+                  name="transfer_instructions"
+                  rows={2}
+                  defaultValue={item.transfer_instructions ?? ''}
+                  className="w-full bg-paper border border-hairline rounded-lg px-3 py-2 text-sm resize-y"
+                />
+              </label>
+              <label className="block space-y-1.5">
+                <span className="block text-xs uppercase tracking-wider text-muted">
+                  Will / Legal Reference
+                </span>
+                <input
+                  type="text"
+                  name="legal_reference"
+                  defaultValue={item.legal_reference ?? ''}
+                  placeholder="Codicil A · Trust §2"
+                  className="w-full bg-paper border border-hairline rounded-lg px-3 h-10 text-sm"
+                />
+              </label>
+            </div>
+          </details>
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <div className="text-xs text-muted">
+              {designated && (
+                <Link
+                  href={`/inheritors/${designated.id}`}
+                  className="inline-flex items-center gap-1.5 mr-3 hover:text-ink"
+                >
+                  <span
+                    className={`text-[10px] uppercase tracking-widest font-medium px-1.5 py-0.5 rounded ${STATUS_BADGE_CLASS[designated.status]}`}
+                  >
+                    Primary
+                  </span>
+                  {designated.display_name}
+                </Link>
+              )}
+              {alternate && (
+                <Link
+                  href={`/inheritors/${alternate.id}`}
+                  className="inline-flex items-center gap-1.5 hover:text-ink"
+                >
+                  <span className="text-[10px] uppercase tracking-widest font-medium px-1.5 py-0.5 rounded bg-cream-soft text-ink">
+                    Alternate
+                  </span>
+                  {alternate.display_name}
+                </Link>
+              )}
+              {!designated && !alternate && (
+                <span className="italic">No inheritor assigned.</span>
+              )}
+            </div>
+            <button
+              type="submit"
+              className="inline-flex items-center px-4 h-9 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep"
+            >
+              Save inheritance
+            </button>
+          </div>
+        </form>
+      </Section>
 
       <Section title="Associated People">
         {peopleLinks.length === 0 ? (

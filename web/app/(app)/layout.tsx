@@ -8,6 +8,7 @@ const NAV = [
   { href: '/home', label: 'Home' },
   { href: '/collections', label: 'Collections' },
   { href: '/people', label: 'People' },
+  { href: '/inheritors', label: 'Inheritors' },
   { href: '/search', label: 'Search' },
   { href: '/scan', label: 'Scan' },
   { href: '/conservators', label: 'Conservators' },

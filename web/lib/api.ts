@@ -10,6 +10,7 @@ import type {
   CollectionWithStats,
   Conservator,
   CustomCollection,
+  Inheritor,
   Inventory,
   InventoryWithRole,
   Item,
@@ -684,6 +685,197 @@ export async function getConservator(id: string): Promise<Conservator | null> {
     .maybeSingle();
   if (error) throw error;
   return (data as Conservator | null) ?? null;
+}
+
+// ---------- Inheritors ----------
+
+export const INHERITOR_PHOTO_BUCKET = 'inheritor-photos';
+
+export function inheritorPhotoUrl(storagePath: string): string {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  return `${base}/storage/v1/object/public/${INHERITOR_PHOTO_BUCKET}/${storagePath}`;
+}
+
+export interface InheritorWithStats extends Inheritor {
+  itemCount: number;
+  collectionCount: number;
+  totalValue: number;
+  totalCurrency: string;
+  primaryPhotoUrl: string | null;
+}
+
+export async function listInheritors(): Promise<InheritorWithStats[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('inheritors')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+
+  const rows = (data ?? []) as Inheritor[];
+  if (rows.length === 0) return [];
+
+  const ids = rows.map((r) => r.id);
+
+  // One pass to count items and sum value per inheritor.
+  const { data: items } = await supabase
+    .from('items')
+    .select(
+      'designated_inheritor_id, alternate_inheritor_id, value_amount, value_currency',
+    )
+    .or(
+      ids
+        .map(
+          (id) =>
+            `designated_inheritor_id.eq.${id},alternate_inheritor_id.eq.${id}`,
+        )
+        .join(','),
+    );
+
+  const itemCount = new Map<string, number>();
+  const totalValue = new Map<string, number>();
+  const currencies = new Map<string, string>();
+  for (const it of items ?? []) {
+    const r = it as {
+      designated_inheritor_id: string | null;
+      alternate_inheritor_id: string | null;
+      value_amount: number | null;
+      value_currency: string | null;
+    };
+    const ids = [r.designated_inheritor_id, r.alternate_inheritor_id].filter(
+      Boolean,
+    ) as string[];
+    for (const inheritorId of ids) {
+      itemCount.set(inheritorId, (itemCount.get(inheritorId) ?? 0) + 1);
+      if (typeof r.value_amount === 'number' && r.designated_inheritor_id === inheritorId) {
+        totalValue.set(
+          inheritorId,
+          (totalValue.get(inheritorId) ?? 0) + r.value_amount,
+        );
+      }
+      if (r.value_currency && !currencies.has(inheritorId)) {
+        currencies.set(inheritorId, r.value_currency);
+      }
+    }
+  }
+
+  // Custom collections assigned to each inheritor.
+  const { data: coll } = await supabase
+    .from('custom_collections')
+    .select('designated_inheritor_id, alternate_inheritor_id')
+    .or(
+      ids
+        .map(
+          (id) =>
+            `designated_inheritor_id.eq.${id},alternate_inheritor_id.eq.${id}`,
+        )
+        .join(','),
+    );
+  const collectionCount = new Map<string, number>();
+  for (const c of coll ?? []) {
+    const r = c as {
+      designated_inheritor_id: string | null;
+      alternate_inheritor_id: string | null;
+    };
+    for (const inheritorId of [
+      r.designated_inheritor_id,
+      r.alternate_inheritor_id,
+    ].filter(Boolean) as string[]) {
+      collectionCount.set(
+        inheritorId,
+        (collectionCount.get(inheritorId) ?? 0) + 1,
+      );
+    }
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    itemCount: itemCount.get(r.id) ?? 0,
+    collectionCount: collectionCount.get(r.id) ?? 0,
+    totalValue: totalValue.get(r.id) ?? 0,
+    totalCurrency: currencies.get(r.id) ?? 'USD',
+    primaryPhotoUrl: r.profile_photo_path
+      ? inheritorPhotoUrl(r.profile_photo_path)
+      : null,
+  }));
+}
+
+export async function getInheritor(id: string): Promise<Inheritor | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('inheritors')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as Inheritor | null) ?? null;
+}
+
+// All items assigned to a given inheritor (designated OR alternate).
+export interface InheritorAssignment {
+  itemId: string;
+  itemName: string;
+  itemCategory: string | null;
+  role: 'designated' | 'alternate';
+  primaryPhotoUrl: string | null;
+  valueAmount: number | null;
+  valueCurrency: string;
+}
+
+export async function listInheritorAssignments(
+  inheritorId: string,
+): Promise<InheritorAssignment[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('items')
+    .select(
+      'id, name, category, value_amount, value_currency, designated_inheritor_id, alternate_inheritor_id, item_photos(storage_path, sort_order)',
+    )
+    .or(
+      `designated_inheritor_id.eq.${inheritorId},alternate_inheritor_id.eq.${inheritorId}`,
+    )
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+
+  return (data ?? []).map((row) => {
+    const r = row as {
+      id: string;
+      name: string;
+      category: string | null;
+      value_amount: number | null;
+      value_currency: string;
+      designated_inheritor_id: string | null;
+      alternate_inheritor_id: string | null;
+      item_photos?: Array<{ storage_path: string; sort_order: number }>;
+    };
+    const photos = (r.item_photos ?? []).slice().sort(
+      (a, b) => a.sort_order - b.sort_order,
+    );
+    return {
+      itemId: r.id,
+      itemName: r.name,
+      itemCategory: r.category,
+      role:
+        r.designated_inheritor_id === inheritorId
+          ? ('designated' as const)
+          : ('alternate' as const),
+      primaryPhotoUrl: photos[0]
+        ? photoPublicUrl(photos[0].storage_path)
+        : null,
+      valueAmount: r.value_amount,
+      valueCurrency: r.value_currency,
+    };
+  });
+}
+
+export async function listInheritorsLight(): Promise<Inheritor[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('inheritors')
+    .select('*')
+    .order('display_name', { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as Inheritor[];
 }
 
 // ---------- Custom Collections ----------

@@ -55,6 +55,12 @@ export interface Item {
   public_id: string;
   tagged_for_sale: boolean;
   conservator_id: string | null;
+  designated_inheritor_id: string | null;
+  alternate_inheritor_id: string | null;
+  inheritance_notes: string | null;
+  transfer_instructions: string | null;
+  legal_reference: string | null;
+  assignment_confidence: AssignmentConfidence | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -190,6 +196,37 @@ export interface CustomCollection {
   owner_id: string;
   name: string;
   image_path: string | null;
+  designated_inheritor_id: string | null;
+  alternate_inheritor_id: string | null;
+  transfer_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================================== //
+//  Inheritors                                                     //
+// ============================================================== //
+
+export type InheritorStatus =
+  | 'designated_heir'
+  | 'beneficiary'
+  | 'alternate'
+  | 'charity'
+  | 'museum'
+  | 'undecided';
+
+export type AssignmentConfidence = 'confirmed' | 'likely' | 'undecided';
+
+export interface Inheritor {
+  id: string;
+  owner_id: string;
+  person_id: string | null;
+  display_name: string;
+  relationship: string | null;
+  email: string | null;
+  status: InheritorStatus;
+  notes: string | null;
+  profile_photo_path: string | null;
   created_at: string;
   updated_at: string;
 }
