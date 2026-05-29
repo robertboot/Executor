@@ -258,6 +258,15 @@ function HeroCard({
   }
 
   const heroImage = archetype.fullImage ?? archetype.bgImage;
+  const overlayStyle = archetype.heroOverlayStyle ?? 'fade';
+  const overlayBackground =
+    overlayStyle === 'scrim'
+      ? // Subtle dark wash across the whole image — slightly heavier in
+        // the bottom-left corner where the text + buttons sit.
+        'linear-gradient(to top right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.2) 100%)'
+      : // Left-to-right forest-green fade — matches images that bake a
+        // light left half into the source.
+        'linear-gradient(to right, rgba(15,61,46,0.78) 0%, rgba(15,61,46,0.55) 35%, rgba(15,61,46,0.15) 65%, rgba(15,61,46,0) 100%)';
   return (
     <section className="relative overflow-hidden bg-paper border border-hairline rounded-2xl shadow-card aspect-[16/9] lg:aspect-[2/1] xl:aspect-[5/2]">
       <div
@@ -267,10 +276,7 @@ function HeroCard({
       />
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            'linear-gradient(to right, rgba(15,61,46,0.78) 0%, rgba(15,61,46,0.55) 35%, rgba(15,61,46,0.15) 65%, rgba(15,61,46,0) 100%)',
-        }}
+        style={{ background: overlayBackground }}
         aria-hidden="true"
       />
       <div className="relative z-10 h-full p-6 sm:p-8 max-w-md flex flex-col justify-between text-cream">

@@ -4,6 +4,15 @@
 
 import type { OnboardingArchetype, OnboardingFocus } from './types';
 
+export type HeroOverlayStyle =
+  // Forest-green left-to-right fade, intended for images that bake a
+  // light left half into the source (so text overlays cleanly).
+  | 'fade'
+  // Subtle dark scrim across the whole image, intended for dark
+  // cinematic source images where the full photo should remain visible
+  // and text needs gentle contrast.
+  | 'scrim';
+
 export interface ArchetypeDef {
   key: OnboardingArchetype;
   title: string;
@@ -14,6 +23,8 @@ export interface ArchetypeDef {
   // Optional higher-resolution, full-bleed image used on the Home hero
   // card. Falls back to bgImage when not provided.
   fullImage?: string;
+  // Overlay style for the Home hero card. Defaults to 'fade'.
+  heroOverlayStyle?: HeroOverlayStyle;
 }
 
 const ARCHETYPE_BG_VERSION = '1';
@@ -43,6 +54,7 @@ export const ARCHETYPES: ArchetypeDef[] = [
     tagline: 'Organize and track curated collectibles.',
     bestFor: 'Sports · cards · coins · comics · hobbies',
     bgImage: `/archetypes/collector.png?v=${ARCHETYPE_BG_VERSION}`,
+    heroOverlayStyle: 'scrim',
     recommendedKeys: [
       'sports-memorabilia',
       'collectibles-curiosities',
