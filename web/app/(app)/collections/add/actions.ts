@@ -61,3 +61,58 @@ export async function addSubCategories(
   revalidatePath('/home');
   redirect(`/collections?archetype=${archetype}`);
 }
+
+// Removes a single sub-category key from the user's selected_collections.
+// Also drops the parent core key if no other selected sub-cat shares it.
+// Intended for empty collections — the row card surfaces the button
+// only when itemCount is 0.
+export async function removeSubCategory(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const subCatKey = String(formData.get('subCatKey') ?? '').trim();
+  const archetype = String(formData.get('archetype') ?? '').trim();
+  if (!subCatKey) throw new Error('Missing subCatKey');
+
+  const supabase = await createSupabaseServerClient();
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('selected_collections')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  const existing: string[] =
+    (profile?.selected_collections as string[] | null | undefined) ?? [];
+
+  // Strip the sub-cat. Then strip the parent core key only if no
+  // OTHER remaining sub-cat still uses it.
+  const remainingSubKeys: string[] = [];
+  const remainingCoreKeys: string[] = [];
+  for (const k of existing) {
+    if (k === subCatKey) continue;
+    if (VALID_CORE_KEYS.has(k)) remainingCoreKeys.push(k);
+    else remainingSubKeys.push(k);
+  }
+  const stillReferencedCores = new Set(parentCoreKeysFor(remainingSubKeys));
+  const cleanedCores = remainingCoreKeys.filter((k) =>
+    stillReferencedCores.has(k),
+  );
+
+  const merged = [...remainingSubKeys, ...cleanedCores];
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ selected_collections: merged })
+    .eq('id', user.id);
+
+  if (error) {
+    throw new Error(`Failed to remove collection: ${error.message}`);
+  }
+
+  revalidatePath('/collections');
+  revalidatePath('/home');
+  if (archetype) {
+    redirect(`/collections?archetype=${archetype}`);
+  }
+  redirect('/collections');
+}

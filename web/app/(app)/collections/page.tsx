@@ -16,6 +16,7 @@ import {
   type SubCategory,
 } from '@/lib/onboarding';
 import type { OnboardingArchetype } from '@/lib/types';
+import { removeSubCategory } from './add/actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,7 +118,10 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
           <ul className="space-y-4">
             {rows.map((row) => (
               <li key={row.subKey}>
-                <CollectionRowCard row={row} />
+                <CollectionRowCard
+                  row={row}
+                  archetypeKey={activeArchetype.key}
+                />
               </li>
             ))}
             {hasUnselected && (
@@ -305,13 +309,15 @@ function ViewToggle() {
   );
 }
 
-function CollectionRowCard({ row }: { row: CollectionRow }) {
+function CollectionRowCard({
+  row,
+  archetypeKey,
+}: {
+  row: CollectionRow;
+  archetypeKey: OnboardingArchetype;
+}) {
   return (
-    <article
-      className={`bg-paper border rounded-2xl overflow-hidden ${
-        row.isSelectedInOnboarding ? 'border-hairline' : 'border-hairline'
-      }`}
-    >
+    <article className="bg-paper border border-hairline rounded-2xl overflow-hidden">
       <div className="flex flex-col lg:flex-row">
         <Link
           href={`/collections/${encodeURIComponent(row.coreKey)}`}
@@ -357,12 +363,26 @@ function CollectionRowCard({ row }: { row: CollectionRow }) {
               </p>
             )}
           </div>
-          <Link
-            href={`/collections/${encodeURIComponent(row.coreKey)}`}
-            className="self-start inline-flex items-center px-4 h-9 rounded-lg border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors"
-          >
-            View Collection
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={`/collections/${encodeURIComponent(row.coreKey)}`}
+              className="inline-flex items-center px-4 h-9 rounded-lg border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors"
+            >
+              View Collection
+            </Link>
+            {row.itemCount === 0 && (
+              <form action={removeSubCategory}>
+                <input type="hidden" name="subCatKey" value={row.subKey} />
+                <input type="hidden" name="archetype" value={archetypeKey} />
+                <button
+                  type="submit"
+                  className="text-xs text-muted hover:text-red-700 underline"
+                >
+                  Remove collection
+                </button>
+              </form>
+            )}
+          </div>
         </div>
 
         <div className="flex-1 min-w-0 p-5">
