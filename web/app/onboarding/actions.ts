@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient, getCurrentUser } from '@/lib/supabase/server';
 import { CATEGORY_PRESETS } from '@/lib/categories';
-import { ARCHETYPES, FOCUS_MODES } from '@/lib/onboarding';
+import { ARCHETYPES, FOCUS_MODES, findSubCategory, parentCoreKeysFor } from '@/lib/onboarding';
 import type { OnboardingArchetype, OnboardingFocus } from '@/lib/types';
 
 const VALID_ARCHETYPES = new Set(ARCHETYPES.map((a) => a.key));
@@ -29,9 +29,19 @@ export async function completeOnboarding(input: CompleteOnboardingInput) {
     throw new Error(`Invalid focus: ${input.focus}`);
   }
 
-  const cleanedCollections = input.selectedCollections
-    .filter((k) => VALID_COLLECTION_KEYS.has(k))
-    .filter((k, i, arr) => arr.indexOf(k) === i);
+  // selectedCollections can mix sub-category keys (from archetypes with
+  // a granular list) and Core 12 keys (from archetypes that fall back to
+  // the grid). Keep the granular keys for future use and resolve their
+  // parent core keys so the Collections page (which only knows core)
+  // still sees everything the user picked.
+  const subKeys = input.selectedCollections.filter((k) => findSubCategory(k));
+  const coreKeysExplicit = input.selectedCollections.filter((k) =>
+    VALID_COLLECTION_KEYS.has(k),
+  );
+  const coreKeysFromSubs = parentCoreKeysFor(subKeys);
+  const cleanedCollections = Array.from(
+    new Set([...subKeys, ...coreKeysExplicit, ...coreKeysFromSubs]),
+  );
 
   const supabase = await createSupabaseServerClient();
 

@@ -3,7 +3,8 @@
 import { useState, useMemo, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import type { ArchetypeDef, FocusDef } from '@/lib/onboarding';
+import type { ArchetypeDef, FocusDef, SubCategory } from '@/lib/onboarding';
+import { ARCHETYPE_SUBCATEGORIES } from '@/lib/onboarding';
 import type { OnboardingArchetype, OnboardingFocus } from '@/lib/types';
 import { completeOnboarding, skipOnboarding } from './actions';
 
@@ -43,7 +44,14 @@ export default function Wizard({ archetypes, focusModes, allCollections }: Wizar
     const def = archetypes.find((a) => a.key === key);
     if (!def) return;
     setArchetype(key);
-    setSelected(new Set(def.recommendedKeys));
+    const subCats = ARCHETYPE_SUBCATEGORIES[key];
+    if (subCats) {
+      // Pre-select the sub-categories the archetype recommends as defaults.
+      setSelected(new Set(subCats.filter((s) => s.defaultSelected).map((s) => s.key)));
+    } else {
+      // Fallback: archetype uses the Core 12 grid, pre-select its recommended core keys.
+      setSelected(new Set(def.recommendedKeys));
+    }
     setStep('collections');
   }
 
@@ -71,7 +79,7 @@ export default function Wizard({ archetypes, focusModes, allCollections }: Wizar
     if (!archetype) return;
     startTransition(async () => {
       try {
-        const [, ] = await Promise.all([
+        await Promise.all([
           completeOnboarding({
             archetype,
             focus: key,
@@ -113,17 +121,35 @@ export default function Wizard({ archetypes, focusModes, allCollections }: Wizar
         />
       )}
 
-      {step === 'collections' && archetype && (
-        <CollectionsStep
-          archetype={archetypes.find((a) => a.key === archetype)!}
-          allCollections={allCollections}
-          selected={selected}
-          onToggle={toggleCollection}
-          onBack={() => setStep('archetype')}
-          onNext={goToFocus}
-          error={error}
-        />
-      )}
+      {step === 'collections' && archetype && (() => {
+        const subCats = ARCHETYPE_SUBCATEGORIES[archetype];
+        if (subCats) {
+          return (
+            <SubCategoriesStep
+              archetypeKey={archetype}
+              subCategories={subCats}
+              selected={selected}
+              onToggle={toggleCollection}
+              onBack={() => setStep('archetype')}
+              onNext={goToFocus}
+              onSkip={skip}
+              error={error}
+              skipPending={pending}
+            />
+          );
+        }
+        return (
+          <CollectionsStep
+            archetype={archetypes.find((a) => a.key === archetype)!}
+            allCollections={allCollections}
+            selected={selected}
+            onToggle={toggleCollection}
+            onBack={() => setStep('archetype')}
+            onNext={goToFocus}
+            error={error}
+          />
+        );
+      })()}
 
       {step === 'focus' && (
         <FocusStep
@@ -239,6 +265,176 @@ function ArchetypeStep({
         </button>
       </div>
     </div>
+  );
+}
+
+const SUBSTEP_COPY: Partial<Record<OnboardingArchetype, { title: string; subtitle: string }>> = {
+  'family-legacy': {
+    title: 'Which parts of your family story would you like to preserve?',
+    subtitle:
+      "We'll create collections for the memories, heirlooms, and stories that matter most.",
+  },
+};
+
+function SubCategoriesStep({
+  archetypeKey,
+  subCategories,
+  selected,
+  onToggle,
+  onBack,
+  onNext,
+  onSkip,
+  error,
+  skipPending,
+}: {
+  archetypeKey: OnboardingArchetype;
+  subCategories: SubCategory[];
+  selected: Set<string>;
+  onToggle: (key: string) => void;
+  onBack: () => void;
+  onNext: () => void;
+  onSkip: () => void;
+  error: string | null;
+  skipPending: boolean;
+}) {
+  const copy = SUBSTEP_COPY[archetypeKey] ?? {
+    title: 'Customize your collections',
+    subtitle:
+      "We've pre-selected what fits this archetype. Add, remove, or change anything.",
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start">
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-ink-soft hover:text-ink p-2 -ml-2"
+          aria-label="Back"
+        >
+          <BackArrowIcon className="w-5 h-5" />
+        </button>
+      </div>
+
+      <div className="text-center space-y-3">
+        <h1 className="font-serif text-2xl sm:text-3xl text-ink leading-tight">
+          {copy.title}
+        </h1>
+        <p className="text-muted text-sm sm:text-base max-w-xl mx-auto">
+          {copy.subtitle}
+        </p>
+      </div>
+
+      <ul className="space-y-3">
+        {subCategories.map((s) => {
+          const isSelected = selected.has(s.key);
+          return (
+            <li key={s.key}>
+              <button
+                type="button"
+                onClick={() => onToggle(s.key)}
+                className="group relative w-full text-left overflow-hidden bg-paper border border-hairline rounded-2xl hover:border-forest hover:shadow-card transition-all"
+                style={{ minHeight: 100 }}
+                aria-pressed={isSelected}
+              >
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url('${s.bgImage}')` }}
+                  aria-hidden="true"
+                />
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background:
+                      'linear-gradient(to right, rgba(255,253,247,0.96) 0%, rgba(255,253,247,0.85) 40%, rgba(255,253,247,0.35) 70%, rgba(255,253,247,0) 100%)',
+                  }}
+                  aria-hidden="true"
+                />
+                <div className="relative z-10 flex items-start gap-3 p-4 max-w-[65%]">
+                  <Checkbox checked={isSelected} />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-serif text-base sm:text-lg text-ink leading-tight">
+                      {s.label}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-ink-soft mt-1 leading-snug">
+                      {s.description}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+
+      {error && (
+        <div className="text-center text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg py-2 px-3">
+          {error}
+        </div>
+      )}
+
+      <div className="space-y-3 pt-2">
+        <button
+          type="button"
+          onClick={onNext}
+          className="w-full inline-flex items-center justify-center gap-2 px-5 h-12 rounded-xl bg-forest text-cream text-base font-medium hover:bg-forest-deep transition-colors"
+        >
+          Continue
+          <span aria-hidden="true">→</span>
+        </button>
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={onSkip}
+            disabled={skipPending}
+            className="text-sm text-muted hover:text-ink underline disabled:opacity-50"
+          >
+            I&rsquo;ll choose later
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Checkbox({ checked }: { checked: boolean }) {
+  if (checked) {
+    return (
+      <span className="shrink-0 w-6 h-6 rounded-md bg-forest text-cream flex items-center justify-center mt-0.5">
+        <svg
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="w-4 h-4"
+          aria-hidden="true"
+        >
+          <path d="M3 8.5l3.5 3.5L13 5" />
+        </svg>
+      </span>
+    );
+  }
+  return (
+    <span className="shrink-0 w-6 h-6 rounded-md border-2 border-hairline bg-paper/70 mt-0.5" />
+  );
+}
+
+function BackArrowIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
   );
 }
 

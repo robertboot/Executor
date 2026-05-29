@@ -157,3 +157,135 @@ export function findFocus(key: string | null | undefined): FocusDef | null {
   if (!key) return null;
   return FOCUS_MODES.find((f) => f.key === key) ?? null;
 }
+
+// ---- Archetype sub-categories ---------------------------------------------
+// Each archetype can define a more granular list of sub-categories that
+// shows up in the Customize step. Each sub-category maps to one of the 12
+// Core Collections (`parent`) so the rest of the app, which still groups
+// items by core key, keeps working unchanged. The wizard saves both the
+// sub-category keys AND their parents into selected_collections.
+
+export interface SubCategory {
+  key: string;
+  label: string;
+  description: string;
+  parent: string;
+  bgImage: string;
+  defaultSelected: boolean;
+}
+
+const SUBCATEGORY_BG_VERSION = '1';
+const sub = (key: string) => `/subcategories/${key}.png?v=${SUBCATEGORY_BG_VERSION}`;
+
+const FAMILY_LEGACY_SUBCATEGORIES: SubCategory[] = [
+  {
+    key: 'family-keepsakes-items',
+    label: 'Family Keepsakes',
+    description: 'Meaningful objects passed down through generations.',
+    parent: 'family-keepsakes',
+    bgImage: sub('family-keepsakes'),
+    defaultSelected: true,
+  },
+  {
+    key: 'family-photographs',
+    label: 'Family Photographs',
+    description: 'Printed photos, albums, slides, and portraits.',
+    parent: 'art-photography',
+    bgImage: sub('family-photographs'),
+    defaultSelected: true,
+  },
+  {
+    key: 'letters-documents',
+    label: 'Letters & Documents',
+    description: 'Important papers and handwritten family history.',
+    parent: 'books-documents',
+    bgImage: sub('letters-documents'),
+    defaultSelected: true,
+  },
+  {
+    key: 'recipes-traditions',
+    label: 'Recipes & Traditions',
+    description: 'Handwritten recipes and family customs worth preserving.',
+    parent: 'books-documents',
+    bgImage: sub('recipes-traditions'),
+    defaultSelected: false,
+  },
+  {
+    key: 'jewelry-personal-treasures',
+    label: 'Jewelry & Personal Treasures',
+    description: 'Items worn, gifted, or cherished by loved ones.',
+    parent: 'jewelry-watches',
+    bgImage: sub('jewelry-personal'),
+    defaultSelected: true,
+  },
+  {
+    key: 'military-service',
+    label: 'Military Service',
+    description: 'Artifacts honoring family service and sacrifice.',
+    parent: 'military-historical',
+    bgImage: sub('military-service'),
+    defaultSelected: true,
+  },
+  {
+    key: 'furniture-home-heirlooms',
+    label: 'Furniture & Home Heirlooms',
+    description: 'Objects that shape family homes.',
+    parent: 'antiques-decor',
+    bgImage: sub('furniture-heirlooms'),
+    defaultSelected: false,
+  },
+  {
+    key: 'family-stories-memories',
+    label: 'Family Stories & Memories',
+    description: 'Record the stories behind the items.',
+    parent: 'family-keepsakes',
+    bgImage: sub('family-stories'),
+    defaultSelected: true,
+  },
+  {
+    key: 'holiday-special-keepsakes',
+    label: 'Holiday & Special Keepsakes',
+    description: 'Objects connected to celebrations and milestones.',
+    parent: 'collectibles-curiosities',
+    bgImage: sub('holiday-keepsakes'),
+    defaultSelected: false,
+  },
+  {
+    key: 'genealogy-family-history',
+    label: 'Genealogy & Family History',
+    description: 'Research and records documenting your ancestry.',
+    parent: 'books-documents',
+    bgImage: sub('genealogy'),
+    defaultSelected: false,
+  },
+];
+
+// Other archetypes don't have sub-category lists yet — the wizard falls back
+// to the existing 12-icon grid for those until you ship per-archetype copy.
+export const ARCHETYPE_SUBCATEGORIES: Partial<Record<OnboardingArchetype, SubCategory[]>> = {
+  'family-legacy': FAMILY_LEGACY_SUBCATEGORIES,
+};
+
+const ALL_SUBCATEGORIES: SubCategory[] = [
+  ...FAMILY_LEGACY_SUBCATEGORIES,
+];
+
+const SUBCATEGORY_BY_KEY = new Map<string, SubCategory>(
+  ALL_SUBCATEGORIES.map((s) => [s.key, s]),
+);
+
+export function findSubCategory(key: string): SubCategory | null {
+  return SUBCATEGORY_BY_KEY.get(key) ?? null;
+}
+
+// Given a list of selected sub-category keys, return the union of their
+// parent Core 12 keys. Used so the Collections page (which only knows
+// core keys) still sees everything the user selected.
+export function parentCoreKeysFor(subKeys: string[]): string[] {
+  const parents = new Set<string>();
+  for (const k of subKeys) {
+    const sub = findSubCategory(k);
+    if (sub) parents.add(sub.parent);
+  }
+  return [...parents];
+}
