@@ -46,12 +46,20 @@ export default async function PersonProfilePage({ params }: PageProps) {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-24">
-      <Link
-        href="/people"
-        className="inline-flex items-center text-sm text-muted hover:text-ink"
-      >
-        ← All people
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href="/people"
+          className="inline-flex items-center text-sm text-muted hover:text-ink"
+        >
+          ← All people
+        </Link>
+        <Link
+          href={`/people/${person.id}/edit`}
+          className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors"
+        >
+          Edit
+        </Link>
+      </div>
 
       {/* Hero */}
       <section className="flex flex-col sm:flex-row items-start gap-6">
@@ -88,6 +96,16 @@ export default async function PersonProfilePage({ params }: PageProps) {
               <span>{SIDE_LABEL[person.side_of_family]}</span>
             )}
           </div>
+          {person.email && (
+            <div className="text-sm">
+              <a
+                href={`mailto:${person.email}`}
+                className="text-forest underline hover:text-forest-deep"
+              >
+                {person.email}
+              </a>
+            </div>
+          )}
           <div className="text-xs uppercase tracking-wider text-muted pt-2">
             {items.length} connected {items.length === 1 ? 'item' : 'items'}
           </div>

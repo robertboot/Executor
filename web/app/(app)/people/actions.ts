@@ -68,6 +68,7 @@ export async function createPerson(formData: FormData) {
       first_name: firstName,
       middle_name: s(formData.get('middle_name')),
       last_name: s(formData.get('last_name')),
+      email: s(formData.get('email')),
       relationship: s(formData.get('relationship')),
       side_of_family: side,
       birth_date: asDate(formData.get('birth_date')),
@@ -82,6 +83,68 @@ export async function createPerson(formData: FormData) {
 
   revalidatePath('/people');
   redirect(`/people/${data.id}`);
+}
+
+export async function updatePerson(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const id = String(formData.get('id') ?? '').trim();
+  if (!id) throw new Error('Missing person id');
+
+  const firstName = s(formData.get('first_name'));
+  if (!firstName) throw new Error('First name is required');
+
+  const side = s(formData.get('side_of_family')) as SideOfFamily | null;
+  if (side && !VALID_SIDES.includes(side)) {
+    throw new Error(`Invalid side of family: ${side}`);
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  // Optional new photo — falls back to whatever's already on the row.
+  let newPhotoPath: string | null = null;
+  const file = formData.get('profile_photo');
+  if (file && file instanceof File && file.size > 0) {
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+    const buffer = await file.arrayBuffer();
+    const { error: uploadErr } = await supabase.storage
+      .from(PEOPLE_PHOTO_BUCKET)
+      .upload(path, buffer, {
+        contentType: file.type || 'image/jpeg',
+        upsert: false,
+      });
+    if (uploadErr) {
+      throw new Error(`Photo upload failed: ${uploadErr.message}`);
+    }
+    newPhotoPath = path;
+  }
+
+  const update: Record<string, unknown> = {
+    first_name: firstName,
+    middle_name: s(formData.get('middle_name')),
+    last_name: s(formData.get('last_name')),
+    email: s(formData.get('email')),
+    relationship: s(formData.get('relationship')),
+    side_of_family: side,
+    birth_date: asDate(formData.get('birth_date')),
+    death_date: asDate(formData.get('death_date')),
+    biography: s(formData.get('biography')),
+  };
+  if (newPhotoPath) update.profile_photo_path = newPhotoPath;
+
+  const { error } = await supabase
+    .from('people')
+    .update(update)
+    .eq('id', id)
+    .eq('owner_id', user.id);
+
+  if (error) throw new Error(`Failed to update person: ${error.message}`);
+
+  revalidatePath('/people');
+  revalidatePath(`/people/${id}`);
+  redirect(`/people/${id}`);
 }
 
 export async function deletePerson(formData: FormData) {

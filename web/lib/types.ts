@@ -143,6 +143,7 @@ export interface Person {
   first_name: string;
   middle_name: string | null;
   last_name: string | null;
+  email: string | null;
   relationship: string | null;
   side_of_family: SideOfFamily | null;
   birth_date: string | null;
