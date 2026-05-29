@@ -52,9 +52,10 @@ export default async function ConservatorsPage() {
       </header>
 
       {conservators.length === 0 ? (
-        <EmptyState />
+        <HeroCard hasConservators={false} />
       ) : (
         <>
+          <HeroCard hasConservators={true} />
           <SummaryGrid summary={summary} />
           <section className="space-y-4">
             <h2 className="font-serif text-2xl text-ink">Your conservators</h2>
@@ -75,37 +76,88 @@ export default async function ConservatorsPage() {
 }
 
 // ============================================================== //
-//  Empty state                                                    //
+//  Hero card                                                      //
 // ============================================================== //
 
-function EmptyState() {
+function HeroCard({ hasConservators }: { hasConservators: boolean }) {
+  const bullets = [
+    'View Access',
+    'Edit Access',
+    'Audit Logs',
+    'Permission Control',
+  ];
+
   return (
-    <section className="bg-paper border border-hairline rounded-2xl p-8 sm:p-12 text-center shadow-card">
-      <div className="mx-auto w-16 h-16 rounded-full bg-gold-soft flex items-center justify-center text-gold-deep mb-4">
-        <ShieldIcon className="w-8 h-8" />
-      </div>
-      <h2 className="font-serif text-2xl sm:text-3xl text-ink">
-        Protect Your Family Archive
-      </h2>
-      <p className="text-muted text-sm sm:text-base mt-3 max-w-lg mx-auto">
-        Invite family members, historians, or trusted friends to help
-        preserve your collections. Give them view or edit access, and
-        every change they make will be recorded in the archive log.
-      </p>
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
-        <Link
-          href="/conservators/new"
-          className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
-        >
-          <UserPlusIcon className="w-4 h-4" />
-          Invite Your First Conservator
-        </Link>
-        <Link
-          href="#permission-levels"
-          className="inline-flex items-center px-5 h-11 rounded-lg border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors"
-        >
-          Learn About Permissions
-        </Link>
+    <section className="relative overflow-hidden bg-paper border border-hairline rounded-2xl shadow-card">
+      {/* Background image — fills the whole hero block */}
+      <Image
+        src="/conservators-hero.png"
+        alt=""
+        fill
+        sizes="100vw"
+        className="object-cover object-right"
+        priority
+      />
+
+      {/* Cream-to-transparent overlay so the text stays readable on the left */}
+      <div
+        className="absolute inset-0 bg-gradient-to-r from-paper/90 via-paper/75 to-transparent lg:from-paper/90 lg:via-paper/60 lg:to-transparent"
+        aria-hidden
+      />
+
+      {/* Content overlay */}
+      <div className="relative grid grid-cols-1 lg:grid-cols-2">
+        {/* Left: copy */}
+        <div className="p-6 sm:p-10 flex flex-col">
+          <div className="w-14 h-14 rounded-full bg-gold-soft flex items-center justify-center text-gold-deep mb-5">
+            <ShieldIcon className="w-7 h-7" />
+          </div>
+          <h2 className="font-serif text-2xl sm:text-3xl text-ink leading-tight">
+            Protect Your Family Archive
+          </h2>
+          <p className="text-ink-soft text-sm sm:text-base mt-3 max-w-md leading-relaxed">
+            Invite family members, historians, or trusted friends to help
+            preserve your collections. Every change they make is
+            permanently logged.
+          </p>
+
+          <div className="mt-6">
+            <div className="text-[11px] uppercase tracking-widest text-muted mb-3">
+              Every conservator can have:
+            </div>
+            <ul className="space-y-2.5">
+              {bullets.map((b) => (
+                <li key={b} className="flex items-center gap-3 text-sm text-ink">
+                  <span className="shrink-0 w-5 h-5 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+                    <CheckIcon className="w-3 h-3" />
+                  </span>
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/conservators/new"
+              className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
+            >
+              <UserPlusIcon className="w-4 h-4" />
+              {hasConservators
+                ? 'Invite Another Conservator'
+                : 'Invite Your First Conservator'}
+            </Link>
+            <Link
+              href="#permission-levels"
+              className="inline-flex items-center px-5 h-11 rounded-lg border border-ink/20 bg-paper/70 text-ink text-sm font-medium hover:border-ink/40 transition-colors backdrop-blur-sm"
+            >
+              Learn About Permissions
+            </Link>
+          </div>
+        </div>
+
+        {/* Right: spacer so the image shows through */}
+        <div className="hidden lg:block min-h-[420px]" aria-hidden />
       </div>
     </section>
   );
