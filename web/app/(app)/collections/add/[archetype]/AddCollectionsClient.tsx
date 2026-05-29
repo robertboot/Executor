@@ -35,9 +35,26 @@ export default function AddCollectionsClient({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  // Only the current-archetype section is expanded on first render.
+  // The other curated collections collapse closed so the user can
+  // scan and pick which to explore.
+  const [openGroups, setOpenGroups] = useState<Set<string>>(() => {
+    const initial = new Set<string>();
+    for (const g of groups) if (g.isCurrent) initial.add(g.archetypeKey);
+    return initial;
+  });
 
   function toggle(key: string) {
     setSelected((prev) => {
+      const out = new Set(prev);
+      if (out.has(key)) out.delete(key);
+      else out.add(key);
+      return out;
+    });
+  }
+
+  function toggleGroup(key: string) {
+    setOpenGroups((prev) => {
       const out = new Set(prev);
       if (out.has(key)) out.delete(key);
       else out.add(key);
@@ -59,6 +76,10 @@ export default function AddCollectionsClient({
           next ?? undefined,
         );
       } catch (err) {
+        // Server actions signal redirect() by throwing NEXT_REDIRECT;
+        // re-throw so Next can complete the navigation instead of us
+        // surfacing it as an error.
+        if (isNextRedirect(err)) throw err;
         setError(err instanceof Error ? err.message : 'Something went wrong.');
       }
     });
@@ -99,33 +120,68 @@ export default function AddCollectionsClient({
         </div>
       ) : (
         <>
-          <div className="space-y-8">
-            {groups.map((g) => (
-              <section key={g.archetypeKey} className="space-y-3">
-                <div className="flex items-baseline justify-between gap-3">
-                  <h2 className="text-xs uppercase tracking-widest text-muted">
-                    {g.isCurrent ? `${g.archetypeTitle} · Yours` : g.archetypeTitle}
-                  </h2>
-                  <span className="text-xs text-muted">
-                    {g.subCategories.length}
-                  </span>
-                </div>
-                <ul className="space-y-3">
-                  {g.subCategories.map((s) => (
-                    <li key={s.key}>
-                      <SubCatCheckbox
-                        sub={s}
-                        checked={selected.has(s.key)}
-                        onToggle={() => toggle(s.key)}
+          <div className="space-y-4">
+            {groups.map((g) => {
+              const open = openGroups.has(g.archetypeKey);
+              const selectedInGroup = g.subCategories.filter((s) =>
+                selected.has(s.key),
+              ).length;
+              return (
+                <section
+                  key={g.archetypeKey}
+                  className="bg-paper border border-hairline rounded-2xl overflow-hidden"
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(g.archetypeKey)}
+                    aria-expanded={open}
+                    className="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-cream-soft/50 transition-colors"
+                  >
+                    <div className="flex items-baseline gap-3 min-w-0">
+                      <h2 className="font-serif text-lg sm:text-xl font-bold text-ink truncate">
+                        {g.archetypeTitle}
+                      </h2>
+                      {g.isCurrent && (
+                        <span className="text-[10px] uppercase tracking-widest text-gold-deep shrink-0">
+                          Yours
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      {selectedInGroup > 0 && (
+                        <span className="text-xs font-medium text-forest">
+                          {selectedInGroup} selected
+                        </span>
+                      )}
+                      <span className="text-xs text-muted">
+                        {g.subCategories.length}
+                      </span>
+                      <ChevronIcon
+                        className={`w-4 h-4 text-muted transition-transform duration-200 ${
+                          open ? 'rotate-180' : ''
+                        }`}
                       />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
+                    </div>
+                  </button>
+                  {open && (
+                    <ul className="space-y-3 p-4 pt-0">
+                      {g.subCategories.map((s) => (
+                        <li key={s.key}>
+                          <SubCatCheckbox
+                            sub={s}
+                            checked={selected.has(s.key)}
+                            onToggle={() => toggle(s.key)}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              );
+            })}
 
             {customOption && (
-              <section className="space-y-3">
+              <section className="space-y-3 pt-2">
                 <h2 className="text-xs uppercase tracking-widest text-muted">
                   Or start your own
                 </h2>
@@ -164,6 +220,29 @@ export default function AddCollectionsClient({
         </>
       )}
     </div>
+  );
+}
+
+function isNextRedirect(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const digest = (err as { digest?: unknown }).digest;
+  return typeof digest === 'string' && digest.startsWith('NEXT_REDIRECT');
+}
+
+function ChevronIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M4 6l4 4 4-4" />
+    </svg>
   );
 }
 
