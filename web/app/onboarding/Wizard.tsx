@@ -30,7 +30,7 @@ const REVEAL_DURATION_MS = 2400;
 // sub-category cards in Step 2). Keeping it shared so every card reads
 // identically.
 const CARD_OVERLAY_GRADIENT =
-  'linear-gradient(to right, rgba(255,253,247,0.94) 0%, rgba(255,253,247,0.88) 35%, rgba(255,253,247,0.55) 55%, rgba(255,253,247,0.1) 80%, rgba(255,253,247,0) 100%)';
+  'linear-gradient(to right, rgba(255,253,247,0.88) 0%, rgba(255,253,247,0.75) 35%, rgba(255,253,247,0.3) 55%, rgba(255,253,247,0.03) 80%, rgba(255,253,247,0) 100%)';
 
 export default function Wizard({ archetypes, focusModes, allCollections }: WizardProps) {
   const router = useRouter();
