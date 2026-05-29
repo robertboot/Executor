@@ -84,7 +84,7 @@ function HeroCard({ hasInheritors }: { hasInheritors: boolean }) {
 
       {/* Cream-to-transparent overlay so the text stays readable on the left */}
       <div
-        className="absolute inset-0 bg-gradient-to-r from-paper via-paper/85 to-transparent lg:from-paper lg:via-paper/70 lg:to-transparent"
+        className="absolute inset-0 bg-gradient-to-r from-paper/90 via-paper/75 to-transparent lg:from-paper/90 lg:via-paper/60 lg:to-transparent"
         aria-hidden
       />
 
