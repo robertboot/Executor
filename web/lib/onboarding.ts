@@ -333,7 +333,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     parent: 'collectibles-curiosities',
     bgImage: sub('toys-action-figures'),
     defaultSelected: true,
-    thumbZoom: 1.25,
+    thumbZoom: 1.35,
   },
   {
     key: 'vinyl-music',
