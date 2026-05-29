@@ -233,12 +233,12 @@ function ArchetypeStep({
               style={{ minHeight: 160 }}
             >
               <div
-                className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
                 style={{ backgroundImage: `url('${a.bgImage}')` }}
                 aria-hidden="true"
               />
               <div
-                className="absolute inset-0 pointer-events-none"
+                className="absolute inset-0 pointer-events-none transition-opacity duration-300 group-hover:opacity-60"
                 style={{ background: CARD_OVERLAY_GRADIENT }}
                 aria-hidden="true"
               />
@@ -347,12 +347,16 @@ function SubCategoriesStep({
                 aria-pressed={isSelected}
               >
                 <div
-                  className="absolute inset-0 bg-cover bg-center"
+                  className={`absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105 ${
+                    isSelected ? 'scale-105' : ''
+                  }`}
                   style={{ backgroundImage: `url('${s.bgImage}')` }}
                   aria-hidden="true"
                 />
                 <div
-                  className="absolute inset-0 pointer-events-none"
+                  className={`absolute inset-0 pointer-events-none transition-opacity duration-300 group-hover:opacity-60 ${
+                    isSelected ? 'opacity-60' : 'opacity-100'
+                  }`}
                   style={{ background: CARD_OVERLAY_GRADIENT }}
                   aria-hidden="true"
                 />
