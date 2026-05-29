@@ -202,6 +202,9 @@ export interface SubCategory {
   // square thumbnail on the Collections page, anchored to the right
   // edge so the subject stays in frame.
   thumbZoom?: number;
+  // Optional explicit zoom for the home page sub-cat card (5:3
+  // aspect). Overrides the baseline 1.8 home zoom when set.
+  homeZoom?: number;
 }
 
 const SUBCATEGORY_BG_VERSION = '1';
@@ -323,6 +326,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     bgImage: sub('comics-graphic-novels'),
     defaultSelected: true,
     thumbZoom: 1.3,
+    homeZoom: 2.16,
   },
   {
     key: 'autographs-signatures',
@@ -340,6 +344,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     bgImage: sub('toys-action-figures'),
     defaultSelected: true,
     thumbZoom: 1.35,
+    homeZoom: 1.98,
   },
   {
     key: 'vinyl-music',

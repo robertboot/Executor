@@ -505,9 +505,10 @@ function SubCatVisualCard({
 }) {
   // Crop the light-left gradient out of the source image: anchor to
   // the right edge and zoom aggressively so the cream half stays
-  // entirely off-screen. Per-sub-cat thumbZoom can still pull in
-  // further when its baseline is higher.
-  const baseZoom = Math.max(subCat.thumbZoom ?? 1, 1.8);
+  // entirely off-screen. homeZoom wins outright when set; otherwise
+  // fall back to the max of thumbZoom and a 1.8 baseline.
+  const baseZoom =
+    subCat.homeZoom ?? Math.max(subCat.thumbZoom ?? 1, 1.8);
   return (
     <Link
       href={`/collections/${encodeURIComponent(subCat.parent)}`}
