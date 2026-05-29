@@ -184,14 +184,6 @@ function Sidebar({
           ))}
         </ul>
       </div>
-
-      <Link
-        href="/items/new"
-        className="hidden lg:flex items-center justify-center gap-2 w-full px-4 h-12 rounded-xl border border-dashed border-gold text-gold-deep text-sm font-medium hover:bg-gold-soft transition-colors"
-      >
-        <PlusIcon className="w-4 h-4" />
-        Add Collection
-      </Link>
     </aside>
   );
 }

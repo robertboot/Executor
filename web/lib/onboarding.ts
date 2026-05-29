@@ -629,6 +629,19 @@ const MIXED_SUBCATEGORIES: SubCategory[] = [
   },
 ];
 
+// Custom Collection is special — not tied to any one archetype, picked
+// from the "Add more collections" screen. Its parent is the `custom`
+// Core 12 key so items the user tags as Custom land under it.
+export const CUSTOM_SUBCATEGORY: SubCategory = {
+  key: 'custom-collection',
+  label: 'Custom Collection',
+  description:
+    "For pieces that don't fit any of the curated collections — give it your own name and stories.",
+  parent: 'custom',
+  bgImage: `/categories/custom.png?v=3`,
+  defaultSelected: false,
+};
+
 // All five archetypes now ship with curated sub-category lists.
 export const ARCHETYPE_SUBCATEGORIES: Partial<Record<OnboardingArchetype, SubCategory[]>> = {
   'family-legacy': FAMILY_LEGACY_SUBCATEGORIES,
@@ -644,6 +657,7 @@ const ALL_SUBCATEGORIES: SubCategory[] = [
   ...LUXURY_SUBCATEGORIES,
   ...HISTORICAL_SUBCATEGORIES,
   ...MIXED_SUBCATEGORIES,
+  CUSTOM_SUBCATEGORY,
 ];
 
 const SUBCATEGORY_BY_KEY = new Map<string, SubCategory>(

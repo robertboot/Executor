@@ -1,11 +1,13 @@
 import { notFound, redirect } from 'next/navigation';
 import { createSupabaseServerClient, getCurrentUser } from '@/lib/supabase/server';
 import {
+  ARCHETYPES,
   ARCHETYPE_SUBCATEGORIES,
+  CUSTOM_SUBCATEGORY,
   findArchetype,
 } from '@/lib/onboarding';
 import type { OnboardingArchetype } from '@/lib/types';
-import AddCollectionsClient from './AddCollectionsClient';
+import AddCollectionsClient, { type SubCategoryGroup } from './AddCollectionsClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,15 +41,37 @@ export default async function AddCollectionsPage({
     (profile?.selected_collections as string[] | null | undefined) ?? [],
   );
 
-  const allSubCats = ARCHETYPE_SUBCATEGORIES[archetype.key] ?? [];
-  const unselected = allSubCats.filter((s) => !existing.has(s.key));
+  // Build a group per archetype with whatever sub-cats the user
+  // hasn't picked yet. Active archetype's group goes first so the user
+  // sees the most-relevant options first.
+  const groups: SubCategoryGroup[] = [];
+  const archOrder = [
+    archetype,
+    ...ARCHETYPES.filter((a) => a.key !== archetype.key),
+  ];
+  for (const a of archOrder) {
+    const subs = (ARCHETYPE_SUBCATEGORIES[a.key] ?? []).filter(
+      (s) => !existing.has(s.key),
+    );
+    if (subs.length === 0) continue;
+    groups.push({
+      archetypeKey: a.key,
+      archetypeTitle: a.title,
+      isCurrent: a.key === archetype.key,
+      subCategories: subs,
+    });
+  }
+
+  const customAvailable = !existing.has(CUSTOM_SUBCATEGORY.key);
 
   return (
     <AddCollectionsClient
       archetypeKey={archetype.key as OnboardingArchetype}
       archetypeTitle={archetype.title}
-      subCategories={unselected}
+      groups={groups}
+      customOption={customAvailable ? CUSTOM_SUBCATEGORY : null}
       next={search?.next ?? null}
     />
   );
 }
+

@@ -7,10 +7,18 @@ import type { SubCategory } from '@/lib/onboarding';
 import type { OnboardingArchetype } from '@/lib/types';
 import { addSubCategories } from '../actions';
 
+export interface SubCategoryGroup {
+  archetypeKey: OnboardingArchetype;
+  archetypeTitle: string;
+  isCurrent: boolean;
+  subCategories: SubCategory[];
+}
+
 interface Props {
   archetypeKey: OnboardingArchetype;
   archetypeTitle: string;
-  subCategories: SubCategory[];
+  groups: SubCategoryGroup[];
+  customOption: SubCategory | null;
   next: string | null;
 }
 
@@ -20,7 +28,8 @@ const CARD_OVERLAY_GRADIENT =
 export default function AddCollectionsClient({
   archetypeKey,
   archetypeTitle,
-  subCategories,
+  groups,
+  customOption,
   next,
 }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -29,10 +38,10 @@ export default function AddCollectionsClient({
 
   function toggle(key: string) {
     setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
+      const out = new Set(prev);
+      if (out.has(key)) out.delete(key);
+      else out.add(key);
+      return out;
     });
   }
 
@@ -44,12 +53,18 @@ export default function AddCollectionsClient({
     setError(null);
     startTransition(async () => {
       try {
-        await addSubCategories(archetypeKey, Array.from(selected), next ?? undefined);
+        await addSubCategories(
+          archetypeKey,
+          Array.from(selected),
+          next ?? undefined,
+        );
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Something went wrong.');
       }
     });
   }
+
+  const nothingToAdd = groups.length === 0 && !customOption;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-24">
@@ -61,21 +76,19 @@ export default function AddCollectionsClient({
       </Link>
 
       <div>
-        <p className="text-xs uppercase tracking-widest text-muted">
-          {archetypeTitle}
-        </p>
-        <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-ink leading-tight mt-1">
+        <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-ink leading-tight">
           Add more collections
         </h1>
         <p className="text-muted text-sm sm:text-base mt-2">
-          Pick the ones you&rsquo;d like to start cataloging.
+          Pick from your current curated collection, browse the others, or
+          start a fully custom one of your own.
         </p>
       </div>
 
-      {subCategories.length === 0 ? (
+      {nothingToAdd ? (
         <div className="bg-paper border border-hairline rounded-xl p-10 text-center">
           <p className="text-ink">
-            You&rsquo;ve already added every collection in this archetype.
+            You&rsquo;ve already added every collection available.
           </p>
           <Link
             href={`/collections?archetype=${archetypeKey}`}
@@ -86,48 +99,44 @@ export default function AddCollectionsClient({
         </div>
       ) : (
         <>
-          <ul className="space-y-3">
-            {subCategories.map((s) => {
-              const isSelected = selected.has(s.key);
-              return (
-                <li key={s.key}>
-                  <button
-                    type="button"
-                    onClick={() => toggle(s.key)}
-                    className="group relative w-full text-left overflow-hidden bg-paper border border-hairline rounded-2xl hover:border-forest hover:shadow-card transition-all"
-                    style={{ minHeight: 124 }}
-                    aria-pressed={isSelected}
-                  >
-                    <div
-                      className={`absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105 ${
-                        isSelected ? 'scale-105' : ''
-                      }`}
-                      style={{ backgroundImage: `url('${s.bgImage}')` }}
-                      aria-hidden="true"
-                    />
-                    <div
-                      className={`absolute inset-0 pointer-events-none transition-opacity duration-300 group-hover:opacity-60 ${
-                        isSelected ? 'opacity-60' : 'opacity-100'
-                      }`}
-                      style={{ background: CARD_OVERLAY_GRADIENT }}
-                      aria-hidden="true"
-                    />
-                    <div className="relative z-10 flex items-start gap-3 p-4 pr-6 max-w-[48%] sm:max-w-[52%]">
-                      <Checkbox checked={isSelected} />
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-serif text-base sm:text-lg text-ink leading-tight">
-                          {s.label}
-                        </h3>
-                        <p className="text-xs sm:text-sm text-ink-soft mt-1 leading-snug">
-                          {s.description}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          <div className="space-y-8">
+            {groups.map((g) => (
+              <section key={g.archetypeKey} className="space-y-3">
+                <div className="flex items-baseline justify-between gap-3">
+                  <h2 className="text-xs uppercase tracking-widest text-muted">
+                    {g.isCurrent ? `${g.archetypeTitle} · Yours` : g.archetypeTitle}
+                  </h2>
+                  <span className="text-xs text-muted">
+                    {g.subCategories.length}
+                  </span>
+                </div>
+                <ul className="space-y-3">
+                  {g.subCategories.map((s) => (
+                    <li key={s.key}>
+                      <SubCatCheckbox
+                        sub={s}
+                        checked={selected.has(s.key)}
+                        onToggle={() => toggle(s.key)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+
+            {customOption && (
+              <section className="space-y-3">
+                <h2 className="text-xs uppercase tracking-widest text-muted">
+                  Or start your own
+                </h2>
+                <CustomTile
+                  sub={customOption}
+                  checked={selected.has(customOption.key)}
+                  onToggle={() => toggle(customOption.key)}
+                />
+              </section>
+            )}
+          </div>
 
           {error && (
             <div className="text-center text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg py-2 px-3">
@@ -154,23 +163,102 @@ export default function AddCollectionsClient({
           </div>
         </>
       )}
-
-      {/* Render a hidden Image so Next.js bundles the optimizer for the
-          card bg images; not strictly required but speeds the first
-          paint of any card. */}
-      <div className="hidden">
-        {subCategories.slice(0, 1).map((s) => (
-          <Image
-            key={s.key}
-            src={s.bgImage}
-            alt=""
-            width={1}
-            height={1}
-            priority={false}
-          />
-        ))}
-      </div>
     </div>
+  );
+}
+
+function SubCatCheckbox({
+  sub,
+  checked,
+  onToggle,
+}: {
+  sub: SubCategory;
+  checked: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="group relative w-full text-left overflow-hidden bg-paper border border-hairline rounded-2xl hover:border-forest hover:shadow-card transition-all"
+      style={{ minHeight: 124 }}
+      aria-pressed={checked}
+    >
+      <div
+        className={`absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105 ${
+          checked ? 'scale-105' : ''
+        }`}
+        style={{ backgroundImage: `url('${sub.bgImage}')` }}
+        aria-hidden="true"
+      />
+      <div
+        className={`absolute inset-0 pointer-events-none transition-opacity duration-300 group-hover:opacity-60 ${
+          checked ? 'opacity-60' : 'opacity-100'
+        }`}
+        style={{ background: CARD_OVERLAY_GRADIENT }}
+        aria-hidden="true"
+      />
+      <div className="relative z-10 flex items-start gap-3 p-4 pr-6 max-w-[48%] sm:max-w-[52%]">
+        <Checkbox checked={checked} />
+        <div className="min-w-0 flex-1">
+          <h3 className="font-serif text-base sm:text-lg text-ink leading-tight">
+            {sub.label}
+          </h3>
+          <p className="text-xs sm:text-sm text-ink-soft mt-1 leading-snug">
+            {sub.description}
+          </p>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function CustomTile({
+  sub,
+  checked,
+  onToggle,
+}: {
+  sub: SubCategory;
+  checked: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`group relative w-full text-left flex items-center gap-4 bg-paper border-2 rounded-2xl p-5 transition-all ${
+        checked
+          ? 'border-forest shadow-card'
+          : 'border-dashed border-gold hover:border-forest'
+      }`}
+      aria-pressed={checked}
+    >
+      <div className="shrink-0 relative w-16 h-16 rounded-xl overflow-hidden bg-gold-soft/60">
+        <Image
+          src={sub.bgImage}
+          alt=""
+          fill
+          sizes="64px"
+          className="object-cover"
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <h3 className="font-serif text-base sm:text-lg text-ink leading-tight">
+            {sub.label}
+          </h3>
+          {!checked && (
+            <span className="text-[10px] uppercase tracking-widest text-gold-deep">
+              New
+            </span>
+          )}
+        </div>
+        <p className="text-xs sm:text-sm text-ink-soft mt-1 leading-snug">
+          {sub.description}
+        </p>
+      </div>
+      <Checkbox checked={checked} />
+    </button>
   );
 }
 

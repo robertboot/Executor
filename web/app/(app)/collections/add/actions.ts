@@ -5,12 +5,26 @@ import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient, getCurrentUser } from '@/lib/supabase/server';
 import { CATEGORY_PRESETS } from '@/lib/categories';
 import {
+  ARCHETYPES,
   ARCHETYPE_SUBCATEGORIES,
+  CUSTOM_SUBCATEGORY,
   parentCoreKeysFor,
 } from '@/lib/onboarding';
 import type { OnboardingArchetype } from '@/lib/types';
 
 const VALID_CORE_KEYS = new Set(CATEGORY_PRESETS.map((c) => c.key));
+
+// Every selectable sub-cat key across all archetypes, plus the global
+// Custom Collection option.
+const VALID_SUBCATEGORY_KEYS = (() => {
+  const out = new Set<string>([CUSTOM_SUBCATEGORY.key]);
+  for (const arch of ARCHETYPES) {
+    for (const sub of ARCHETYPE_SUBCATEGORIES[arch.key] ?? []) {
+      out.add(sub.key);
+    }
+  }
+  return out;
+})();
 
 // Only allow internal redirects, so a "?next=" param can't be used to
 // punt users off-site after a save.
@@ -32,10 +46,11 @@ export async function addSubCategories(
   const user = await getCurrentUser();
   if (!user) throw new Error('Not authenticated');
 
-  const validForArchetype = new Set(
-    (ARCHETYPE_SUBCATEGORIES[archetype] ?? []).map((s) => s.key),
+  // Accept any sub-category key from any archetype, plus the Custom
+  // Collection key — the picker lets users cross-archetype now.
+  const newSubKeys = subCategoryKeys.filter((k) =>
+    VALID_SUBCATEGORY_KEYS.has(k),
   );
-  const newSubKeys = subCategoryKeys.filter((k) => validForArchetype.has(k));
 
   const supabase = await createSupabaseServerClient();
   const { data: profile } = await supabase
