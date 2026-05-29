@@ -92,6 +92,8 @@ export const ARCHETYPES: ArchetypeDef[] = [
     tagline: 'Document artifacts with historical significance.',
     bestFor: 'Military · historical documents · genealogy · preservation',
     bgImage: `/archetypes/historical.png?v=${ARCHETYPE_BG_VERSION}`,
+    fullImage: `/archetypes/historical-full.png?v=${ARCHETYPE_BG_VERSION}`,
+    heroOverlayStyle: 'scrim',
     recommendedKeys: [
       'military-historical',
       'books-documents',
