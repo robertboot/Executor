@@ -316,7 +316,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     parent: 'collectibles-curiosities',
     bgImage: sub('comics-graphic-novels'),
     defaultSelected: true,
-    thumbZoom: 1.2,
+    thumbZoom: 1.3,
   },
   {
     key: 'autographs-signatures',
@@ -333,7 +333,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     parent: 'collectibles-curiosities',
     bgImage: sub('toys-action-figures'),
     defaultSelected: true,
-    thumbZoom: 1.15,
+    thumbZoom: 1.25,
   },
   {
     key: 'vinyl-music',
@@ -369,6 +369,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     parent: 'collectibles-curiosities',
     bgImage: sub('pop-culture'),
     defaultSelected: false,
+    thumbZoom: 1.1,
   },
 ];
 
