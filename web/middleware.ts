@@ -6,7 +6,6 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 const PUBLIC_PATHS = ['/login', '/signup', '/auth', '/i', '/favicon.ico'];
-const ONBOARDING_EXEMPT = ['/onboarding', '/logout'];
 const PUBLIC_FILE_REGEX = /\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|map|txt)$/;
 
 export async function middleware(request: NextRequest) {
@@ -59,31 +58,38 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Funnel signed-in users who haven't finished onboarding to /onboarding
-  // (with exemptions so they can still hit the wizard itself or log out).
+  // Onboarding gate. Single DB query covers both directions:
+  // - Not done + not on /onboarding  → redirect to /onboarding
+  // - Done + on /onboarding          → redirect to /home
   if (data.user && !isPublic) {
-    const exempt = ONBOARDING_EXEMPT.some(
-      (p) => pathname === p || pathname.startsWith(`${p}/`),
-    );
-    if (!exempt) {
-      // If the profiles table doesn't have the onboarding column yet
-      // (migration not run), silently skip the redirect so the rest of
-      // the app stays functional.
-      try {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('onboarding_completed_at')
-          .eq('id', data.user.id)
-          .maybeSingle();
+    const onOnboarding =
+      pathname === '/onboarding' || pathname.startsWith('/onboarding/');
+    const onLogout = pathname === '/logout' || pathname.startsWith('/logout/');
 
-        if (!error && profile && !profile.onboarding_completed_at) {
+    if (!onLogout) {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('onboarding_completed_at')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      // If the column doesn't exist yet (migration not run), skip both
+      // redirects — the app stays functional, wizard just won't gate.
+      if (!error && profile) {
+        const isDone = !!profile.onboarding_completed_at;
+
+        if (!isDone && !onOnboarding) {
           const url = request.nextUrl.clone();
           url.pathname = '/onboarding';
           url.search = '';
           return NextResponse.redirect(url);
         }
-      } catch {
-        // Migration not applied yet — let the request through.
+        if (isDone && onOnboarding) {
+          const url = request.nextUrl.clone();
+          url.pathname = '/home';
+          url.search = '';
+          return NextResponse.redirect(url);
+        }
       }
     }
   }
