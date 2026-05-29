@@ -30,7 +30,7 @@ const REVEAL_DURATION_MS = 2400;
 // sub-category cards in Step 2). Keeping it shared so every card reads
 // identically.
 const CARD_OVERLAY_GRADIENT =
-  'linear-gradient(to right, rgba(255,253,247,0.78) 0%, rgba(255,253,247,0.55) 35%, rgba(255,253,247,0.15) 70%, rgba(255,253,247,0) 100%)';
+  'linear-gradient(to right, rgba(255,253,247,0.94) 0%, rgba(255,253,247,0.88) 35%, rgba(255,253,247,0.55) 55%, rgba(255,253,247,0.1) 80%, rgba(255,253,247,0) 100%)';
 
 export default function Wizard({ archetypes, focusModes, allCollections }: WizardProps) {
   const router = useRouter();
@@ -356,7 +356,7 @@ function SubCategoriesStep({
                   style={{ background: CARD_OVERLAY_GRADIENT }}
                   aria-hidden="true"
                 />
-                <div className="relative z-10 flex items-start gap-3 p-4 pr-6 max-w-[56%] sm:max-w-[58%]">
+                <div className="relative z-10 flex items-start gap-3 p-4 pr-6 max-w-[48%] sm:max-w-[52%]">
                   <Checkbox checked={isSelected} />
                   <div className="min-w-0 flex-1">
                     <h3 className="font-serif text-base sm:text-lg text-ink leading-tight">
