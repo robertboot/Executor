@@ -503,16 +503,32 @@ function SubCatVisualCard({
   subCat: SubCategory;
   itemCount: number;
 }) {
+  // Crop the light-left gradient out of the source image: anchor to
+  // the right edge and zoom at least 1.3x so the cream area never
+  // shows up in the card. Per-sub-cat thumbZoom can still pull in
+  // further when its baseline is higher.
+  const baseZoom = Math.max(subCat.thumbZoom ?? 1, 1.3);
   return (
     <Link
       href={`/collections/${encodeURIComponent(subCat.parent)}`}
       className="group relative block aspect-[5/3] overflow-hidden rounded-xl border border-hairline shadow-card"
     >
       <div
-        className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-        style={{ backgroundImage: `url('${subCat.bgImage}')` }}
-        aria-hidden="true"
-      />
+        className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
+        style={{ transformOrigin: '100% 50%' }}
+      >
+        <Image
+          src={subCat.bgImage}
+          alt=""
+          fill
+          sizes="(max-width: 1024px) 50vw, 320px"
+          className="object-cover object-right"
+          style={{
+            transform: `scale(${baseZoom})`,
+            transformOrigin: '100% 50%',
+          }}
+        />
+      </div>
       {/* Light bottom darkening just for text legibility — no full
           green gradient anymore. */}
       <div
