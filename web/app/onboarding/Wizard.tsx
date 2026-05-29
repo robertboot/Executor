@@ -272,7 +272,7 @@ const SUBSTEP_COPY: Partial<Record<OnboardingArchetype, { title: string; subtitl
   'family-legacy': {
     title: 'Which parts of your family story would you like to preserve?',
     subtitle:
-      "We'll create collections for the memories, heirlooms, and stories that matter most.",
+      "Pick a few to start. You can always add more collections later.",
   },
 };
 
@@ -300,7 +300,7 @@ function SubCategoriesStep({
   const copy = SUBSTEP_COPY[archetypeKey] ?? {
     title: 'Customize your collections',
     subtitle:
-      "We've pre-selected what fits this archetype. Add, remove, or change anything.",
+      "Pick a few to start. You can always add more collections later.",
   };
 
   return (
@@ -465,7 +465,7 @@ function CollectionsStep({
           Customize your collections
         </h1>
         <p className="text-muted text-base">
-          We've pre-selected what fits this archetype. Add, remove, or change anything.
+          Pick a few to start. You can always add more collections later.
         </p>
       </div>
 
