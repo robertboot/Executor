@@ -506,7 +506,7 @@ function SubCatVisualCard({
     subCat.homeZoom ?? Math.max(subCat.thumbZoom ?? 1, 1.8);
   return (
     <Link
-      href={`/collections/${encodeURIComponent(subCat.parent)}`}
+      href={`/collections/${encodeURIComponent(subCat.parent)}?sub=${encodeURIComponent(subCat.key)}`}
       className="group relative block aspect-[5/3] overflow-hidden rounded-xl border border-hairline shadow-card"
     >
       <div

@@ -320,7 +320,7 @@ function CollectionRowCard({
     <article className="bg-paper border border-hairline rounded-2xl overflow-hidden">
       <div className="flex flex-col lg:flex-row">
         <Link
-          href={`/collections/${encodeURIComponent(row.coreKey)}`}
+          href={`/collections/${encodeURIComponent(row.coreKey)}?sub=${encodeURIComponent(row.subKey)}`}
           className="relative w-full lg:w-56 shrink-0 aspect-square bg-cream-soft overflow-hidden group"
         >
           {/* Outer wrapper owns the hover zoom so it stacks on top
@@ -365,7 +365,7 @@ function CollectionRowCard({
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              href={`/collections/${encodeURIComponent(row.coreKey)}`}
+              href={`/collections/${encodeURIComponent(row.coreKey)}?sub=${encodeURIComponent(row.subKey)}`}
               className="inline-flex items-center px-4 h-9 rounded-lg border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors"
             >
               View Collection
