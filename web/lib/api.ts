@@ -142,18 +142,28 @@ export async function dashboardStats(): Promise<{
   totalCurrency: string;
   conservatorCount: number;
   taggedForSaleCount: number;
+  lastUpdatedAt: string | null;
+  collectionCount: number;
 }> {
   const supabase = await createSupabaseServerClient();
   const { data: me } = await supabase.auth.getUser();
   const myId = me.user?.id;
   if (!myId) {
-    return { itemCount: 0, totalValue: 0, totalCurrency: 'USD', conservatorCount: 0, taggedForSaleCount: 0 };
+    return {
+      itemCount: 0,
+      totalValue: 0,
+      totalCurrency: 'USD',
+      conservatorCount: 0,
+      taggedForSaleCount: 0,
+      lastUpdatedAt: null,
+      collectionCount: 0,
+    };
   }
 
   // Items I can see (via shares + ownership) — RLS handles the filtering.
   const { data: items } = await supabase
     .from('items')
-    .select('value_amount, value_currency, tagged_for_sale');
+    .select('value_amount, value_currency, tagged_for_sale, updated_at, category');
 
   const { count: conservatorCount } = await supabase
     .from('conservators')
@@ -162,12 +172,21 @@ export async function dashboardStats(): Promise<{
   let totalValue = 0;
   let totalCurrency = 'USD';
   let taggedForSaleCount = 0;
+  let lastUpdatedAt: string | null = null;
+  const seenCategories = new Set<string>();
   for (const it of items ?? []) {
     if (typeof it.value_amount === 'number') {
       totalValue += it.value_amount;
       totalCurrency = it.value_currency || totalCurrency;
     }
     if (it.tagged_for_sale) taggedForSaleCount += 1;
+    if (it.updated_at && (!lastUpdatedAt || it.updated_at > lastUpdatedAt)) {
+      lastUpdatedAt = it.updated_at;
+    }
+    if (it.category) {
+      const normalized = normalizeCategoryKey(it.category);
+      if (normalized) seenCategories.add(normalized);
+    }
   }
   return {
     itemCount: items?.length ?? 0,
@@ -175,6 +194,8 @@ export async function dashboardStats(): Promise<{
     totalCurrency,
     conservatorCount: conservatorCount ?? 0,
     taggedForSaleCount,
+    lastUpdatedAt,
+    collectionCount: seenCategories.size,
   };
 }
 
@@ -249,6 +270,202 @@ export async function listRecentItemsWithPhotos(
         : null,
     } as RecentItemWithPhoto;
   });
+}
+
+// ---------- Cataloging status ----------
+
+export type CatalogingGap =
+  | 'needs-photos'
+  | 'needs-details'
+  | 'needs-provenance'
+  | 'needs-valuation'
+  | 'complete';
+
+export interface ItemNeedingAttention {
+  id: string;
+  name: string;
+  category: string | null;
+  primaryPhotoUrl: string | null;
+  gap: CatalogingGap;
+}
+
+// Returns the most recent items that still have something to fill in.
+// Priority order: photos → details → provenance → valuation. If every
+// field is filled, the item is "complete" and never appears here.
+export async function listItemsNeedingAttention(
+  limit = 4,
+): Promise<ItemNeedingAttention[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('items')
+    .select(
+      'id, name, category, description, notes, provenance, value_amount, updated_at, item_photos(storage_path, sort_order)',
+    )
+    .order('updated_at', { ascending: false })
+    .limit(40);
+  if (error) throw error;
+
+  const flagged: ItemNeedingAttention[] = [];
+  for (const row of data ?? []) {
+    const r = row as {
+      id: string;
+      name: string;
+      category: string | null;
+      description: string | null;
+      notes: string | null;
+      provenance: string | null;
+      value_amount: number | null;
+      item_photos?: Array<{ storage_path: string; sort_order: number }>;
+    };
+    const photos = (r.item_photos ?? []).slice().sort(
+      (a, b) => a.sort_order - b.sort_order,
+    );
+    const gap = firstGap(r, photos.length);
+    if (gap === 'complete') continue;
+    flagged.push({
+      id: r.id,
+      name: r.name,
+      category: r.category,
+      primaryPhotoUrl: photos[0] ? photoPublicUrl(photos[0].storage_path) : null,
+      gap,
+    });
+    if (flagged.length >= limit) break;
+  }
+  return flagged;
+}
+
+function firstGap(
+  item: {
+    description: string | null;
+    notes: string | null;
+    provenance: string | null;
+    value_amount: number | null;
+  },
+  photoCount: number,
+): CatalogingGap {
+  if (photoCount === 0) return 'needs-photos';
+  const hasDetails =
+    (item.description && item.description.trim().length > 0) ||
+    (item.notes && item.notes.trim().length > 0);
+  if (!hasDetails) return 'needs-details';
+  if (!item.provenance || item.provenance.trim().length === 0) {
+    return 'needs-provenance';
+  }
+  if (item.value_amount == null) return 'needs-valuation';
+  return 'complete';
+}
+
+// ---------- Timeline ----------
+
+export interface TimelineEntry {
+  id: string;
+  name: string;
+  year: number;
+  acquiredDate: string;
+  primaryPhotoUrl: string | null;
+}
+
+// Items that have an acquired_date set, ordered oldest → newest, with
+// their primary photo joined. Powers the home page's Timeline strip.
+export async function listTimelineItems(limit = 6): Promise<TimelineEntry[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('items')
+    .select('id, name, acquired_date, item_photos(storage_path, sort_order)')
+    .not('acquired_date', 'is', null)
+    .order('acquired_date', { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []).map((row) => {
+    const r = row as {
+      id: string;
+      name: string;
+      acquired_date: string;
+      item_photos?: Array<{ storage_path: string; sort_order: number }>;
+    };
+    const photos = (r.item_photos ?? []).slice().sort(
+      (a, b) => a.sort_order - b.sort_order,
+    );
+    const year = new Date(r.acquired_date).getFullYear();
+    return {
+      id: r.id,
+      name: r.name,
+      year,
+      acquiredDate: r.acquired_date,
+      primaryPhotoUrl: photos[0] ? photoPublicUrl(photos[0].storage_path) : null,
+    };
+  });
+}
+
+// ---------- Shared With ----------
+
+export interface SharedPerson {
+  email: string;
+  displayName: string | null;
+  role: 'owner' | 'contributor' | 'viewer';
+}
+
+// People with access to inventories I own — owners (just me), accepted
+// shares with their role. Used in the home page "Shared with" card.
+export async function listInventoryPeople(): Promise<SharedPerson[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data: me } = await supabase.auth.getUser();
+  if (!me.user) return [];
+
+  const myEmail = me.user.email ?? '';
+  const myName =
+    (me.user.user_metadata?.display_name as string | undefined) ?? null;
+
+  const { data: ownedInv } = await supabase
+    .from('inventories')
+    .select('id')
+    .eq('owner_id', me.user.id);
+  const ownedIds = (ownedInv ?? []).map((r) => r.id);
+  if (ownedIds.length === 0) {
+    return [{ email: myEmail, displayName: myName, role: 'owner' }];
+  }
+
+  const { data: shares } = await supabase
+    .from('inventory_shares')
+    .select('invited_email, role, status, user_id')
+    .in('inventory_id', ownedIds)
+    .eq('status', 'accepted');
+
+  const sharedUserIds = Array.from(
+    new Set(
+      (shares ?? [])
+        .map((s) => s.user_id)
+        .filter((id): id is string => !!id),
+    ),
+  );
+  const namesByEmail = new Map<string, string | null>();
+  if (sharedUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, display_name');
+    const namesById = new Map<string, string | null>(
+      (profiles ?? []).map((p) => [p.id, p.display_name]),
+    );
+    for (const s of shares ?? []) {
+      if (s.user_id) {
+        namesByEmail.set(s.invited_email, namesById.get(s.user_id) ?? null);
+      }
+    }
+  }
+
+  const result: SharedPerson[] = [
+    { email: myEmail, displayName: myName, role: 'owner' },
+  ];
+  for (const s of shares ?? []) {
+    const r = s as { invited_email: string; role: 'contributor' | 'viewer' };
+    if (r.invited_email.toLowerCase() === myEmail.toLowerCase()) continue;
+    result.push({
+      email: r.invited_email,
+      displayName: namesByEmail.get(r.invited_email) ?? null,
+      role: r.role,
+    });
+  }
+  return result;
 }
 
 // ---------- Profile ----------
