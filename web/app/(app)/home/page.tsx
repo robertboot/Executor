@@ -184,7 +184,7 @@ function Header({
         />
         {archetypeTitle && (
           <p className="text-gold-deep text-base sm:text-lg font-medium mt-2">
-            Your {archetypeTitle} Collection
+            Curated as {archetypeTitle}
           </p>
         )}
       </div>

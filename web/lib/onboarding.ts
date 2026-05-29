@@ -53,7 +53,7 @@ export const ARCHETYPES: ArchetypeDef[] = [
   },
   {
     key: 'collector',
-    title: 'Collector',
+    title: 'The Collector',
     tagline: 'Organize and track curated collectibles.',
     bestFor: 'Sports · cards · coins · comics · hobbies',
     bgImage: `/archetypes/collector.png?v=${ARCHETYPE_BG_VERSION}`,

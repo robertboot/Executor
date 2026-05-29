@@ -160,19 +160,15 @@ function Sidebar({
     <aside className="lg:w-72 lg:shrink-0 space-y-3">
       <div className="hidden lg:block">
         <h1 className="font-serif text-3xl text-ink leading-tight">
-          Categories
+          Curated Collections
         </h1>
       </div>
 
       <div className="lg:hidden">
         <h1 className="font-serif text-3xl text-ink leading-tight">
-          Categories
+          Curated Collections
         </h1>
       </div>
-
-      <h2 className="text-xs uppercase tracking-widest text-muted">
-        My categories
-      </h2>
 
       <div className="-mx-4 px-4 lg:m-0 lg:p-0">
         <ul className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:gap-2 lg:overflow-visible">
@@ -255,7 +251,7 @@ function MainHeader({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="text-xs uppercase tracking-widest text-muted">
-            {isUserArchetype ? 'Your archive' : 'Exploring'}
+            {isUserArchetype ? 'Your Galleries' : 'Exploring'}
           </div>
           <h2 className="font-serif text-3xl text-ink leading-tight mt-1">
             {archetype.title}
