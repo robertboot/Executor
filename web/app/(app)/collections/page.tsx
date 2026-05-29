@@ -83,11 +83,18 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
   const bucketByCore = new Map<string, CollectionBucket>();
   for (const b of buckets) bucketByCore.set(b.key, b);
 
-  // Build rows for the active archetype's sub-categories.
-  const subCats = ARCHETYPE_SUBCATEGORIES[activeArchetype.key] ?? [];
-  const rows: CollectionRow[] = subCats.map((s) =>
-    makeRow(s, bucketByCore.get(s.parent) ?? null, selectedSubCatKeys.has(s.key)),
+  // Only surface sub-categories the user actually picked during
+  // onboarding — the rest of the archetype's offerings live behind
+  // the "Add Collection" card at the end of the row.
+  const subCats = (ARCHETYPE_SUBCATEGORIES[activeArchetype.key] ?? []).filter(
+    (s) => selectedSubCatKeys.has(s.key),
   );
+  const rows: CollectionRow[] = subCats.map((s) =>
+    makeRow(s, bucketByCore.get(s.parent) ?? null, true),
+  );
+  const hasUnselected =
+    (ARCHETYPE_SUBCATEGORIES[activeArchetype.key]?.length ?? 0) >
+    subCats.length;
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 pb-24">
@@ -104,7 +111,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
           isUserArchetype={profileArchetypeKey === activeArchetype.key}
         />
 
-        {rows.length === 0 ? (
+        {rows.length === 0 && !hasUnselected ? (
           <EmptyState />
         ) : (
           <ul className="space-y-4">
@@ -113,6 +120,11 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
                 <CollectionRowCard row={row} />
               </li>
             ))}
+            {hasUnselected && (
+              <li>
+                <AddCollectionCard archetypeKey={activeArchetype.key} />
+              </li>
+            )}
           </ul>
         )}
       </main>
@@ -417,14 +429,48 @@ function SampleItems({
   );
 }
 
+function AddCollectionCard({
+  archetypeKey,
+}: {
+  archetypeKey: OnboardingArchetype;
+}) {
+  return (
+    <Link
+      href={`/collections/add/${archetypeKey}`}
+      className="block bg-paper border-2 border-dashed border-gold rounded-2xl overflow-hidden hover:bg-gold-soft/40 transition-colors"
+    >
+      <div className="flex flex-col lg:flex-row items-stretch">
+        <div className="relative w-full lg:w-56 shrink-0 aspect-square bg-gold-soft/40 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-gold text-cream flex items-center justify-center">
+            <PlusIcon className="w-8 h-8" />
+          </div>
+        </div>
+        <div className="flex-1 p-5 flex flex-col justify-center gap-2">
+          <h3 className="font-serif text-xl text-ink leading-tight">
+            Add Collection
+          </h3>
+          <p className="text-sm text-ink-soft leading-snug max-w-md">
+            Browse more sub-categories from this archetype and add them
+            to your archive.
+          </p>
+          <span className="self-start inline-flex items-center gap-1 mt-2 text-sm font-medium text-gold-deep">
+            Choose from the list →
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 function EmptyState() {
   return (
     <div className="bg-paper border border-hairline rounded-2xl p-10 text-center">
       <h2 className="font-serif text-2xl text-ink">
-        No sub-categories for this category
+        Nothing here yet
       </h2>
       <p className="text-muted text-sm mt-2">
-        Pick a different category from the sidebar.
+        You haven&rsquo;t added any sub-categories for this archetype. Try
+        another category from the sidebar.
       </p>
     </div>
   );

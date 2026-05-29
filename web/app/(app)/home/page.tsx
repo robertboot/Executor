@@ -84,7 +84,6 @@ export default async function HomePage() {
   const featuredSubCats = pickFeaturedSubCategories(
     profile?.selected_collections ?? null,
     itemCountByCoreKey,
-    4,
   );
 
   return (
@@ -129,24 +128,19 @@ export default async function HomePage() {
           <ContinueCataloging items={needsAttention} />
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-4">
-            <YourCollections
-              subCats={featuredSubCats}
-              itemCountByCoreKey={itemCountByCoreKey}
-              fallbackStats={collectionsStats}
-            />
-          </div>
-          <div className="lg:col-span-4">
-            <RecentlyAdded items={recent} />
-          </div>
-          <div className="lg:col-span-4">
-            {timeline.length > 0 ? (
-              <Timeline entries={timeline} />
-            ) : (
-              people.length > 0 && <SharedWith people={people} />
-            )}
-          </div>
+        <YourCollections
+          subCats={featuredSubCats}
+          itemCountByCoreKey={itemCountByCoreKey}
+          fallbackStats={collectionsStats}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <RecentlyAdded items={recent} />
+          {timeline.length > 0 ? (
+            <Timeline entries={timeline} />
+          ) : (
+            people.length > 0 && <SharedWith people={people} />
+          )}
         </div>
 
         {timeline.length > 0 && people.length > 0 && (
@@ -482,7 +476,7 @@ function YourCollections({
           Manage →
         </Link>
       </div>
-      <ul className="grid grid-cols-2 gap-3">
+      <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {subCats.map((s) => (
           <li key={s.key}>
             <SubCatVisualCard
@@ -848,7 +842,6 @@ function Avatar({ name }: { name: string }) {
 function pickFeaturedSubCategories(
   selectedKeys: string[] | null,
   itemCountByCoreKey: Map<string, number>,
-  limit: number,
 ): SubCategory[] {
   if (!selectedKeys || selectedKeys.length === 0) return [];
   const subCats: SubCategory[] = [];
@@ -865,7 +858,7 @@ function pickFeaturedSubCategories(
     const bc = itemCountByCoreKey.get(b.parent) ?? 0;
     return bc - ac;
   });
-  return subCats.slice(0, limit);
+  return subCats;
 }
 
 async function pendingInvites(email: string | undefined): Promise<number> {
