@@ -16,8 +16,8 @@ const config: Config = {
           soft: '#1B5340',
         },
         cream: {
-          DEFAULT: '#FAF7F2',
-          soft: '#F2EDE4',
+          DEFAULT: '#F1E9DA',
+          soft: '#E6DCC8',
         },
         paper: '#FFFFFF',
         gold: {
