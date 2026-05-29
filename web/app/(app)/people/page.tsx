@@ -86,9 +86,6 @@ function HeroCard() {
       <div className="relative grid grid-cols-1 lg:grid-cols-2">
         {/* Left: copy */}
         <div className="p-6 sm:p-10 flex flex-col">
-          <div className="w-14 h-14 rounded-full bg-gold-soft flex items-center justify-center text-gold-deep mb-5">
-            <FamilyIcon className="w-7 h-7" />
-          </div>
           <h2 className="font-serif text-2xl sm:text-3xl text-ink leading-tight">
             Plan Your Family Legacy
           </h2>
