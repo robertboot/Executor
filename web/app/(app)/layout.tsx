@@ -3,15 +3,34 @@ import { redirect } from 'next/navigation';
 import Logo from '@/components/Logo';
 import { getCurrentUser } from '@/lib/supabase/server';
 import MobileNav from './MobileNav';
+import TopNav, { type NavItem } from './TopNav';
 
-const NAV = [
+const NAV: NavItem[] = [
   { href: '/home', label: 'Home' },
   { href: '/collections', label: 'Collections' },
-  { href: '/people', label: 'People' },
-  { href: '/inheritors', label: 'Inheritors' },
+  {
+    href: '/contributors',
+    label: 'Contributors',
+    children: [
+      {
+        href: '/people',
+        label: 'Legacy People',
+        description: "Family and friends behind every item.",
+      },
+      {
+        href: '/inheritors',
+        label: 'Inheritors',
+        description: 'Designated recipients for the future.',
+      },
+      {
+        href: '/conservators',
+        label: 'Conservators',
+        description: 'People who can help maintain the archive.',
+      },
+    ],
+  },
   { href: '/search', label: 'Search' },
   { href: '/scan', label: 'Scan' },
-  { href: '/conservators', label: 'Conservators' },
   { href: '/settings', label: 'Settings' },
 ];
 
@@ -26,18 +45,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Link href="/home" className="flex items-center shrink-0">
             <Logo variant="compact" />
           </Link>
-          <nav className="hidden md:flex items-center gap-1 text-sm">
-            {NAV.map((n) => (
-              <Link
-                key={n.href}
-                href={n.href}
-                className="px-3 py-2 rounded-md text-ink-soft hover:text-ink hover:bg-cream-soft transition-colors"
-              >
-                {n.label}
-              </Link>
-            ))}
-          </nav>
-          <MobileNav links={NAV} />
+          <TopNav items={NAV} />
+          <MobileNav items={NAV} />
         </div>
       </header>
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6">
