@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
   getConservator,
-  conservatorRowPhotoUrl,
   getPersonRoles,
   listPeoplePicker,
 } from '@/lib/api';
@@ -23,7 +22,7 @@ export default async function EditConservatorPage({ params }: PageProps) {
   ]);
   if (!conservator) notFound();
 
-  const photoUrl = conservatorRowPhotoUrl(conservator);
+  const photoUrl = conservator.primaryPhotoUrl;
   const linkedRoles = conservator.person_id
     ? await getPersonRoles(conservator.person_id)
     : null;

@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import {
   getInheritor,
   getPersonRoles,
-  inheritorRowPhotoUrl,
   listPeoplePicker,
 } from '@/lib/api';
 import { updateInheritor } from '../../actions';
@@ -24,7 +23,7 @@ export default async function EditInheritorPage({ params }: PageProps) {
   ]);
   if (!inheritor) notFound();
 
-  const photoUrl = inheritorRowPhotoUrl(inheritor);
+  const photoUrl = inheritor.primaryPhotoUrl;
   const linkedRoles = inheritor.person_id
     ? await getPersonRoles(inheritor.person_id)
     : null;

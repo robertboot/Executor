@@ -131,7 +131,11 @@ export function photoPublicUrl(storagePath: string): string {
 
 // ---------- Conservators ----------
 
-export async function listConservators(): Promise<Conservator[]> {
+export interface ConservatorWithPhoto extends Conservator {
+  primaryPhotoUrl: string | null;
+}
+
+export async function listConservators(): Promise<ConservatorWithPhoto[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from('conservators')
@@ -156,28 +160,20 @@ export async function listConservators(): Promise<Conservator[]> {
           .join(' ')
           .trim()
       : null;
-    // Prefer the linked Legacy Person's photo + full name when set.
-    const photoPath = linked?.profile_photo_path ?? r.profile_photo_path;
-    const out: Conservator = {
+    const out: ConservatorWithPhoto = {
       ...r,
+      // Prefer the linked Legacy Person's full name when set.
       name: linkedName || r.name,
-      profile_photo_path: photoPath,
+      // profile_photo_path stays as-is (pointing into the
+      // conservator-photos bucket for legacy standalone uploads).
+      primaryPhotoUrl: resolveConservatorPhotoUrl(
+        r.profile_photo_path,
+        linked?.profile_photo_path ?? null,
+      ),
     };
-    // Strip the embedded join object before returning.
     delete (out as { person?: unknown }).person;
     return out;
   });
-}
-
-// Bucket-aware photo URL for any Conservator row regardless of whether
-// the photo lives in the linked Legacy Person's bucket or the row's own.
-export function conservatorRowPhotoUrl(
-  row: Pick<Conservator, 'person_id' | 'profile_photo_path'>,
-): string | null {
-  if (!row.profile_photo_path) return null;
-  return row.person_id
-    ? personPhotoPublicUrl(row.profile_photo_path)
-    : conservatorPhotoUrl(row.profile_photo_path);
 }
 
 // ---------- Aggregates ----------
@@ -842,15 +838,30 @@ export function conservatorPhotoUrl(storagePath: string): string {
   return `${base}/storage/v1/object/public/${CONSERVATOR_PHOTO_BUCKET}/${storagePath}`;
 }
 
-export async function getConservator(id: string): Promise<Conservator | null> {
+export async function getConservator(
+  id: string,
+): Promise<ConservatorWithPhoto | null> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from('conservators')
-    .select('*')
+    .select('*, person:people(profile_photo_path)')
     .eq('id', id)
     .maybeSingle();
   if (error) throw error;
-  return (data as Conservator | null) ?? null;
+  if (!data) return null;
+  const row = data as Conservator & {
+    person?: { profile_photo_path: string | null } | null;
+  };
+  const linkedPhoto = row.person?.profile_photo_path ?? null;
+  const out: ConservatorWithPhoto = {
+    ...(row as Conservator),
+    primaryPhotoUrl: resolveConservatorPhotoUrl(
+      row.profile_photo_path,
+      linkedPhoto,
+    ),
+  };
+  delete (out as { person?: unknown }).person;
+  return out;
 }
 
 // ---------- Inheritors ----------
@@ -890,6 +901,11 @@ export async function listInheritors(): Promise<InheritorWithStats[]> {
     } | null;
   };
   const raw = (data ?? []) as Row[];
+  // Keep the linked person's photo path alongside each row so we can
+  // build the avatar URL with the right bucket later. The row's own
+  // profile_photo_path is left intact (still pointing into the
+  // inheritor-photos bucket for legacy standalone uploads).
+  const linkedPhotoByRow = new Map<string, string | null>();
   const rows: Inheritor[] = raw.map((r) => {
     const linked = r.person ?? null;
     const linkedName = linked
@@ -898,11 +914,11 @@ export async function listInheritors(): Promise<InheritorWithStats[]> {
           .join(' ')
           .trim()
       : null;
+    linkedPhotoByRow.set(r.id, linked?.profile_photo_path ?? null);
     const merged: Inheritor = {
       ...(r as Inheritor),
       display_name: linkedName || r.display_name,
       email: linked?.email ?? r.email,
-      profile_photo_path: linked?.profile_photo_path ?? r.profile_photo_path,
     };
     delete (merged as { person?: unknown }).person;
     return merged;
@@ -988,30 +1004,65 @@ export async function listInheritors(): Promise<InheritorWithStats[]> {
     collectionCount: collectionCount.get(r.id) ?? 0,
     totalValue: totalValue.get(r.id) ?? 0,
     totalCurrency: currencies.get(r.id) ?? 'USD',
-    primaryPhotoUrl: inheritorRowPhotoUrl(r),
+    primaryPhotoUrl: resolveInheritorPhotoUrl(
+      r.profile_photo_path,
+      linkedPhotoByRow.get(r.id) ?? null,
+    ),
   }));
 }
 
-// Bucket-aware photo URL for any Inheritor row regardless of whether
-// the photo lives in the linked Legacy Person's bucket or the row's own.
-export function inheritorRowPhotoUrl(
-  row: Pick<Inheritor, 'person_id' | 'profile_photo_path'>,
+// Resolve the right public URL for an Inheritor / Conservator row's
+// avatar. Photos are stored in whichever bucket they were uploaded
+// to: the role-specific bucket for standalone uploads, or the
+// people-photos bucket when the linked Legacy Person has its own
+// photo. We pick by whichever source actually has a non-null path
+// rather than by whether person_id happens to be set, so retro-
+// fitting a link onto a row with an existing role-bucket photo
+// doesn't break the avatar.
+export function resolveInheritorPhotoUrl(
+  rowPhotoPath: string | null,
+  linkedPersonPhotoPath: string | null,
 ): string | null {
-  if (!row.profile_photo_path) return null;
-  return row.person_id
-    ? personPhotoPublicUrl(row.profile_photo_path)
-    : inheritorPhotoUrl(row.profile_photo_path);
+  if (linkedPersonPhotoPath) return personPhotoPublicUrl(linkedPersonPhotoPath);
+  if (rowPhotoPath) return inheritorPhotoUrl(rowPhotoPath);
+  return null;
 }
 
-export async function getInheritor(id: string): Promise<Inheritor | null> {
+export function resolveConservatorPhotoUrl(
+  rowPhotoPath: string | null,
+  linkedPersonPhotoPath: string | null,
+): string | null {
+  if (linkedPersonPhotoPath) return personPhotoPublicUrl(linkedPersonPhotoPath);
+  if (rowPhotoPath) return conservatorPhotoUrl(rowPhotoPath);
+  return null;
+}
+
+export interface InheritorWithPhoto extends Inheritor {
+  primaryPhotoUrl: string | null;
+}
+
+export async function getInheritor(id: string): Promise<InheritorWithPhoto | null> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from('inheritors')
-    .select('*')
+    .select('*, person:people(profile_photo_path)')
     .eq('id', id)
     .maybeSingle();
   if (error) throw error;
-  return (data as Inheritor | null) ?? null;
+  if (!data) return null;
+  const row = data as Inheritor & {
+    person?: { profile_photo_path: string | null } | null;
+  };
+  const linkedPhoto = row.person?.profile_photo_path ?? null;
+  const out: InheritorWithPhoto = {
+    ...(row as Inheritor),
+    primaryPhotoUrl: resolveInheritorPhotoUrl(
+      row.profile_photo_path,
+      linkedPhoto,
+    ),
+  };
+  delete (out as { person?: unknown }).person;
+  return out;
 }
 
 // All items assigned to a given inheritor (designated OR alternate).
