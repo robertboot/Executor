@@ -45,6 +45,8 @@ export default async function InheritorsPage() {
 
       <HeroCard />
 
+      {inheritors.length > 0 && <InheritorsList inheritors={inheritors} />}
+
       <InheritorTypesSection />
 
       <WorkflowAndOverviewRow
@@ -55,8 +57,6 @@ export default async function InheritorsPage() {
         totalValue={totalValue}
         totalCurrency={totalCurrency}
       />
-
-      {inheritors.length > 0 && <InheritorsList inheritors={inheritors} />}
 
       <TipBanner />
     </div>
