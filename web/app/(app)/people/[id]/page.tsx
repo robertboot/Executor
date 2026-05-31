@@ -22,10 +22,14 @@ export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ photo_failed?: string }>;
 }
 
-export default async function PersonProfilePage({ params }: PageProps) {
-  const { id } = await params;
+export default async function PersonProfilePage({
+  params,
+  searchParams,
+}: PageProps) {
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
   const person = await getPerson(id);
   if (!person) notFound();
 
@@ -43,9 +47,11 @@ export default async function PersonProfilePage({ params }: PageProps) {
   const photoUrl = person.profile_photo_path
     ? personPhotoPublicUrl(person.profile_photo_path)
     : null;
+  const photoFailed = sp?.photo_failed === '1';
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-24">
+      {photoFailed && <PhotoFailedBanner bucket="people-photos" />}
       <div className="flex items-center justify-between gap-3">
         <Link
           href="/people"
@@ -193,6 +199,24 @@ export default async function PersonProfilePage({ params }: PageProps) {
           </button>
         </form>
       </section>
+    </div>
+  );
+}
+
+function PhotoFailedBanner({ bucket }: { bucket: string }) {
+  return (
+    <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-4 py-3 text-sm">
+      <span className="shrink-0 mt-0.5" aria-hidden>
+        ⚠️
+      </span>
+      <div>
+        <strong className="font-medium">Photo upload failed.</strong>{' '}
+        The record was saved but the photo could not be attached. Check
+        that the <code>{bucket}</code> storage bucket exists and that
+        its INSERT policy allows{' '}
+        <code>auth.uid()::text = (storage.foldername(name))[1]</code>,
+        then try uploading again from the Edit page.
+      </div>
     </div>
   );
 }

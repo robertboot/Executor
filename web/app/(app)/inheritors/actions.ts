@@ -55,9 +55,11 @@ export async function createInheritor(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   let photoPath: string | null = null;
+  let photoFailed = false;
   const file = formData.get('profile_photo');
   if (file && file instanceof File && file.size > 0) {
     photoPath = await uploadPhoto(supabase, user.id, file);
+    if (!photoPath) photoFailed = true;
   }
 
   const { data, error } = await supabase
@@ -77,7 +79,11 @@ export async function createInheritor(formData: FormData) {
   if (error) throw new Error(`Failed to create inheritor: ${error.message}`);
 
   revalidatePath('/inheritors');
-  redirect(`/inheritors/${data.id}`);
+  redirect(
+    photoFailed
+      ? `/inheritors/${data.id}?photo_failed=1`
+      : `/inheritors/${data.id}`,
+  );
 }
 
 export async function updateInheritor(formData: FormData) {
@@ -106,9 +112,18 @@ export async function updateInheritor(formData: FormData) {
     notes: s(formData.get('notes')),
   };
 
+  // Only touch profile_photo_path when an upload actually succeeded —
+  // a null from uploadPhoto means the storage write failed, so we
+  // preserve whatever's already on the row instead of wiping it.
+  let photoFailed = false;
   const file = formData.get('profile_photo');
   if (file && file instanceof File && file.size > 0) {
-    update.profile_photo_path = await uploadPhoto(supabase, user.id, file);
+    const newPath = await uploadPhoto(supabase, user.id, file);
+    if (newPath) {
+      update.profile_photo_path = newPath;
+    } else {
+      photoFailed = true;
+    }
   }
 
   const { error } = await supabase
@@ -121,7 +136,9 @@ export async function updateInheritor(formData: FormData) {
 
   revalidatePath('/inheritors');
   revalidatePath(`/inheritors/${id}`);
-  redirect(`/inheritors/${id}`);
+  redirect(
+    photoFailed ? `/inheritors/${id}?photo_failed=1` : `/inheritors/${id}`,
+  );
 }
 
 export async function deleteInheritor(formData: FormData) {

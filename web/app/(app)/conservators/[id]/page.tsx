@@ -14,16 +14,21 @@ export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ photo_failed?: string }>;
 }
 
-export default async function ConservatorDetailPage({ params }: PageProps) {
-  const { id } = await params;
+export default async function ConservatorDetailPage({
+  params,
+  searchParams,
+}: PageProps) {
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
   const conservator = await getConservator(id);
   if (!conservator) notFound();
 
   const photoUrl = conservator.profile_photo_path
     ? conservatorPhotoUrl(conservator.profile_photo_path)
     : null;
+  const photoFailed = sp?.photo_failed === '1';
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 pb-24">
@@ -33,6 +38,8 @@ export default async function ConservatorDetailPage({ params }: PageProps) {
       >
         ← Conservators
       </Link>
+
+      {photoFailed && <PhotoFailedBanner bucket="conservator-photos" />}
 
       <section className="flex flex-col sm:flex-row items-start gap-6">
         <div className="shrink-0 relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-gold-soft/60 flex items-center justify-center">
@@ -123,6 +130,24 @@ export default async function ConservatorDetailPage({ params }: PageProps) {
           archive.
         </p>
       </section>
+    </div>
+  );
+}
+
+function PhotoFailedBanner({ bucket }: { bucket: string }) {
+  return (
+    <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-4 py-3 text-sm">
+      <span className="shrink-0 mt-0.5" aria-hidden>
+        ⚠️
+      </span>
+      <div>
+        <strong className="font-medium">Photo upload failed.</strong>{' '}
+        The record was saved but the photo could not be attached. Check
+        that the <code>{bucket}</code> storage bucket exists and that
+        its INSERT policy allows{' '}
+        <code>auth.uid()::text = (storage.foldername(name))[1]</code>,
+        then try uploading again from the Edit page.
+      </div>
     </div>
   );
 }

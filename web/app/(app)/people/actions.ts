@@ -72,9 +72,11 @@ export async function createPerson(formData: FormData) {
 
   // Optional photo upload — degrades gracefully if storage rejects it.
   let profilePhotoPath: string | null = null;
+  let photoFailed = false;
   const file = formData.get('profile_photo');
   if (file && file instanceof File && file.size > 0) {
     profilePhotoPath = await uploadPhoto(supabase, user.id, file);
+    if (!profilePhotoPath) photoFailed = true;
   }
 
   const { data, error } = await supabase
@@ -98,7 +100,11 @@ export async function createPerson(formData: FormData) {
   if (error) throw new Error(`Failed to create person: ${error.message}`);
 
   revalidatePath('/people');
-  redirect(`/people/${data.id}`);
+  redirect(
+    photoFailed
+      ? `/people/${data.id}?photo_failed=1`
+      : `/people/${data.id}`,
+  );
 }
 
 export async function updatePerson(formData: FormData) {
@@ -121,9 +127,11 @@ export async function updatePerson(formData: FormData) {
   // Optional new photo — falls back to whatever's already on the row
   // if the upload fails (e.g. missing storage RLS policy).
   let newPhotoPath: string | null = null;
+  let photoFailed = false;
   const file = formData.get('profile_photo');
   if (file && file instanceof File && file.size > 0) {
     newPhotoPath = await uploadPhoto(supabase, user.id, file);
+    if (!newPhotoPath) photoFailed = true;
   }
 
   const update: Record<string, unknown> = {
@@ -149,7 +157,7 @@ export async function updatePerson(formData: FormData) {
 
   revalidatePath('/people');
   revalidatePath(`/people/${id}`);
-  redirect(`/people/${id}`);
+  redirect(photoFailed ? `/people/${id}?photo_failed=1` : `/people/${id}`);
 }
 
 export async function deletePerson(formData: FormData) {

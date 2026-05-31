@@ -19,10 +19,14 @@ export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ photo_failed?: string }>;
 }
 
-export default async function InheritorDetailPage({ params }: PageProps) {
-  const { id } = await params;
+export default async function InheritorDetailPage({
+  params,
+  searchParams,
+}: PageProps) {
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
   const [inheritor, assignments] = await Promise.all([
     getInheritor(id),
     listInheritorAssignments(id),
@@ -32,6 +36,7 @@ export default async function InheritorDetailPage({ params }: PageProps) {
   const photoUrl = inheritor.profile_photo_path
     ? inheritorPhotoUrl(inheritor.profile_photo_path)
     : null;
+  const photoFailed = sp?.photo_failed === '1';
 
   const designated = assignments.filter((a) => a.role === 'designated');
   const alternate = assignments.filter((a) => a.role === 'alternate');
@@ -49,6 +54,8 @@ export default async function InheritorDetailPage({ params }: PageProps) {
       >
         ← Inheritors
       </Link>
+
+      {photoFailed && <PhotoFailedBanner bucket="inheritor-photos" />}
 
       <section className="flex flex-col sm:flex-row items-start gap-6">
         <div className="shrink-0 relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-gold-soft/60 flex items-center justify-center">
@@ -200,6 +207,24 @@ function Stat({ value, label }: { value: string; label: string }) {
       <div className="font-serif text-xl text-ink">{value}</div>
       <div className="text-[10px] uppercase tracking-wider text-muted mt-1">
         {label}
+      </div>
+    </div>
+  );
+}
+
+function PhotoFailedBanner({ bucket }: { bucket: string }) {
+  return (
+    <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-4 py-3 text-sm">
+      <span className="shrink-0 mt-0.5" aria-hidden>
+        ⚠️
+      </span>
+      <div>
+        <strong className="font-medium">Photo upload failed.</strong>{' '}
+        The record was saved but the photo could not be attached. Check
+        that the <code>{bucket}</code> storage bucket exists and that
+        its INSERT policy allows{' '}
+        <code>auth.uid()::text = (storage.foldername(name))[1]</code>,
+        then try uploading again from the Edit page.
       </div>
     </div>
   );

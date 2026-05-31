@@ -63,9 +63,11 @@ export async function createConservator(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   let photoPath: string | null = null;
+  let photoFailed = false;
   const file = formData.get('profile_photo');
   if (file && file instanceof File && file.size > 0) {
     photoPath = await uploadPhoto(supabase, user.id, file);
+    if (!photoPath) photoFailed = true;
   }
 
   const { data, error } = await supabase
@@ -88,7 +90,11 @@ export async function createConservator(formData: FormData) {
   }
 
   revalidatePath('/conservators');
-  redirect(`/conservators/${data.id}`);
+  redirect(
+    photoFailed
+      ? `/conservators/${data.id}?photo_failed=1`
+      : `/conservators/${data.id}`,
+  );
 }
 
 export async function updateConservator(formData: FormData) {
@@ -118,9 +124,17 @@ export async function updateConservator(formData: FormData) {
     permission_level: level,
   };
 
+  // Only touch profile_photo_path when an upload actually succeeded —
+  // preserves the existing photo when storage rejects the new one.
+  let photoFailed = false;
   const file = formData.get('profile_photo');
   if (file && file instanceof File && file.size > 0) {
-    update.profile_photo_path = await uploadPhoto(supabase, user.id, file);
+    const newPath = await uploadPhoto(supabase, user.id, file);
+    if (newPath) {
+      update.profile_photo_path = newPath;
+    } else {
+      photoFailed = true;
+    }
   }
 
   const { error } = await supabase
@@ -133,7 +147,9 @@ export async function updateConservator(formData: FormData) {
 
   revalidatePath('/conservators');
   revalidatePath(`/conservators/${id}`);
-  redirect(`/conservators/${id}`);
+  redirect(
+    photoFailed ? `/conservators/${id}?photo_failed=1` : `/conservators/${id}`,
+  );
 }
 
 export async function deleteConservator(formData: FormData) {
