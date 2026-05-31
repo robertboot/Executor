@@ -28,6 +28,34 @@ function asDate(v: FormDataEntryValue | null): string | null {
   return t; // HTML date input is already YYYY-MM-DD
 }
 
+async function uploadPhoto(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  userId: string,
+  file: File,
+): Promise<string | null> {
+  try {
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+    const buffer = await file.arrayBuffer();
+    const { error } = await supabase.storage
+      .from(PEOPLE_PHOTO_BUCKET)
+      .upload(path, buffer, {
+        contentType: file.type || 'image/jpeg',
+        upsert: false,
+      });
+    if (error) {
+      // Don't kill the whole save just because the photo failed —
+      // log it and keep the person without an avatar.
+      console.error('person photo upload failed:', error.message);
+      return null;
+    }
+    return path;
+  } catch (err) {
+    console.error('person photo upload threw:', err);
+    return null;
+  }
+}
+
 export async function createPerson(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) throw new Error('Not authenticated');
@@ -42,23 +70,11 @@ export async function createPerson(formData: FormData) {
 
   const supabase = await createSupabaseServerClient();
 
-  // Optional photo upload
+  // Optional photo upload — degrades gracefully if storage rejects it.
   let profilePhotoPath: string | null = null;
   const file = formData.get('profile_photo');
   if (file && file instanceof File && file.size > 0) {
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-    const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-    const buffer = await file.arrayBuffer();
-    const { error: uploadErr } = await supabase.storage
-      .from(PEOPLE_PHOTO_BUCKET)
-      .upload(path, buffer, {
-        contentType: file.type || 'image/jpeg',
-        upsert: false,
-      });
-    if (uploadErr) {
-      throw new Error(`Photo upload failed: ${uploadErr.message}`);
-    }
-    profilePhotoPath = path;
+    profilePhotoPath = await uploadPhoto(supabase, user.id, file);
   }
 
   const { data, error } = await supabase
@@ -102,23 +118,12 @@ export async function updatePerson(formData: FormData) {
 
   const supabase = await createSupabaseServerClient();
 
-  // Optional new photo — falls back to whatever's already on the row.
+  // Optional new photo — falls back to whatever's already on the row
+  // if the upload fails (e.g. missing storage RLS policy).
   let newPhotoPath: string | null = null;
   const file = formData.get('profile_photo');
   if (file && file instanceof File && file.size > 0) {
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-    const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-    const buffer = await file.arrayBuffer();
-    const { error: uploadErr } = await supabase.storage
-      .from(PEOPLE_PHOTO_BUCKET)
-      .upload(path, buffer, {
-        contentType: file.type || 'image/jpeg',
-        upsert: false,
-      });
-    if (uploadErr) {
-      throw new Error(`Photo upload failed: ${uploadErr.message}`);
-    }
-    newPhotoPath = path;
+    newPhotoPath = await uploadPhoto(supabase, user.id, file);
   }
 
   const update: Record<string, unknown> = {
