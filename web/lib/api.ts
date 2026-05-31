@@ -665,6 +665,54 @@ export async function listPeoplePicker(): Promise<PersonPickerEntry[]> {
   });
 }
 
+// Ensures a Legacy Person row exists for the given contributor row.
+// - If currentPersonId is set, returns it (already linked).
+// - Otherwise creates a new person row using the supplied displayName
+//   as first_name (callers can split it themselves if they have
+//   structured fields). Returns the new id.
+//
+// Used by the Inheritor / Conservator actions when the user checks
+// "Also save as Legacy Person" on the cross-role toggle section.
+export async function ensureLinkedPerson(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  userId: string,
+  currentPersonId: string | null,
+  displayName: string,
+  extras?: {
+    email?: string | null;
+    relationship?: string | null;
+    profilePhotoPath?: string | null;
+  },
+): Promise<string> {
+  if (currentPersonId) return currentPersonId;
+  const trimmed = displayName.trim();
+  if (!trimmed) {
+    throw new Error('Cannot create a Legacy Person without a name.');
+  }
+  // Split into first / last on the first whitespace so common names
+  // ("Sarah Boot") land in the right columns. Single-word names go in
+  // first_name only.
+  const parts = trimmed.split(/\s+/);
+  const firstName = parts[0] ?? trimmed;
+  const lastName = parts.length > 1 ? parts.slice(1).join(' ') : null;
+  const { data, error } = await supabase
+    .from('people')
+    .insert({
+      owner_id: userId,
+      first_name: firstName,
+      last_name: lastName,
+      email: extras?.email ?? null,
+      relationship: extras?.relationship ?? null,
+      profile_photo_path: extras?.profilePhotoPath ?? null,
+    })
+    .select('id')
+    .single();
+  if (error) {
+    throw new Error(`Failed to auto-create Legacy Person: ${error.message}`);
+  }
+  return (data as { id: string }).id;
+}
+
 // Returns which contributor roles the given person already holds.
 // Used by the Person edit form so the role toggles can pre-fill.
 export interface PersonRoleSummary {

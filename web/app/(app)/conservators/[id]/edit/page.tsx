@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import {
   getConservator,
   conservatorRowPhotoUrl,
+  getPersonRoles,
   listPeoplePicker,
 } from '@/lib/api';
 import { updateConservator } from '../../actions';
@@ -23,6 +24,9 @@ export default async function EditConservatorPage({ params }: PageProps) {
   if (!conservator) notFound();
 
   const photoUrl = conservatorRowPhotoUrl(conservator);
+  const linkedRoles = conservator.person_id
+    ? await getPersonRoles(conservator.person_id)
+    : null;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 pb-24">
@@ -58,6 +62,7 @@ export default async function EditConservatorPage({ params }: PageProps) {
         }}
         initialPhotoUrl={photoUrl}
         people={people}
+        linkedInheritor={linkedRoles?.inheritor ?? null}
       />
     </div>
   );

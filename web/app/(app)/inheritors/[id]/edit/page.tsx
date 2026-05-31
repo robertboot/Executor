@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
   getInheritor,
+  getPersonRoles,
   inheritorRowPhotoUrl,
   listPeoplePicker,
 } from '@/lib/api';
@@ -24,6 +25,9 @@ export default async function EditInheritorPage({ params }: PageProps) {
   if (!inheritor) notFound();
 
   const photoUrl = inheritorRowPhotoUrl(inheritor);
+  const linkedRoles = inheritor.person_id
+    ? await getPersonRoles(inheritor.person_id)
+    : null;
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 pb-24">
@@ -55,6 +59,7 @@ export default async function EditInheritorPage({ params }: PageProps) {
         }}
         initialPhotoUrl={photoUrl}
         people={people}
+        linkedConservator={linkedRoles?.conservator ?? null}
       />
 
       <StatusDefinitions collapsedByDefault />

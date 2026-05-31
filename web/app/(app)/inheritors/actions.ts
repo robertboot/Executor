@@ -3,14 +3,99 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient, getCurrentUser } from '@/lib/supabase/server';
-import { INHERITOR_PHOTO_BUCKET } from '@/lib/api';
-import type { InheritorStatus } from '@/lib/types';
+import { INHERITOR_PHOTO_BUCKET, ensureLinkedPerson } from '@/lib/api';
+import type { ConservatorPermissionLevel, InheritorStatus } from '@/lib/types';
 import { STATUS_OPTIONS } from '@/lib/inheritors';
+import { LEVEL_OPTIONS } from '@/lib/conservators';
 
 function s(v: FormDataEntryValue | null): string | null {
   if (v == null) return null;
   const t = String(v).trim();
   return t.length === 0 ? null : t;
+}
+
+// Apply the cross-role toggles ("Also Legacy Person", "Also
+// Conservator") to a freshly saved inheritor row. Returns the
+// resolved person_id (may have been auto-created) so the caller can
+// update the inheritor row if it wasn't previously linked.
+async function applyCrossRoles({
+  supabase,
+  userId,
+  inheritorId,
+  currentPersonId,
+  displayName,
+  email,
+  relationship,
+  formData,
+}: {
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+  userId: string;
+  inheritorId: string;
+  currentPersonId: string | null;
+  displayName: string;
+  email: string | null;
+  relationship: string | null;
+  formData: FormData;
+}): Promise<string | null> {
+  const alsoPerson = formData.get('also_person') === '1';
+  const alsoConservator = formData.get('also_conservator') === '1';
+  const conservatorLevelRaw = s(formData.get('conservator_level'));
+
+  // The cross-role toggles all require a Legacy Person to anchor the
+  // shared identity. If any cross-role is requested or "Also Legacy
+  // Person" is checked, ensure a person exists and link this inheritor
+  // to it. Otherwise we leave the inheritor as-is.
+  const needPerson = alsoPerson || alsoConservator;
+  if (!needPerson) return currentPersonId;
+
+  const personId = await ensureLinkedPerson(
+    supabase,
+    userId,
+    currentPersonId,
+    displayName,
+    { email, relationship },
+  );
+
+  // Link the inheritor row to the (possibly new) person.
+  if (personId !== currentPersonId) {
+    await supabase
+      .from('inheritors')
+      .update({ person_id: personId })
+      .eq('id', inheritorId)
+      .eq('owner_id', userId);
+  }
+
+  // Sync the conservator side.
+  if (alsoConservator) {
+    const level = (conservatorLevelRaw ?? 'viewer') as ConservatorPermissionLevel;
+    if (!LEVEL_OPTIONS.includes(level)) {
+      throw new Error(`Invalid conservator level: ${conservatorLevelRaw}`);
+    }
+    const { data: existing } = await supabase
+      .from('conservators')
+      .select('id')
+      .eq('owner_id', userId)
+      .eq('person_id', personId)
+      .maybeSingle();
+    if (existing) {
+      await supabase
+        .from('conservators')
+        .update({ permission_level: level, name: displayName })
+        .eq('id', (existing as { id: string }).id);
+    } else {
+      const { error } = await supabase.from('conservators').insert({
+        owner_id: userId,
+        person_id: personId,
+        name: displayName,
+        permission_level: level,
+      });
+      if (error) {
+        console.error('cross-role conservator insert failed:', error.message);
+      }
+    }
+  }
+
+  return personId;
 }
 
 async function uploadPhoto(
@@ -105,7 +190,22 @@ export async function createInheritor(formData: FormData) {
 
   if (error) throw new Error(`Failed to create inheritor: ${error.message}`);
 
+  // Cross-role toggles run AFTER the inheritor row is in the DB so
+  // we have an id to link the (possibly new) Legacy Person to.
+  await applyCrossRoles({
+    supabase,
+    userId: user.id,
+    inheritorId: data.id,
+    currentPersonId: personId,
+    displayName,
+    email: s(formData.get('email')),
+    relationship: s(formData.get('relationship')),
+    formData,
+  });
+
   revalidatePath('/inheritors');
+  revalidatePath('/people');
+  revalidatePath('/conservators');
   redirect(
     photoFailed
       ? `/inheritors/${data.id}?photo_failed=1`
@@ -199,9 +299,22 @@ export async function updateInheritor(formData: FormData) {
 
   if (error) throw new Error(`Failed to update: ${error.message}`);
 
+  await applyCrossRoles({
+    supabase,
+    userId: user.id,
+    inheritorId: id,
+    currentPersonId:
+      personId === undefined ? null : personId, // current = whatever's now on the row
+    displayName,
+    email: s(formData.get('email')),
+    relationship: s(formData.get('relationship')),
+    formData,
+  });
+
   revalidatePath('/inheritors');
   revalidatePath(`/inheritors/${id}`);
   revalidatePath('/people');
+  revalidatePath('/conservators');
   redirect(
     photoFailed ? `/inheritors/${id}?photo_failed=1` : `/inheritors/${id}`,
   );

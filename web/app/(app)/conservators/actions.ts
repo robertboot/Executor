@@ -3,8 +3,9 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient, getCurrentUser } from '@/lib/supabase/server';
-import { CONSERVATOR_PHOTO_BUCKET } from '@/lib/api';
-import type { ConservatorPermissionLevel } from '@/lib/types';
+import { CONSERVATOR_PHOTO_BUCKET, ensureLinkedPerson } from '@/lib/api';
+import type { ConservatorPermissionLevel, InheritorStatus } from '@/lib/types';
+import { STATUS_OPTIONS } from '@/lib/inheritors';
 
 const VALID_LEVELS: ConservatorPermissionLevel[] = [
   'viewer',
@@ -17,6 +18,83 @@ function s(v: FormDataEntryValue | null): string | null {
   if (v == null) return null;
   const t = String(v).trim();
   return t.length === 0 ? null : t;
+}
+
+// Apply the cross-role toggles ("Also Legacy Person", "Also
+// Inheritor") to a freshly saved conservator row. Mirrors the
+// inheritor-side helper.
+async function applyCrossRoles({
+  supabase,
+  userId,
+  conservatorId,
+  currentPersonId,
+  displayName,
+  email,
+  relationship,
+  formData,
+}: {
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+  userId: string;
+  conservatorId: string;
+  currentPersonId: string | null;
+  displayName: string;
+  email: string | null;
+  relationship: string | null;
+  formData: FormData;
+}): Promise<string | null> {
+  const alsoPerson = formData.get('also_person') === '1';
+  const alsoInheritor = formData.get('also_inheritor') === '1';
+  const inheritorStatusRaw = s(formData.get('inheritor_status'));
+
+  const needPerson = alsoPerson || alsoInheritor;
+  if (!needPerson) return currentPersonId;
+
+  const personId = await ensureLinkedPerson(
+    supabase,
+    userId,
+    currentPersonId,
+    displayName,
+    { email, relationship },
+  );
+
+  if (personId !== currentPersonId) {
+    await supabase
+      .from('conservators')
+      .update({ person_id: personId })
+      .eq('id', conservatorId)
+      .eq('owner_id', userId);
+  }
+
+  if (alsoInheritor) {
+    const status = (inheritorStatusRaw ?? 'designated_heir') as InheritorStatus;
+    if (!STATUS_OPTIONS.includes(status)) {
+      throw new Error(`Invalid inheritor status: ${inheritorStatusRaw}`);
+    }
+    const { data: existing } = await supabase
+      .from('inheritors')
+      .select('id')
+      .eq('owner_id', userId)
+      .eq('person_id', personId)
+      .maybeSingle();
+    if (existing) {
+      await supabase
+        .from('inheritors')
+        .update({ status, display_name: displayName })
+        .eq('id', (existing as { id: string }).id);
+    } else {
+      const { error } = await supabase.from('inheritors').insert({
+        owner_id: userId,
+        person_id: personId,
+        display_name: displayName,
+        status,
+      });
+      if (error) {
+        console.error('cross-role inheritor insert failed:', error.message);
+      }
+    }
+  }
+
+  return personId;
 }
 
 async function uploadPhoto(
@@ -116,8 +194,20 @@ export async function createConservator(formData: FormData) {
     throw new Error(`Failed to invite conservator: ${error.message}`);
   }
 
+  await applyCrossRoles({
+    supabase,
+    userId: user.id,
+    conservatorId: data.id,
+    currentPersonId: personId,
+    displayName: name,
+    email: s(formData.get('email')),
+    relationship: s(formData.get('relationship')),
+    formData,
+  });
+
   revalidatePath('/conservators');
   revalidatePath('/people');
+  revalidatePath('/inheritors');
   redirect(
     photoFailed
       ? `/conservators/${data.id}?photo_failed=1`
@@ -206,9 +296,21 @@ export async function updateConservator(formData: FormData) {
 
   if (error) throw new Error(`Failed to update: ${error.message}`);
 
+  await applyCrossRoles({
+    supabase,
+    userId: user.id,
+    conservatorId: id,
+    currentPersonId: personId === undefined ? null : personId,
+    displayName: name,
+    email: s(formData.get('email')),
+    relationship: s(formData.get('relationship')),
+    formData,
+  });
+
   revalidatePath('/conservators');
   revalidatePath(`/conservators/${id}`);
   revalidatePath('/people');
+  revalidatePath('/inheritors');
   redirect(
     photoFailed ? `/conservators/${id}?photo_failed=1` : `/conservators/${id}`,
   );

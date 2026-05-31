@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import AvatarPicker from '@/components/AvatarPicker';
 import PersonPicker from '@/components/PersonPicker';
+import CrossRoleToggles from '@/components/CrossRoleToggles';
 import type { PersonPickerEntry } from '@/lib/api';
+import type { InheritorStatus } from '@/lib/types';
 
 export interface ConservatorFormInitial {
   id?: string;
@@ -21,6 +23,7 @@ export default function ConservatorForm({
   initial,
   initialPhotoUrl,
   people,
+  linkedInheritor,
 }: {
   mode: 'create' | 'edit';
   action: (formData: FormData) => Promise<void>;
@@ -28,6 +31,7 @@ export default function ConservatorForm({
   initial?: ConservatorFormInitial;
   initialPhotoUrl?: string | null;
   people: PersonPickerEntry[];
+  linkedInheritor?: { status: InheritorStatus } | null;
 }) {
   return (
     <form action={action} encType="multipart/form-data" className="space-y-6">
@@ -126,6 +130,13 @@ export default function ConservatorForm({
       >
         <AvatarPicker name="profile_photo" initialUrl={initialPhotoUrl} />
       </Field>
+
+      <CrossRoleToggles
+        current="conservator"
+        legacyPerson={initial?.person_id ? { id: initial.person_id } : null}
+        inheritor={linkedInheritor ?? null}
+        conservator={null}
+      />
 
       <div className="flex items-center justify-between gap-3 pt-2">
         <Link
