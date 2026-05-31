@@ -54,8 +54,6 @@ export default async function ConservatorsPage() {
 
       <HeroCard />
 
-      <WorkflowAndOverviewRow myName={myName} summary={summary} />
-
       {conservators.length > 0 && (
         <section className="space-y-4">
           <h2 className="font-serif text-2xl text-ink">Your conservators</h2>
@@ -68,6 +66,8 @@ export default async function ConservatorsPage() {
           </ul>
         </section>
       )}
+
+      <WorkflowAndOverviewRow myName={myName} summary={summary} />
 
       <PermissionLevelsSection />
     </div>

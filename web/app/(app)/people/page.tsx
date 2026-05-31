@@ -40,6 +40,8 @@ export default async function PeoplePage() {
 
       <HeroCard />
 
+      {people.length > 0 && <PeopleList people={people} />}
+
       <PeopleRolesSection />
 
       <WorkflowAndOverviewRow
@@ -49,8 +51,6 @@ export default async function PeoplePage() {
         withPhotos={withPhotos}
         withDates={withDates}
       />
-
-      {people.length > 0 && <PeopleList people={people} />}
 
       <TipBanner />
     </div>
