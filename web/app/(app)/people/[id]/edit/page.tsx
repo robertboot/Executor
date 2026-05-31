@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getPerson, personPhotoPublicUrl } from '@/lib/api';
+import { getPerson, getPersonRoles, personPhotoPublicUrl } from '@/lib/api';
 import { displayName } from '@/lib/people';
 import { updatePerson } from '../../actions';
 import AvatarPicker from '@/components/AvatarPicker';
+import RoleToggles from '../../RoleToggles';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +14,10 @@ interface PageProps {
 
 export default async function EditPersonPage({ params }: PageProps) {
   const { id } = await params;
-  const person = await getPerson(id);
+  const [person, roles] = await Promise.all([
+    getPerson(id),
+    getPersonRoles(id),
+  ]);
   if (!person) notFound();
 
   const photoUrl = person.profile_photo_path
@@ -147,6 +151,11 @@ export default async function EditPersonPage({ params }: PageProps) {
         >
           <AvatarPicker name="profile_photo" initialUrl={photoUrl} />
         </Field>
+
+        <RoleToggles
+          inheritor={roles.inheritor}
+          conservator={roles.conservator}
+        />
 
         <div className="flex items-center justify-between gap-3 pt-2">
           <Link

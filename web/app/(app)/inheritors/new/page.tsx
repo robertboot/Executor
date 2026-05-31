@@ -2,10 +2,12 @@ import Link from 'next/link';
 import { createInheritor } from '../actions';
 import InheritorForm from '../InheritorForm';
 import StatusDefinitions from '../StatusDefinitions';
+import { listPeoplePicker } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
-export default function NewInheritorPage() {
+export default async function NewInheritorPage() {
+  const people = await listPeoplePicker();
   return (
     <div className="max-w-2xl mx-auto space-y-8 pb-24">
       <Link
@@ -30,6 +32,7 @@ export default function NewInheritorPage() {
         mode="create"
         action={createInheritor}
         submitLabel="Save inheritor"
+        people={people}
       />
 
       <StatusDefinitions />

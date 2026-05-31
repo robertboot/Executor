@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createPerson } from '../actions';
 import AvatarPicker from '@/components/AvatarPicker';
+import RoleToggles from '../RoleToggles';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,6 +103,8 @@ export default function NewPersonPage() {
         >
           <AvatarPicker name="profile_photo" />
         </Field>
+
+        <RoleToggles inheritor={null} conservator={null} />
 
         <div className="flex items-center justify-between gap-3 pt-2">
           <Link

@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import {
   getInheritor,
-  inheritorPhotoUrl,
+  inheritorRowPhotoUrl,
   listInheritorAssignments,
 } from '@/lib/api';
 import {
@@ -33,9 +33,7 @@ export default async function InheritorDetailPage({
   ]);
   if (!inheritor) notFound();
 
-  const photoUrl = inheritor.profile_photo_path
-    ? inheritorPhotoUrl(inheritor.profile_photo_path)
-    : null;
+  const photoUrl = inheritorRowPhotoUrl(inheritor);
   const photoFailed = sp?.photo_failed === '1';
 
   const designated = assignments.filter((a) => a.role === 'designated');

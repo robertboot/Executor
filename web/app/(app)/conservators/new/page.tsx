@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { createConservator } from '../actions';
 import ConservatorForm from '../ConservatorForm';
+import { listPeoplePicker } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
-export default function NewConservatorPage() {
+export default async function NewConservatorPage() {
+  const people = await listPeoplePicker();
   return (
     <div className="max-w-2xl mx-auto space-y-6 pb-24">
       <Link
@@ -29,6 +31,7 @@ export default function NewConservatorPage() {
         mode="create"
         action={createConservator}
         submitLabel="Send invitation"
+        people={people}
       />
     </div>
   );

@@ -109,6 +109,7 @@ export type ConservatorPermissionLevel =
 export interface Conservator {
   id: string;
   owner_id: string;
+  person_id: string | null;
   name: string;
   relationship: string | null;
   email: string | null;

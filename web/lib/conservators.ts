@@ -14,6 +14,13 @@ export const LEVEL_BADGE: Record<ConservatorPermissionLevel, string> = {
   owner: 'Full Access',
 };
 
+export const LEVEL_OPTIONS: ConservatorPermissionLevel[] = [
+  'viewer',
+  'contributor',
+  'curator',
+  'owner',
+];
+
 export function conservatorInitials(
   c: Pick<Conservator, 'name'>,
 ): string {

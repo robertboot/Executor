@@ -9,8 +9,10 @@ import { createSupabaseServerClient } from './supabase/server';
 import type {
   CollectionWithStats,
   Conservator,
+  ConservatorPermissionLevel,
   CustomCollection,
   Inheritor,
+  InheritorStatus,
   Inventory,
   InventoryWithRole,
   Item,
@@ -133,10 +135,49 @@ export async function listConservators(): Promise<Conservator[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from('conservators')
-    .select('*')
+    .select(
+      '*, person:people(profile_photo_path, first_name, middle_name, last_name)',
+    )
     .order('name', { ascending: true });
   if (error) throw error;
-  return (data ?? []) as Conservator[];
+  return (data ?? []).map((row) => {
+    const r = row as Conservator & {
+      person?: {
+        profile_photo_path: string | null;
+        first_name: string;
+        middle_name: string | null;
+        last_name: string | null;
+      } | null;
+    };
+    const linked = r.person ?? null;
+    const linkedName = linked
+      ? [linked.first_name, linked.middle_name, linked.last_name]
+          .filter((s) => s && s.trim().length > 0)
+          .join(' ')
+          .trim()
+      : null;
+    // Prefer the linked Legacy Person's photo + full name when set.
+    const photoPath = linked?.profile_photo_path ?? r.profile_photo_path;
+    const out: Conservator = {
+      ...r,
+      name: linkedName || r.name,
+      profile_photo_path: photoPath,
+    };
+    // Strip the embedded join object before returning.
+    delete (out as { person?: unknown }).person;
+    return out;
+  });
+}
+
+// Bucket-aware photo URL for any Conservator row regardless of whether
+// the photo lives in the linked Legacy Person's bucket or the row's own.
+export function conservatorRowPhotoUrl(
+  row: Pick<Conservator, 'person_id' | 'profile_photo_path'>,
+): string | null {
+  if (!row.profile_photo_path) return null;
+  return row.person_id
+    ? personPhotoPublicUrl(row.profile_photo_path)
+    : conservatorPhotoUrl(row.profile_photo_path);
 }
 
 // ---------- Aggregates ----------
@@ -584,6 +625,83 @@ export async function listPeople(): Promise<PersonWithStats[]> {
   });
 }
 
+// Lightweight directory for the "Link to a Legacy Person" picker on
+// the Inheritor and Conservator forms.
+export interface PersonPickerEntry {
+  id: string;
+  displayName: string;
+  relationship: string | null;
+  photoUrl: string | null;
+}
+
+export async function listPeoplePicker(): Promise<PersonPickerEntry[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('people')
+    .select('id, first_name, middle_name, last_name, relationship, profile_photo_path')
+    .order('first_name', { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map((row) => {
+    const r = row as {
+      id: string;
+      first_name: string;
+      middle_name: string | null;
+      last_name: string | null;
+      relationship: string | null;
+      profile_photo_path: string | null;
+    };
+    const name = [r.first_name, r.middle_name, r.last_name]
+      .filter((s) => s && s.trim().length > 0)
+      .join(' ')
+      .trim();
+    return {
+      id: r.id,
+      displayName: name || 'Unnamed',
+      relationship: r.relationship,
+      photoUrl: r.profile_photo_path
+        ? personPhotoPublicUrl(r.profile_photo_path)
+        : null,
+    };
+  });
+}
+
+// Returns which contributor roles the given person already holds.
+// Used by the Person edit form so the role toggles can pre-fill.
+export interface PersonRoleSummary {
+  inheritor: { id: string; status: InheritorStatus } | null;
+  conservator: { id: string; permission_level: ConservatorPermissionLevel } | null;
+}
+
+export async function getPersonRoles(
+  personId: string,
+): Promise<PersonRoleSummary> {
+  const supabase = await createSupabaseServerClient();
+  const [{ data: inh }, { data: con }] = await Promise.all([
+    supabase
+      .from('inheritors')
+      .select('id, status')
+      .eq('person_id', personId)
+      .maybeSingle(),
+    supabase
+      .from('conservators')
+      .select('id, permission_level')
+      .eq('person_id', personId)
+      .maybeSingle(),
+  ]);
+  return {
+    inheritor: inh
+      ? { id: (inh as { id: string }).id, status: (inh as { status: InheritorStatus }).status }
+      : null,
+    conservator: con
+      ? {
+          id: (con as { id: string }).id,
+          permission_level: (con as { permission_level: ConservatorPermissionLevel })
+            .permission_level,
+        }
+      : null,
+  };
+}
+
 export async function getPerson(id: string): Promise<Person | null> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
@@ -708,11 +826,39 @@ export async function listInheritors(): Promise<InheritorWithStats[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from('inheritors')
-    .select('*')
+    .select(
+      '*, person:people(profile_photo_path, first_name, middle_name, last_name, email)',
+    )
     .order('created_at', { ascending: false });
   if (error) throw error;
 
-  const rows = (data ?? []) as Inheritor[];
+  type Row = Inheritor & {
+    person?: {
+      profile_photo_path: string | null;
+      first_name: string;
+      middle_name: string | null;
+      last_name: string | null;
+      email: string | null;
+    } | null;
+  };
+  const raw = (data ?? []) as Row[];
+  const rows: Inheritor[] = raw.map((r) => {
+    const linked = r.person ?? null;
+    const linkedName = linked
+      ? [linked.first_name, linked.middle_name, linked.last_name]
+          .filter((s) => s && s.trim().length > 0)
+          .join(' ')
+          .trim()
+      : null;
+    const merged: Inheritor = {
+      ...(r as Inheritor),
+      display_name: linkedName || r.display_name,
+      email: linked?.email ?? r.email,
+      profile_photo_path: linked?.profile_photo_path ?? r.profile_photo_path,
+    };
+    delete (merged as { person?: unknown }).person;
+    return merged;
+  });
   if (rows.length === 0) return [];
 
   const ids = rows.map((r) => r.id);
@@ -794,10 +940,19 @@ export async function listInheritors(): Promise<InheritorWithStats[]> {
     collectionCount: collectionCount.get(r.id) ?? 0,
     totalValue: totalValue.get(r.id) ?? 0,
     totalCurrency: currencies.get(r.id) ?? 'USD',
-    primaryPhotoUrl: r.profile_photo_path
-      ? inheritorPhotoUrl(r.profile_photo_path)
-      : null,
+    primaryPhotoUrl: inheritorRowPhotoUrl(r),
   }));
+}
+
+// Bucket-aware photo URL for any Inheritor row regardless of whether
+// the photo lives in the linked Legacy Person's bucket or the row's own.
+export function inheritorRowPhotoUrl(
+  row: Pick<Inheritor, 'person_id' | 'profile_photo_path'>,
+): string | null {
+  if (!row.profile_photo_path) return null;
+  return row.person_id
+    ? personPhotoPublicUrl(row.profile_photo_path)
+    : inheritorPhotoUrl(row.profile_photo_path);
 }
 
 export async function getInheritor(id: string): Promise<Inheritor | null> {

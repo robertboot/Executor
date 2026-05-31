@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { getConservator, conservatorPhotoUrl } from '@/lib/api';
+import { getConservator, conservatorRowPhotoUrl } from '@/lib/api';
 import {
   LEVEL_LABEL,
   LEVEL_BADGE,
@@ -25,9 +25,7 @@ export default async function ConservatorDetailPage({
   const conservator = await getConservator(id);
   if (!conservator) notFound();
 
-  const photoUrl = conservator.profile_photo_path
-    ? conservatorPhotoUrl(conservator.profile_photo_path)
-    : null;
+  const photoUrl = conservatorRowPhotoUrl(conservator);
   const photoFailed = sp?.photo_failed === '1';
 
   return (

@@ -9,10 +9,14 @@ import type { Conservator } from '@/lib/types';
 
 // Inlined here so the file stays client-safe — importing it from
 // lib/api would drag in next/headers via the server Supabase client.
+// The row's photo lives in the conservator-photos bucket when
+// standalone, or the people-photos bucket when the row is linked to
+// a Legacy Person.
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-function photoUrl(path: string | null): string | null {
-  if (!path) return null;
-  return `${SUPABASE_URL}/storage/v1/object/public/conservator-photos/${path}`;
+function photoUrl(row: Pick<Conservator, 'person_id' | 'profile_photo_path'>) {
+  if (!row.profile_photo_path) return null;
+  const bucket = row.person_id ? 'people-photos' : 'conservator-photos';
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${row.profile_photo_path}`;
 }
 
 type SortKey = 'name' | 'level' | 'activity';
@@ -116,7 +120,7 @@ export default function ConservatorsList({
 }
 
 function ConservatorRow({ conservator }: { conservator: Conservator }) {
-  const url = photoUrl(conservator.profile_photo_path);
+  const url = photoUrl(conservator);
   return (
     <Link
       href={`/conservators/${conservator.id}`}

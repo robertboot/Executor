@@ -51,8 +51,7 @@ export async function createConservator(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) throw new Error('Not authenticated');
 
-  const name = s(formData.get('name'));
-  if (!name) throw new Error('Name is required');
+  const personId = s(formData.get('person_id'));
 
   const levelRaw = s(formData.get('permission_level')) ?? 'viewer';
   if (!VALID_LEVELS.includes(levelRaw as ConservatorPermissionLevel)) {
@@ -62,10 +61,37 @@ export async function createConservator(formData: FormData) {
 
   const supabase = await createSupabaseServerClient();
 
+  // When linking to a Legacy Person, snapshot their full name onto the
+  // conservator row so the row remains intelligible if the link is
+  // later removed.
+  let name = s(formData.get('name'));
+  if (personId) {
+    const { data: p } = await supabase
+      .from('people')
+      .select('first_name, middle_name, last_name')
+      .eq('id', personId)
+      .eq('owner_id', user.id)
+      .maybeSingle();
+    if (!p) throw new Error('Linked Legacy Person not found');
+    const row = p as {
+      first_name: string;
+      middle_name: string | null;
+      last_name: string | null;
+    };
+    name =
+      [row.first_name, row.middle_name, row.last_name]
+        .filter((x) => x && x.trim().length > 0)
+        .join(' ')
+        .trim() || name;
+  }
+  if (!name) throw new Error('Name is required');
+
   let photoPath: string | null = null;
   let photoFailed = false;
   const file = formData.get('profile_photo');
-  if (file && file instanceof File && file.size > 0) {
+  // Skip the conservator-bucket upload when linked — the avatar is
+  // sourced from the linked Legacy Person.
+  if (!personId && file && file instanceof File && file.size > 0) {
     photoPath = await uploadPhoto(supabase, user.id, file);
     if (!photoPath) photoFailed = true;
   }
@@ -74,6 +100,7 @@ export async function createConservator(formData: FormData) {
     .from('conservators')
     .insert({
       owner_id: user.id,
+      person_id: personId,
       name,
       relationship: s(formData.get('relationship')),
       email: s(formData.get('email')),
@@ -90,6 +117,7 @@ export async function createConservator(formData: FormData) {
   }
 
   revalidatePath('/conservators');
+  revalidatePath('/people');
   redirect(
     photoFailed
       ? `/conservators/${data.id}?photo_failed=1`
@@ -104,7 +132,41 @@ export async function updateConservator(formData: FormData) {
   const id = String(formData.get('id') ?? '').trim();
   if (!id) throw new Error('Missing id');
 
-  const name = s(formData.get('name'));
+  // 'unlink' clears the existing link; null = leave alone; uuid = link.
+  const personFieldRaw = formData.get('person_id');
+  const personFieldStr =
+    personFieldRaw == null ? null : String(personFieldRaw).trim();
+  let personId: string | null | undefined;
+  if (personFieldStr === null || personFieldStr === '') {
+    personId = undefined;
+  } else if (personFieldStr === 'unlink') {
+    personId = null;
+  } else {
+    personId = personFieldStr;
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  let name = s(formData.get('name'));
+  if (personId) {
+    const { data: p } = await supabase
+      .from('people')
+      .select('first_name, middle_name, last_name')
+      .eq('id', personId)
+      .eq('owner_id', user.id)
+      .maybeSingle();
+    if (!p) throw new Error('Linked Legacy Person not found');
+    const row = p as {
+      first_name: string;
+      middle_name: string | null;
+      last_name: string | null;
+    };
+    name =
+      [row.first_name, row.middle_name, row.last_name]
+        .filter((x) => x && x.trim().length > 0)
+        .join(' ')
+        .trim() || name;
+  }
   if (!name) throw new Error('Name is required');
 
   const levelRaw = s(formData.get('permission_level')) ?? 'viewer';
@@ -112,8 +174,6 @@ export async function updateConservator(formData: FormData) {
     throw new Error(`Invalid permission level: ${levelRaw}`);
   }
   const level = levelRaw as ConservatorPermissionLevel;
-
-  const supabase = await createSupabaseServerClient();
 
   const update: Record<string, unknown> = {
     name,
@@ -123,12 +183,13 @@ export async function updateConservator(formData: FormData) {
     notes: s(formData.get('notes')),
     permission_level: level,
   };
+  if (personId !== undefined) update.person_id = personId;
 
-  // Only touch profile_photo_path when an upload actually succeeded —
-  // preserves the existing photo when storage rejects the new one.
+  // Skip the conservator-bucket upload when linked — the avatar comes
+  // from the linked Legacy Person row.
   let photoFailed = false;
   const file = formData.get('profile_photo');
-  if (file && file instanceof File && file.size > 0) {
+  if (!personId && file && file instanceof File && file.size > 0) {
     const newPath = await uploadPhoto(supabase, user.id, file);
     if (newPath) {
       update.profile_photo_path = newPath;
@@ -147,6 +208,7 @@ export async function updateConservator(formData: FormData) {
 
   revalidatePath('/conservators');
   revalidatePath(`/conservators/${id}`);
+  revalidatePath('/people');
   redirect(
     photoFailed ? `/conservators/${id}?photo_failed=1` : `/conservators/${id}`,
   );

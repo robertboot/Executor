@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { STATUS_LABEL, STATUS_OPTIONS } from '@/lib/inheritors';
 import AvatarPicker from '@/components/AvatarPicker';
+import PersonPicker from '@/components/PersonPicker';
+import type { PersonPickerEntry } from '@/lib/api';
 
 export interface InheritorFormInitial {
   id?: string;
@@ -9,6 +11,7 @@ export interface InheritorFormInitial {
   relationship?: string | null;
   status?: string;
   notes?: string | null;
+  person_id?: string | null;
 }
 
 export default function InheritorForm({
@@ -17,16 +20,29 @@ export default function InheritorForm({
   submitLabel,
   initial,
   initialPhotoUrl,
+  people,
 }: {
   mode: 'create' | 'edit';
   action: (formData: FormData) => Promise<void>;
   submitLabel: string;
   initial?: InheritorFormInitial;
   initialPhotoUrl?: string | null;
+  people: PersonPickerEntry[];
 }) {
   return (
     <form action={action} encType="multipart/form-data" className="space-y-6">
       {initial?.id && <input type="hidden" name="id" value={initial.id} />}
+
+      <Field
+        label="Link to a Legacy Person"
+        hint="Optional — sources the name and photo from a Legacy Person record so updates stay in sync across the archive."
+      >
+        <PersonPicker
+          people={people}
+          initialPersonId={initial?.person_id ?? null}
+          initialPhotoUrl={initialPhotoUrl ?? null}
+        />
+      </Field>
 
       <Field label="Full name" required>
         <input

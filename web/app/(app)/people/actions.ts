@@ -4,7 +4,13 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient, getCurrentUser } from '@/lib/supabase/server';
 import { PEOPLE_PHOTO_BUCKET } from '@/lib/api';
-import type { ItemPersonRole, SideOfFamily } from '@/lib/types';
+import type {
+  ConservatorPermissionLevel,
+  InheritorStatus,
+  ItemPersonRole,
+  SideOfFamily,
+} from '@/lib/types';
+import { STATUS_OPTIONS } from '@/lib/inheritors';
 
 const VALID_SIDES: SideOfFamily[] = ['paternal', 'maternal', 'other'];
 const VALID_ROLES: ItemPersonRole[] = [
@@ -16,6 +22,125 @@ const VALID_ROLES: ItemPersonRole[] = [
   'mentioned_in',
   'related_to',
 ];
+const VALID_LEVELS: ConservatorPermissionLevel[] = [
+  'viewer',
+  'contributor',
+  'curator',
+  'owner',
+];
+
+// Pull, validate, and apply the "Also designate as Inheritor / Conservator"
+// toggles. Linked rows always carry person_id; unchecking only unlinks
+// (sets person_id to null) so the underlying assignments aren't lost —
+// the user can delete the standalone row from /inheritors or
+// /conservators directly if they want it gone.
+async function syncPersonRoles(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  userId: string,
+  personId: string,
+  formData: FormData,
+  displayName: string,
+) {
+  const alsoInheritor = formData.get('also_inheritor') === '1';
+  const inheritorStatusRaw = s(formData.get('inheritor_status'));
+  const alsoConservator = formData.get('also_conservator') === '1';
+  const conservatorLevelRaw = s(formData.get('conservator_level'));
+
+  // ----- Inheritor sync -----
+  if (alsoInheritor) {
+    const status = (inheritorStatusRaw ?? 'designated_heir') as InheritorStatus;
+    if (!STATUS_OPTIONS.includes(status)) {
+      throw new Error(`Invalid inheritor status: ${inheritorStatusRaw}`);
+    }
+    const { data: existing } = await supabase
+      .from('inheritors')
+      .select('id')
+      .eq('owner_id', userId)
+      .eq('person_id', personId)
+      .maybeSingle();
+    if (existing) {
+      const { error } = await supabase
+        .from('inheritors')
+        .update({ status, display_name: displayName })
+        .eq('id', (existing as { id: string }).id);
+      if (error) {
+        console.error('inheritor sync update failed:', error.message);
+      }
+    } else {
+      const { error } = await supabase.from('inheritors').insert({
+        owner_id: userId,
+        person_id: personId,
+        display_name: displayName,
+        status,
+      });
+      if (error) {
+        console.error('inheritor sync insert failed:', error.message);
+      }
+    }
+  } else {
+    const { error } = await supabase
+      .from('inheritors')
+      .update({ person_id: null, display_name: displayName })
+      .eq('owner_id', userId)
+      .eq('person_id', personId);
+    if (error) {
+      console.error('inheritor unlink failed:', error.message);
+    }
+  }
+
+  // ----- Conservator sync -----
+  if (alsoConservator) {
+    const level = (conservatorLevelRaw ?? 'viewer') as ConservatorPermissionLevel;
+    if (!VALID_LEVELS.includes(level)) {
+      throw new Error(`Invalid conservator level: ${conservatorLevelRaw}`);
+    }
+    const { data: existing } = await supabase
+      .from('conservators')
+      .select('id')
+      .eq('owner_id', userId)
+      .eq('person_id', personId)
+      .maybeSingle();
+    if (existing) {
+      const { error } = await supabase
+        .from('conservators')
+        .update({ permission_level: level, name: displayName })
+        .eq('id', (existing as { id: string }).id);
+      if (error) {
+        console.error('conservator sync update failed:', error.message);
+      }
+    } else {
+      const { error } = await supabase.from('conservators').insert({
+        owner_id: userId,
+        person_id: personId,
+        name: displayName,
+        permission_level: level,
+      });
+      if (error) {
+        console.error('conservator sync insert failed:', error.message);
+      }
+    }
+  } else {
+    const { error } = await supabase
+      .from('conservators')
+      .update({ person_id: null, name: displayName })
+      .eq('owner_id', userId)
+      .eq('person_id', personId);
+    if (error) {
+      console.error('conservator unlink failed:', error.message);
+    }
+  }
+}
+
+function fullName(
+  first: string,
+  middle: string | null,
+  last: string | null,
+): string {
+  return [first, middle, last]
+    .filter((s) => s && s.trim().length > 0)
+    .join(' ')
+    .trim();
+}
 
 function s(v: FormDataEntryValue | null): string | null {
   if (v == null) return null;
@@ -79,13 +204,17 @@ export async function createPerson(formData: FormData) {
     if (!profilePhotoPath) photoFailed = true;
   }
 
+  const middleName = s(formData.get('middle_name'));
+  const lastName = s(formData.get('last_name'));
+  const displayName = fullName(firstName, middleName, lastName);
+
   const { data, error } = await supabase
     .from('people')
     .insert({
       owner_id: user.id,
       first_name: firstName,
-      middle_name: s(formData.get('middle_name')),
-      last_name: s(formData.get('last_name')),
+      middle_name: middleName,
+      last_name: lastName,
       email: s(formData.get('email')),
       relationship: s(formData.get('relationship')),
       side_of_family: side,
@@ -99,7 +228,11 @@ export async function createPerson(formData: FormData) {
 
   if (error) throw new Error(`Failed to create person: ${error.message}`);
 
+  await syncPersonRoles(supabase, user.id, data.id, formData, displayName);
+
   revalidatePath('/people');
+  revalidatePath('/inheritors');
+  revalidatePath('/conservators');
   redirect(
     photoFailed
       ? `/people/${data.id}?photo_failed=1`
@@ -134,10 +267,14 @@ export async function updatePerson(formData: FormData) {
     if (!newPhotoPath) photoFailed = true;
   }
 
+  const middleName = s(formData.get('middle_name'));
+  const lastName = s(formData.get('last_name'));
+  const displayName = fullName(firstName, middleName, lastName);
+
   const update: Record<string, unknown> = {
     first_name: firstName,
-    middle_name: s(formData.get('middle_name')),
-    last_name: s(formData.get('last_name')),
+    middle_name: middleName,
+    last_name: lastName,
     email: s(formData.get('email')),
     relationship: s(formData.get('relationship')),
     side_of_family: side,
@@ -155,8 +292,12 @@ export async function updatePerson(formData: FormData) {
 
   if (error) throw new Error(`Failed to update person: ${error.message}`);
 
+  await syncPersonRoles(supabase, user.id, id, formData, displayName);
+
   revalidatePath('/people');
   revalidatePath(`/people/${id}`);
+  revalidatePath('/inheritors');
+  revalidatePath('/conservators');
   redirect(photoFailed ? `/people/${id}?photo_failed=1` : `/people/${id}`);
 }
 

@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getInheritor, inheritorPhotoUrl } from '@/lib/api';
+import {
+  getInheritor,
+  inheritorRowPhotoUrl,
+  listPeoplePicker,
+} from '@/lib/api';
 import { updateInheritor } from '../../actions';
 import InheritorForm from '../../InheritorForm';
 import StatusDefinitions from '../../StatusDefinitions';
@@ -13,12 +17,13 @@ interface PageProps {
 
 export default async function EditInheritorPage({ params }: PageProps) {
   const { id } = await params;
-  const inheritor = await getInheritor(id);
+  const [inheritor, people] = await Promise.all([
+    getInheritor(id),
+    listPeoplePicker(),
+  ]);
   if (!inheritor) notFound();
 
-  const photoUrl = inheritor.profile_photo_path
-    ? inheritorPhotoUrl(inheritor.profile_photo_path)
-    : null;
+  const photoUrl = inheritorRowPhotoUrl(inheritor);
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 pb-24">
@@ -46,8 +51,10 @@ export default async function EditInheritorPage({ params }: PageProps) {
           relationship: inheritor.relationship,
           status: inheritor.status,
           notes: inheritor.notes,
+          person_id: inheritor.person_id,
         }}
         initialPhotoUrl={photoUrl}
+        people={people}
       />
 
       <StatusDefinitions collapsedByDefault />

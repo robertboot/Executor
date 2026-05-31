@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getConservator, conservatorPhotoUrl } from '@/lib/api';
+import {
+  getConservator,
+  conservatorRowPhotoUrl,
+  listPeoplePicker,
+} from '@/lib/api';
 import { updateConservator } from '../../actions';
 import ConservatorForm from '../../ConservatorForm';
 
@@ -12,12 +16,13 @@ interface PageProps {
 
 export default async function EditConservatorPage({ params }: PageProps) {
   const { id } = await params;
-  const conservator = await getConservator(id);
+  const [conservator, people] = await Promise.all([
+    getConservator(id),
+    listPeoplePicker(),
+  ]);
   if (!conservator) notFound();
 
-  const photoUrl = conservator.profile_photo_path
-    ? conservatorPhotoUrl(conservator.profile_photo_path)
-    : null;
+  const photoUrl = conservatorRowPhotoUrl(conservator);
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 pb-24">
@@ -49,8 +54,10 @@ export default async function EditConservatorPage({ params }: PageProps) {
           relationship: conservator.relationship,
           notes: conservator.notes,
           permission_level: conservator.permission_level,
+          person_id: conservator.person_id,
         }}
         initialPhotoUrl={photoUrl}
+        people={people}
       />
     </div>
   );
