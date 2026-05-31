@@ -78,7 +78,7 @@ export default function ConservatorsList({
               className="h-10 w-full sm:w-44 pl-3 pr-9 rounded-lg bg-paper border border-hairline text-sm text-ink appearance-none focus:outline-none focus:border-forest"
             >
               <option value="name">Sort by Name</option>
-              <option value="level">Sort by Permission</option>
+              <option value="level">Sort by Role</option>
               <option value="activity">Sort by Activity</option>
             </select>
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted">

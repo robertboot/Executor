@@ -91,7 +91,7 @@ export default function ConservatorForm({
       </Field>
 
       <Field
-        label="Permission level"
+        label="Role"
         hint="Controls what they can see and do across your archive."
         required
       >

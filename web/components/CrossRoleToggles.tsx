@@ -130,7 +130,7 @@ export default function CrossRoleToggles({
           {alsoConservator && (
             <div className="pl-7">
               <label className="text-[11px] uppercase tracking-wider text-muted block mb-1">
-                Permission level
+                Role
               </label>
               <select
                 name="conservator_level"

@@ -50,7 +50,7 @@ export default async function ConservatorsPage() {
 
       <WorkflowAndOverviewRow myName={myName} summary={summary} />
 
-      <PermissionLevelsSection />
+      <ConservatorRolesSection />
     </div>
   );
 }
@@ -128,10 +128,10 @@ function HeroCard() {
               Invite Conservator
             </Link>
             <Link
-              href="#permission-levels"
+              href="#conservator-roles"
               className="inline-flex items-center px-5 h-11 rounded-lg border border-ink/20 bg-paper/70 text-ink text-sm font-medium hover:border-ink/40 transition-colors backdrop-blur-sm"
             >
-              Learn About Permissions
+              Learn About Roles
             </Link>
           </div>
         </div>
@@ -240,7 +240,7 @@ function StewardshipOverviewCard({ summary }: { summary: SummaryShape }) {
       <div className="flex items-start justify-between gap-3">
         <h3 className="font-serif text-xl text-ink">Stewardship Overview</h3>
         <Link
-          href="#permission-levels"
+          href="#conservator-roles"
           className="text-xs font-medium text-forest hover:text-forest-deep inline-flex items-center gap-1"
         >
           View Full Summary
@@ -332,10 +332,10 @@ function WorkflowStep({
 }
 
 // ============================================================== //
-//  Permission levels                                              //
+//  Conservator roles                                              //
 // ============================================================== //
 
-function PermissionLevelsSection() {
+function ConservatorRolesSection() {
   const roles: RoleSpec[] = [
     {
       key: 'viewer',
@@ -422,7 +422,7 @@ function PermissionLevelsSection() {
   ];
 
   return (
-    <section id="permission-levels" className="space-y-6">
+    <section id="conservator-roles" className="space-y-6">
       <header>
         <h2 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
           Conservator Roles
@@ -470,8 +470,8 @@ function PermissionLevelsSection() {
         ))}
       </ul>
 
-      {/* Permission comparison matrix */}
-      <PermissionMatrix />
+      {/* Role comparison matrix */}
+      <RoleComparison />
 
       {/* Footer audit note */}
       <div className="flex items-start gap-3 pt-4">
@@ -583,9 +583,9 @@ function RoleCard({ role }: { role: RoleSpec }) {
   );
 }
 
-// ----- Permission comparison matrix ----- //
+// ----- Role comparison matrix ----- //
 
-function PermissionMatrix() {
+function RoleComparison() {
   const T = true;
   const F = false;
   const caps: Array<{
@@ -677,7 +677,7 @@ function PermissionMatrix() {
         >
           <ScalesIcon />
         </span>
-        <h3 className="font-serif text-2xl text-ink">Permission Comparison</h3>
+        <h3 className="font-serif text-2xl text-ink">Role Comparison</h3>
       </div>
 
       <div className="overflow-x-auto">
