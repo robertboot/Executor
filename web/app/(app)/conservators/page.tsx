@@ -1,18 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import {
-  listConservators,
-  conservatorPhotoUrl,
-  listMyCollectionsRich,
-} from '@/lib/api';
-import {
-  LEVEL_LABEL,
-  LEVEL_BADGE,
-  conservatorInitials,
-} from '@/lib/conservators';
-import { formatRelativeTime } from '@/lib/format';
+import { listConservators, listMyCollectionsRich } from '@/lib/api';
 import { getMyDisplayName } from '@/lib/me';
-import type { Conservator } from '@/lib/types';
+import ConservatorsList from './ConservatorsList';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,16 +45,7 @@ export default async function ConservatorsPage() {
       <HeroCard />
 
       {conservators.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="font-serif text-2xl text-ink">Your conservators</h2>
-          <ul className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {conservators.map((c) => (
-              <li key={c.id}>
-                <ConservatorCard conservator={c} />
-              </li>
-            ))}
-          </ul>
-        </section>
+        <ConservatorsList conservators={conservators} />
       )}
 
       <WorkflowAndOverviewRow myName={myName} summary={summary} />
@@ -351,82 +332,6 @@ function WorkflowStep({
 }
 
 // ============================================================== //
-//  Conservator card                                               //
-// ============================================================== //
-
-function ConservatorCard({ conservator }: { conservator: Conservator }) {
-  const photoUrl = conservator.profile_photo_path
-    ? conservatorPhotoUrl(conservator.profile_photo_path)
-    : null;
-  return (
-    <article className="bg-paper border border-hairline rounded-2xl p-5 shadow-card">
-      <div className="flex items-start gap-4">
-        <div className="shrink-0 relative w-16 h-16 rounded-full overflow-hidden bg-gold-soft/60 flex items-center justify-center">
-          {photoUrl ? (
-            <Image
-              src={photoUrl}
-              alt={conservator.name}
-              fill
-              sizes="64px"
-              className="object-cover"
-            />
-          ) : (
-            <span className="text-base font-serif font-semibold text-gold-deep">
-              {conservatorInitials(conservator)}
-            </span>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <h3 className="font-serif text-xl text-ink leading-tight">
-              {conservator.name}
-            </h3>
-            <span className="text-[10px] uppercase tracking-widest font-medium px-2 py-0.5 rounded bg-gold-soft text-gold-deep">
-              {LEVEL_LABEL[conservator.permission_level]}
-            </span>
-          </div>
-          {conservator.email && (
-            <div className="text-xs text-muted truncate mt-0.5">
-              {conservator.email}
-            </div>
-          )}
-          <div className="flex items-center gap-2 text-xs text-ink-soft mt-2">
-            <KeyIcon className="w-3.5 h-3.5 text-gold" />
-            <span>{LEVEL_BADGE[conservator.permission_level]}</span>
-          </div>
-          {conservator.relationship && (
-            <div className="flex items-center gap-2 text-xs text-ink-soft mt-1">
-              <UserIcon className="w-3.5 h-3.5 text-muted" />
-              <span>{conservator.relationship}</span>
-            </div>
-          )}
-          {conservator.last_active_at && (
-            <div className="text-xs text-muted mt-2">
-              Last activity: {formatRelativeTime(conservator.last_active_at)}
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="flex items-center gap-2 mt-5 pt-4 border-t border-hairline">
-        <Link
-          href={`/conservators/${conservator.id}`}
-          className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors"
-        >
-          View Log
-        </Link>
-        <Link
-          href={`/conservators/${conservator.id}/edit`}
-          className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg bg-cream-soft text-ink text-sm font-medium hover:bg-gold-soft transition-colors"
-        >
-          <PencilIcon className="w-3.5 h-3.5" />
-          Edit Access
-        </Link>
-      </div>
-    </article>
-  );
-}
-
-// ============================================================== //
 //  Permission levels                                              //
 // ============================================================== //
 
@@ -646,45 +551,6 @@ function CrownIcon() {
   return svg('M3 18h18M5 18l-1-9 5 4 3-6 3 6 5-4-1 9');
 }
 
-function KeyIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      width={14}
-      height={14}
-      aria-hidden="true"
-    >
-      <circle cx="8" cy="14" r="4" />
-      <path d="M11 12l10-10M15 6l3 3" />
-    </svg>
-  );
-}
-
-function UserIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      width={14}
-      height={14}
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" />
-    </svg>
-  );
-}
 
 function CheckIcon({ className }: { className?: string }) {
   return (

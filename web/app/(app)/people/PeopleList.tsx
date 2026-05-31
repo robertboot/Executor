@@ -119,89 +119,61 @@ function PersonRow({ person }: { person: PersonWithStats }) {
   const name = displayName(person);
   const dates = lifeDates(person);
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center gap-4 p-4 sm:p-5 hover:bg-cream-soft/40 transition-colors">
-      <div className="flex items-center gap-4 min-w-0 lg:w-64">
-        <div className="shrink-0 relative w-14 h-14 rounded-full overflow-hidden bg-gold-soft/60 flex items-center justify-center">
-          {person.primaryPhotoUrl ? (
-            <Image
-              src={person.primaryPhotoUrl}
-              alt={name}
-              fill
-              sizes="56px"
-              className="object-cover"
-            />
-          ) : (
-            <span className="text-base font-serif font-semibold text-gold-deep">
-              {personInitials(person)}
-            </span>
-          )}
-        </div>
-        <div className="min-w-0">
-          <div className="font-serif text-lg text-ink leading-tight truncate">
-            {name}
-          </div>
-          {person.relationship && (
-            <div className="text-xs text-ink-soft truncate mt-0.5">
-              {person.relationship}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex-1 flex flex-wrap items-center gap-x-6 gap-y-3 min-w-0">
-        {person.side_of_family ? (
-          <span
-            className={`inline-flex items-center text-[10px] uppercase tracking-widest font-medium px-2.5 py-1 rounded-full ${SIDE_BADGE_CLASS[person.side_of_family]}`}
-          >
-            {SIDE_LABEL[person.side_of_family]}
-          </span>
+    <Link
+      href={`/people/${person.id}`}
+      className="flex items-center gap-4 p-3 sm:p-4 hover:bg-cream-soft/40 transition-colors"
+    >
+      <div className="shrink-0 relative w-11 h-11 rounded-full overflow-hidden bg-gold-soft/60 flex items-center justify-center">
+        {person.primaryPhotoUrl ? (
+          <Image
+            src={person.primaryPhotoUrl}
+            alt={name}
+            fill
+            sizes="44px"
+            className="object-cover"
+          />
         ) : (
-          <span className="inline-flex items-center text-[10px] uppercase tracking-widest font-medium px-2.5 py-1 rounded-full bg-hairline text-ink-soft">
-            Unassigned
+          <span className="text-sm font-serif font-semibold text-gold-deep">
+            {personInitials(person)}
           </span>
         )}
-        <Stat
-          value={String(person.itemCount)}
-          label={person.itemCount === 1 ? 'Linked Item' : 'Linked Items'}
-        />
-        <Stat value={dates ?? '—'} label="Life Dates" />
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
-        <Link
-          href={`/people/${person.id}`}
-          className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors"
-        >
-          View Profile
-        </Link>
-        <Link
-          href={`/people/${person.id}/edit`}
-          className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
-        >
-          Manage
-        </Link>
-        <Link
-          href={`/people/${person.id}`}
-          aria-label={`More actions for ${name}`}
-          className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-muted hover:bg-cream-soft hover:text-ink transition-colors"
-        >
-          <DotsIcon />
-        </Link>
+      <div className="flex-1 min-w-0">
+        <div className="font-serif text-base text-ink leading-tight truncate">
+          {name}
+        </div>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted mt-0.5 leading-tight">
+          {person.relationship && (
+            <span className="text-ink-soft truncate">{person.relationship}</span>
+          )}
+          {person.side_of_family && (
+            <>
+              {person.relationship && <span aria-hidden>·</span>}
+              <span
+                className={`inline-flex items-center text-[9px] uppercase tracking-widest font-medium px-1.5 py-0.5 rounded ${SIDE_BADGE_CLASS[person.side_of_family]}`}
+              >
+                {SIDE_LABEL[person.side_of_family]}
+              </span>
+            </>
+          )}
+          <span aria-hidden>·</span>
+          <span>
+            {person.itemCount} {person.itemCount === 1 ? 'item' : 'items'}
+          </span>
+          {dates && (
+            <>
+              <span aria-hidden>·</span>
+              <span>{dates}</span>
+            </>
+          )}
+        </div>
       </div>
-    </div>
-  );
-}
 
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="min-w-0">
-      <div className="font-serif text-base text-ink leading-none truncate">
-        {value}
-      </div>
-      <div className="text-[10px] uppercase tracking-wider text-muted mt-1">
-        {label}
-      </div>
-    </div>
+      <span className="shrink-0 inline-flex items-center gap-1.5 px-3 h-9 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors">
+        Manage
+      </span>
+    </Link>
   );
 }
 
@@ -242,18 +214,3 @@ function ChevronIcon() {
   );
 }
 
-function DotsIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      width={18}
-      height={18}
-      aria-hidden="true"
-    >
-      <circle cx="5" cy="12" r="1.5" />
-      <circle cx="12" cy="12" r="1.5" />
-      <circle cx="19" cy="12" r="1.5" />
-    </svg>
-  );
-}
