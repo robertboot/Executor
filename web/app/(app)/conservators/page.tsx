@@ -422,10 +422,10 @@ function PermissionLevelsSection() {
   ];
 
   return (
-    <section id="permission-levels" className="space-y-8">
+    <section id="permission-levels" className="space-y-6">
       <header>
         <h2 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
-          Archive Roles
+          Conservator Roles
         </h2>
         <p className="text-muted text-sm sm:text-base mt-2 max-w-2xl leading-relaxed">
           Choose how much responsibility each Conservator has within
@@ -462,7 +462,7 @@ function PermissionLevelsSection() {
       </div>
 
       {/* Role cards */}
-      <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {roles.map((r) => (
           <li key={r.key}>
             <RoleCard role={r} />
@@ -515,11 +515,11 @@ function RoleCard({ role }: { role: RoleSpec }) {
       {/* Top accent strip */}
       <div className={`h-1 ${role.accent}`} aria-hidden />
 
-      <div className="p-5 sm:p-6 space-y-5 flex-1 flex flex-col">
+      <div className="p-4 space-y-3 flex-1 flex flex-col">
         {/* Header: icon + title + badge */}
         <div className="flex items-center gap-3">
           <span
-            className="shrink-0 w-14 h-14 rounded-full text-gold-deep flex items-center justify-center border border-gold-deep/25 [&_svg]:w-6 [&_svg]:h-6"
+            className="shrink-0 w-11 h-11 rounded-full text-gold-deep flex items-center justify-center border border-gold-deep/25 [&_svg]:w-5 [&_svg]:h-5"
             style={{
               background:
                 'radial-gradient(circle at 32% 28%, #F8EBCC 0%, #EDD9A6 55%, #D9B97A 100%)',
@@ -530,11 +530,11 @@ function RoleCard({ role }: { role: RoleSpec }) {
             {role.icon}
           </span>
           <div className="min-w-0">
-            <h3 className="font-serif text-xl text-ink leading-tight">
+            <h3 className="font-serif text-lg text-ink leading-tight">
               {role.title}
             </h3>
             <span
-              className={`inline-flex items-center text-[10px] uppercase tracking-widest font-medium px-2 py-0.5 rounded mt-1 ${role.badge.className}`}
+              className={`inline-flex items-center text-[10px] uppercase tracking-widest font-medium px-2 py-0.5 rounded mt-0.5 ${role.badge.className}`}
             >
               {role.badge.label}
             </span>
@@ -542,12 +542,12 @@ function RoleCard({ role }: { role: RoleSpec }) {
         </div>
 
         {/* Best For */}
-        <div className="pt-1 border-t border-hairline">
-          <div className="text-[10px] uppercase tracking-widest text-muted pt-3">
+        <div className="pt-2 border-t border-hairline">
+          <div className="text-[10px] uppercase tracking-widest text-muted">
             Best for
           </div>
-          <div className="flex items-center justify-between gap-2 mt-1.5">
-            <span className="font-serif text-base text-ink leading-tight">
+          <div className="flex items-center justify-between gap-2 mt-0.5">
+            <span className="font-serif text-sm text-ink leading-tight">
               {role.bestFor.label}
             </span>
             <span className="text-gold-deep shrink-0" aria-hidden>
@@ -557,14 +557,14 @@ function RoleCard({ role }: { role: RoleSpec }) {
         </div>
 
         {/* Abilities */}
-        <ul className="space-y-2 flex-1">
+        <ul className="space-y-1.5 flex-1 pt-1">
           {role.abilities.map((line) => (
             <li
               key={line}
-              className="flex items-start gap-2 text-sm text-ink-soft"
+              className="flex items-start gap-2 text-[13px] text-ink-soft leading-snug"
             >
-              <span className="shrink-0 mt-0.5 w-4 h-4 rounded-full bg-forest/10 text-forest flex items-center justify-center">
-                <CheckIcon className="w-2.5 h-2.5" />
+              <span className="shrink-0 mt-0.5 w-3.5 h-3.5 rounded-full bg-forest/10 text-forest flex items-center justify-center">
+                <CheckIcon className="w-2 h-2" />
               </span>
               <span>{line}</span>
             </li>
@@ -573,8 +573,8 @@ function RoleCard({ role }: { role: RoleSpec }) {
 
         {/* Limitation footer */}
         {role.limitation && (
-          <div className="flex items-center gap-2 pt-3 border-t border-hairline text-xs text-muted">
-            <LockIcon className="w-3.5 h-3.5 text-muted shrink-0" />
+          <div className="flex items-center gap-2 pt-2 border-t border-hairline text-[11px] text-muted">
+            <LockIcon className="w-3 h-3 text-muted shrink-0" />
             <span>{role.limitation}</span>
           </div>
         )}
