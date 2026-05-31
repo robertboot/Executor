@@ -441,12 +441,20 @@ function PermissionLevelsSection() {
       >
         {roles.map((r, idx) => (
           <div key={r.key} className="flex items-center flex-1 justify-center">
-            <div className="shrink-0 w-14 h-14 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center border border-gold-deep/20 shadow-card">
+            <div
+              className="shrink-0 w-16 h-16 rounded-full text-gold-deep flex items-center justify-center border border-gold-deep/25 [&_svg]:w-7 [&_svg]:h-7"
+              style={{
+                background:
+                  'radial-gradient(circle at 32% 28%, #F8EBCC 0%, #EDD9A6 55%, #D9B97A 100%)',
+                boxShadow:
+                  'inset 0 1px 2px rgba(255,255,255,0.7), 0 2px 6px rgba(180,140,55,0.18)',
+              }}
+            >
               {r.icon}
             </div>
             {idx < roles.length - 1 && (
-              <div className="flex-1 mx-2 h-px bg-gold-deep/30 relative">
-                <ArrowHead className="absolute right-0 top-1/2 -translate-y-1/2 text-gold-deep/50" />
+              <div className="flex-1 mx-3 h-px bg-gold-deep/35 relative">
+                <ArrowHead className="absolute right-0 top-1/2 -translate-y-1/2 text-gold-deep/60" />
               </div>
             )}
           </div>
@@ -467,10 +475,18 @@ function PermissionLevelsSection() {
 
       {/* Footer audit note */}
       <div className="flex items-start gap-3 pt-4">
-        <span className="shrink-0 w-9 h-9 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
-          <ShieldIcon className="w-4 h-4" />
+        <span
+          className="shrink-0 w-10 h-10 rounded-full text-gold-deep flex items-center justify-center border border-gold-deep/25 [&_svg]:w-5 [&_svg]:h-5"
+          style={{
+            background:
+              'radial-gradient(circle at 32% 28%, #F8EBCC 0%, #EDD9A6 55%, #D9B97A 100%)',
+            boxShadow:
+              'inset 0 1px 2px rgba(255,255,255,0.7), 0 1px 3px rgba(180,140,55,0.15)',
+          }}
+        >
+          <ShieldIcon />
         </span>
-        <p className="text-sm text-muted leading-relaxed pt-1.5">
+        <p className="text-sm text-muted leading-relaxed pt-2">
           All actions are logged and can be reviewed in the activity
           history.
         </p>
@@ -502,7 +518,15 @@ function RoleCard({ role }: { role: RoleSpec }) {
       <div className="p-5 sm:p-6 space-y-5 flex-1 flex flex-col">
         {/* Header: icon + title + badge */}
         <div className="flex items-center gap-3">
-          <span className="shrink-0 w-12 h-12 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center border border-gold-deep/15">
+          <span
+            className="shrink-0 w-14 h-14 rounded-full text-gold-deep flex items-center justify-center border border-gold-deep/25 [&_svg]:w-6 [&_svg]:h-6"
+            style={{
+              background:
+                'radial-gradient(circle at 32% 28%, #F8EBCC 0%, #EDD9A6 55%, #D9B97A 100%)',
+              boxShadow:
+                'inset 0 1px 2px rgba(255,255,255,0.7), 0 2px 5px rgba(180,140,55,0.15)',
+            }}
+          >
             {role.icon}
           </span>
           <div className="min-w-0">
@@ -641,8 +665,16 @@ function PermissionMatrix() {
 
   return (
     <div className="bg-paper border border-hairline rounded-2xl shadow-card overflow-hidden">
-      <div className="p-5 sm:p-6 flex items-center gap-3 border-b border-hairline">
-        <span className="shrink-0 w-9 h-9 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+      <div className="px-5 sm:px-7 py-5 flex items-center gap-3 border-b border-hairline">
+        <span
+          className="shrink-0 w-11 h-11 rounded-full text-gold-deep flex items-center justify-center border border-gold-deep/25"
+          style={{
+            background:
+              'radial-gradient(circle at 32% 28%, #F8EBCC 0%, #EDD9A6 55%, #D9B97A 100%)',
+            boxShadow:
+              'inset 0 1px 2px rgba(255,255,255,0.7), 0 1px 3px rgba(180,140,55,0.15)',
+          }}
+        >
           <ScalesIcon />
         </span>
         <h3 className="font-serif text-2xl text-ink">Permission Comparison</h3>
@@ -652,9 +684,9 @@ function PermissionMatrix() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-hairline">
-              <th className="w-1/3 text-left py-3 px-4 sm:px-6" />
+              <th className="w-2/5 text-left py-4 px-4 sm:px-6" />
               {columns.map((c) => (
-                <th key={c.label} className="text-center py-3 px-2 sm:px-4">
+                <th key={c.label} className="text-center py-4 px-2 sm:px-4">
                   <div className="flex flex-col items-center gap-1.5">
                     <span className="text-gold-deep">{c.icon}</span>
                     <span className="font-serif text-base text-ink">
@@ -666,23 +698,21 @@ function PermissionMatrix() {
             </tr>
           </thead>
           <tbody>
-            {caps.map((cap, idx) => (
+            {caps.map((cap) => (
               <tr
                 key={cap.key}
-                className={
-                  idx % 2 === 0
-                    ? 'bg-cream-soft/30 border-b border-hairline last:border-b-0'
-                    : 'border-b border-hairline last:border-b-0'
-                }
+                className="border-b border-hairline last:border-b-0"
               >
-                <td className="py-3 px-4 sm:px-6">
-                  <span className="flex items-center gap-2 text-ink">
-                    <span className="text-muted">{cap.icon}</span>
+                <td className="py-3.5 px-4 sm:px-6">
+                  <span className="flex items-center gap-3 text-ink">
+                    <span className="text-gold-deep shrink-0">
+                      {cap.icon}
+                    </span>
                     <span>{cap.label}</span>
                   </span>
                 </td>
                 {cap.granted.map((granted, i) => (
-                  <td key={i} className="text-center py-3 px-2">
+                  <td key={i} className="text-center py-3.5 px-2">
                     <Mark granted={granted} />
                   </td>
                 ))}
@@ -698,14 +728,14 @@ function PermissionMatrix() {
 function Mark({ granted }: { granted: boolean }) {
   if (granted) {
     return (
-      <span className="inline-flex w-6 h-6 rounded-full bg-forest text-cream items-center justify-center">
-        <CheckIcon className="w-3.5 h-3.5" />
+      <span className="inline-flex w-7 h-7 rounded-full bg-forest text-cream items-center justify-center">
+        <CheckIcon className="w-4 h-4" />
       </span>
     );
   }
   return (
     <span
-      className="inline-block w-3 h-0.5 rounded bg-gold-deep/40"
+      className="inline-block w-4 h-0.5 rounded bg-gold-deep/45"
       aria-label="Not granted"
     />
   );
@@ -758,7 +788,10 @@ function UserPlusIcon({ className }: { className?: string }) {
 }
 
 function PeopleIcon() {
-  return svg('M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM15 14h2c2.2 0 4 1.8 4 4');
+  return svg(
+    'M8 8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6zM16 8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6zM3 19c0-3 2.2-5 5-5s5 2 5 5M11 19c0-3 2.2-5 5-5s5 2 5 5',
+    16,
+  );
 }
 
 function ArchiveIcon() {
@@ -794,7 +827,9 @@ function ShieldIcon({ className }: { className?: string }) {
 }
 
 function EyeIcon() {
-  return svg('M1.5 12s4-7 10.5-7 10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z');
+  return svg(
+    'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
+  );
 }
 
 function PencilIcon({ className }: { className?: string }) {
@@ -803,7 +838,7 @@ function PencilIcon({ className }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.7"
+      strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -811,14 +846,17 @@ function PencilIcon({ className }: { className?: string }) {
       height={18}
       aria-hidden="true"
     >
-      <path d="M3 21l3-1 12-12-3-3L3 18z" />
-      <path d="M15 5l3 3" />
+      <path d="M3 21l1.5-4L17 4.5a2.5 2.5 0 0 1 3 3L7.5 20z" />
+      <path d="M14 7.5l3 3" />
+      <path d="M3 21l4-1.5" />
     </svg>
   );
 }
 
 function CrownIcon() {
-  return svg('M3 18h18M5 18l-1-9 5 4 3-6 3 6 5-4-1 9');
+  return svg(
+    'M3 19h18M4 8l4 4 4-8 4 8 4-4-1 11H5z',
+  );
 }
 
 
@@ -842,67 +880,79 @@ function CheckIcon({ className }: { className?: string }) {
 }
 
 function ImageIcon() {
-  return svg('M4 4h16v16H4zM4 16l4-4 4 4 4-4 4 4M9 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z', 16);
+  return svg(
+    'M3 5h18v14H3zM8 11a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM3 17l5-5 4 4 3-3 6 6',
+    16,
+  );
 }
 
 function BookIcon() {
   return svg(
-    'M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3zM4 17a3 3 0 0 1 3-3h11',
+    'M12 6v15M3 5a3 3 0 0 1 3-3h6v19H6a3 3 0 0 0-3 3zM21 5a3 3 0 0 0-3-3h-6v19h6a3 3 0 0 1 3 3z',
     16,
   );
 }
 
 function BadgeIcon() {
   return svg(
-    'M12 2l3 3 4-1-1 4 3 3-3 3 1 4-4-1-3 3-3-3-4 1 1-4-3-3 3-3-1-4 4 1z',
+    'M12 3l2.5 5.5L20 9.5l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-1z',
     16,
   );
 }
 
 function ArchiveColumnIcon() {
   return svg(
-    'M3 21h18M5 21V10M19 21V10M9 21v-8M15 21v-8M3 10h18l-9-7z',
+    'M3 9l9-5 9 5M3 9h18M3 20h18M6 9v11M9.5 9v11M14.5 9v11M18 9v11',
     18,
   );
 }
 
 function PlusCircleIcon() {
+  return svg('M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8 12h8M12 8v8', 16);
+}
+
+function TrashIcon() {
   return svg(
-    'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8 12h8M12 8v8',
+    'M4 7h16M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3M6 7l1.2 13a2 2 0 0 0 2 1.8h5.6a2 2 0 0 0 2-1.8L18 7M10 11v6M14 11v6',
     16,
   );
 }
 
-function TrashIcon() {
-  return svg('M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6', 16);
-}
-
 function FolderIcon() {
-  return svg('M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 16);
+  return svg(
+    'M3 8a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+    16,
+  );
 }
 
 function ClockIcon() {
-  return svg('M12 7v5l3 2M5 12a7 7 0 1 0 14 0 7 7 0 0 0-14 0z', 16);
+  return svg(
+    'M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0zM12 7v5l3.5 2',
+    16,
+  );
 }
 
 function DownloadIcon() {
-  return svg('M12 4v12M6 12l6 6 6-6M5 20h14', 16);
+  return svg('M12 3v13M6 11l6 5 6-5M4 21h16', 16);
 }
 
 function RotateIcon() {
-  return svg('M4 4v6h6M20 14a8 8 0 0 1-14.93 2.5', 16);
+  return svg(
+    'M3 4v6h6M3.5 10A9 9 0 1 1 4.5 16',
+    16,
+  );
 }
 
 function KeyIcon() {
   return svg(
-    'M8 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 12l10-10M15 6l3 3M18 4l2 2',
+    'M8 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 12l10-10M16 4l3 3',
     16,
   );
 }
 
 function ScalesIcon() {
   return svg(
-    'M12 4v17M5 21h14M6 8l-3 8h6zM18 8l3 8h-6zM12 4l-6 4M12 4l6 4',
+    'M12 3v18M5 21h14M9 6h6M5 6L2 14a4 4 0 0 0 8 0zM19 6l3 8a4 4 0 0 1-8 0z',
     18,
   );
 }
