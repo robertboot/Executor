@@ -542,18 +542,18 @@ function RoleCard({ role }: { role: RoleSpec }) {
         </div>
 
         {/* Best For */}
-        <div className="pt-2 border-t border-hairline">
-          <div className="text-[10px] uppercase tracking-widest text-muted">
-            Best for
-          </div>
-          <div className="flex items-center justify-between gap-2 mt-0.5">
-            <span className="font-serif text-sm text-ink leading-tight">
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-hairline">
+          <div className="min-w-0 text-sm leading-tight">
+            <span className="text-[10px] uppercase tracking-widest text-muted mr-1.5">
+              Best for
+            </span>
+            <span className="font-serif text-ink">
               {role.bestFor.label}
             </span>
-            <span className="text-gold-deep shrink-0" aria-hidden>
-              {role.bestFor.icon}
-            </span>
           </div>
+          <span className="text-gold-deep shrink-0" aria-hidden>
+            {role.bestFor.icon}
+          </span>
         </div>
 
         {/* Abilities */}
