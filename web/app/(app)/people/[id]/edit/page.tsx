@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getPerson, personPhotoPublicUrl } from '@/lib/api';
-import { displayName, personInitials } from '@/lib/people';
+import { displayName } from '@/lib/people';
 import { updatePerson } from '../../actions';
+import AvatarPicker from '@/components/AvatarPicker';
 
 export const dynamic = 'force-dynamic';
 
@@ -143,37 +143,9 @@ export default async function EditPersonPage({ params }: PageProps) {
 
         <Field
           label="Profile photo"
-          hint="Optional. Upload a new file to replace the current one."
+          hint="Optional. Pinch, scroll, or drag to focus on the right person."
         >
-          <div className="space-y-3">
-            {photoUrl ? (
-              <div className="flex items-center gap-3">
-                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-cream-soft">
-                  <Image
-                    src={photoUrl}
-                    alt=""
-                    fill
-                    sizes="64px"
-                    className="object-cover"
-                  />
-                </div>
-                <div className="text-xs text-muted">Current photo</div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <div className="w-16 h-16 rounded-lg bg-gold-soft/60 flex items-center justify-center text-lg font-serif text-gold-deep">
-                  {personInitials(person)}
-                </div>
-                <div className="text-xs text-muted">No photo yet</div>
-              </div>
-            )}
-            <input
-              type="file"
-              name="profile_photo"
-              accept="image/jpeg,image/png,image/webp"
-              className="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-forest file:text-cream file:text-sm file:cursor-pointer hover:file:bg-forest-deep"
-            />
-          </div>
+          <AvatarPicker name="profile_photo" initialUrl={photoUrl} />
         </Field>
 
         <div className="flex items-center justify-between gap-3 pt-2">

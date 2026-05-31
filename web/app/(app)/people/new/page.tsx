@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createPerson } from '../actions';
+import AvatarPicker from '@/components/AvatarPicker';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,13 +96,11 @@ export default function NewPersonPage() {
           />
         </Field>
 
-        <Field label="Profile photo" hint="Optional. JPG or PNG, < 5 MB.">
-          <input
-            type="file"
-            name="profile_photo"
-            accept="image/jpeg,image/png,image/webp"
-            className="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-forest file:text-cream file:text-sm file:cursor-pointer hover:file:bg-forest-deep"
-          />
+        <Field
+          label="Profile photo"
+          hint="Optional. Pinch, scroll, or drag to focus on the right person."
+        >
+          <AvatarPicker name="profile_photo" />
         </Field>
 
         <div className="flex items-center justify-between gap-3 pt-2">

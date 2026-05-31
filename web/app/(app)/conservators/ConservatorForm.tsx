@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import AvatarPicker from '@/components/AvatarPicker';
 
 export interface ConservatorFormInitial {
   id?: string;
@@ -103,24 +104,11 @@ export default function ConservatorForm({
         />
       </Field>
 
-      <Field label="Profile photo" hint="Optional. JPG or PNG.">
-        {initialPhotoUrl && (
-          <div className="flex items-center gap-3 mb-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={initialPhotoUrl}
-              alt=""
-              className="w-14 h-14 rounded-full object-cover bg-cream-soft"
-            />
-            <div className="text-xs text-muted">Current photo</div>
-          </div>
-        )}
-        <input
-          type="file"
-          name="profile_photo"
-          accept="image/jpeg,image/png,image/webp"
-          className="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-forest file:text-cream file:text-sm file:cursor-pointer hover:file:bg-forest-deep"
-        />
+      <Field
+        label="Profile photo"
+        hint="Optional. Pinch, scroll, or drag to focus on the right person."
+      >
+        <AvatarPicker name="profile_photo" initialUrl={initialPhotoUrl} />
       </Field>
 
       <div className="flex items-center justify-between gap-3 pt-2">
