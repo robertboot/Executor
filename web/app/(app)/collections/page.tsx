@@ -45,8 +45,10 @@ interface CollectionRow {
 }
 
 interface PageProps {
-  searchParams: Promise<{ archetype?: string }>;
+  searchParams: Promise<{ archetype?: string; view?: string }>;
 }
+
+type ViewMode = 'grid' | 'list';
 
 export default async function CollectionsPage({ searchParams }: PageProps) {
   const user = await getCurrentUser();
@@ -83,6 +85,9 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
   const activeArchetype: ArchetypeDef =
     requestedDef ?? defaultDef ?? ARCHETYPES[0];
 
+  // View mode: default to compact list. Only 'grid' or 'list' are valid.
+  const view: ViewMode = params.view === 'grid' ? 'grid' : 'list';
+
   // Bucket map keyed by Core 12 key.
   const bucketByCore = new Map<string, CollectionBucket>();
   for (const b of buckets) bucketByCore.set(b.key, b);
@@ -113,12 +118,39 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
           itemCount={stats.itemCount}
           collectionCount={rows.length}
           isUserArchetype={profileArchetypeKey === activeArchetype.key}
+          view={view}
         />
 
         {rows.length === 0 && !hasUnselected && customCollections.length === 0 ? (
           <EmptyState />
+        ) : view === 'grid' ? (
+          <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {rows.map((row) => (
+              <li key={row.subKey}>
+                <CollectionGridCard row={row} />
+              </li>
+            ))}
+            {customCollections.map((c) => {
+              const bucket = bucketByCore.get(c.id) ?? null;
+              return (
+                <li key={c.id}>
+                  <CustomCollectionGridCard
+                    collection={c}
+                    itemCount={bucket?.itemCount ?? 0}
+                    totalValue={bucket?.totalValue ?? 0}
+                    totalCurrency={bucket?.totalCurrency ?? 'USD'}
+                  />
+                </li>
+              );
+            })}
+            {hasUnselected && (
+              <li>
+                <AddCollectionGridCard archetypeKey={activeArchetype.key} />
+              </li>
+            )}
+          </ul>
         ) : (
-          <ul className="space-y-4">
+          <ul className="space-y-3">
             {rows.map((row) => (
               <li key={row.subKey}>
                 <CollectionRowCard
@@ -240,11 +272,13 @@ function MainHeader({
   itemCount,
   collectionCount,
   isUserArchetype,
+  view,
 }: {
   archetype: ArchetypeDef;
   itemCount: number;
   collectionCount: number;
   isUserArchetype: boolean;
+  view: ViewMode;
 }) {
   return (
     <header className="space-y-3">
@@ -264,7 +298,7 @@ function MainHeader({
             {collectionCount === 1 ? 'Collection' : 'Collections'}
           </div>
         </div>
-        <ViewToggle />
+        <ViewToggle archetypeKey={archetype.key} view={view} />
       </div>
       <form action="/search" method="get" className="max-w-xl">
         <label className="relative block">
@@ -284,23 +318,41 @@ function MainHeader({
   );
 }
 
-function ViewToggle() {
+function ViewToggle({
+  archetypeKey,
+  view,
+}: {
+  archetypeKey: OnboardingArchetype;
+  view: ViewMode;
+}) {
+  const hrefFor = (v: ViewMode) =>
+    `/collections?archetype=${encodeURIComponent(archetypeKey)}&view=${v}`;
+  const cls = (active: boolean) =>
+    `px-3 h-9 flex items-center justify-center transition-colors ${
+      active
+        ? 'text-gold-deep bg-gold-soft'
+        : 'text-muted hover:text-ink hover:bg-cream-soft'
+    }`;
   return (
     <div className="inline-flex items-center bg-paper border border-hairline rounded-lg overflow-hidden">
-      <button
-        type="button"
-        className="px-3 h-9 text-gold-deep bg-gold-soft"
+      <Link
+        href={hrefFor('grid')}
+        prefetch={false}
+        className={cls(view === 'grid')}
         aria-label="Grid view"
+        aria-pressed={view === 'grid'}
       >
         <GridIcon className="w-4 h-4" />
-      </button>
-      <button
-        type="button"
-        className="px-3 h-9 text-muted hover:text-ink"
+      </Link>
+      <Link
+        href={hrefFor('list')}
+        prefetch={false}
+        className={cls(view === 'list')}
         aria-label="List view"
+        aria-pressed={view === 'list'}
       >
         <ListIcon className="w-4 h-4" />
-      </button>
+      </Link>
     </div>
   );
 }
@@ -312,39 +364,35 @@ function CollectionRowCard({
   row: CollectionRow;
   archetypeKey: OnboardingArchetype;
 }) {
+  const href = `/collections/${encodeURIComponent(row.coreKey)}?sub=${encodeURIComponent(row.subKey)}`;
   return (
     <article className="bg-paper border border-hairline rounded-2xl overflow-hidden">
-      <div className="flex flex-col lg:flex-row">
+      <div className="flex items-stretch">
+        {/* Rectangle thumbnail — always horizontal, fixed width per breakpoint */}
         <Link
-          href={`/collections/${encodeURIComponent(row.coreKey)}?sub=${encodeURIComponent(row.subKey)}`}
-          className="relative w-full lg:w-56 shrink-0 aspect-square bg-cream-soft overflow-hidden group"
+          href={href}
+          className="relative shrink-0 w-28 sm:w-36 lg:w-44 bg-cream-soft overflow-hidden group"
         >
-          {/* Outer wrapper owns the hover zoom so it stacks on top
-              of the per-row base zoom applied to the image itself. */}
-          <div
-            className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
-            style={{ transformOrigin: '100% 50%' }}
-          >
-            <Image
-              src={row.heroImage}
-              alt=""
-              fill
-              sizes="(max-width: 1024px) 100vw, 224px"
-              className="object-cover object-right"
-              style={{
-                transform: row.heroZoom !== 1 ? `scale(${row.heroZoom})` : undefined,
-                transformOrigin: '100% 50%',
-              }}
-            />
-          </div>
+          <Image
+            src={row.heroImage}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 112px, (max-width: 1024px) 144px, 176px"
+            className="object-cover object-right transition-transform duration-500 group-hover:scale-105"
+            style={{
+              transform: row.heroZoom !== 1 ? `scale(${row.heroZoom})` : undefined,
+              transformOrigin: '100% 50%',
+            }}
+          />
         </Link>
 
-        <div className="p-5 lg:w-64 shrink-0 border-b lg:border-b-0 lg:border-r border-hairline flex flex-col justify-between gap-3">
-          <div>
-            <h3 className="font-serif text-xl text-ink leading-tight">
+        {/* Meta — title + count + description + actions */}
+        <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col justify-between gap-2">
+          <div className="min-w-0">
+            <h3 className="font-serif text-base sm:text-lg text-ink leading-tight truncate">
               {row.label}
             </h3>
-            <div className="text-xs text-muted mt-1">
+            <div className="text-xs text-muted mt-0.5">
               {row.itemCount} {row.itemCount === 1 ? 'Item' : 'Items'}
               {row.totalValue > 0 && (
                 <>
@@ -354,15 +402,15 @@ function CollectionRowCard({
               )}
             </div>
             {row.description && (
-              <p className="text-sm text-ink-soft mt-2 leading-snug">
+              <p className="text-xs sm:text-sm text-ink-soft mt-1 leading-snug line-clamp-2">
                 {row.description}
               </p>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <Link
-              href={`/collections/${encodeURIComponent(row.coreKey)}?sub=${encodeURIComponent(row.subKey)}`}
-              className="inline-flex items-center px-4 h-9 rounded-lg border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors"
+              href={href}
+              className="inline-flex items-center px-3 h-8 rounded-lg border border-ink/20 text-ink text-xs sm:text-sm font-medium hover:border-ink/40 transition-colors"
             >
               View Collection
             </Link>
@@ -372,24 +420,140 @@ function CollectionRowCard({
                 <input type="hidden" name="archetype" value={archetypeKey} />
                 <button
                   type="submit"
-                  className="text-xs text-muted hover:text-red-700 underline"
+                  className="text-[11px] text-muted hover:text-red-700 underline"
                 >
-                  Remove collection
+                  Remove
                 </button>
               </form>
             )}
           </div>
         </div>
 
-        <div className="flex-1 min-w-0 p-5">
-          <SampleItems
-            samples={row.sampleItems}
-            coreKey={row.coreKey}
-          />
+        {/* Sample items rail — lg only, otherwise the row gets too dense */}
+        <div className="hidden lg:flex shrink-0 border-l border-hairline p-4 w-72 xl:w-96">
+          <SampleItems samples={row.sampleItems} coreKey={row.coreKey} />
         </div>
       </div>
     </article>
   );
+}
+
+// =============================================================== //
+//  Grid view cards                                                 //
+// =============================================================== //
+
+function CollectionGridCard({ row }: { row: CollectionRow }) {
+  const href = `/collections/${encodeURIComponent(row.coreKey)}?sub=${encodeURIComponent(row.subKey)}`;
+  return (
+    <Link
+      href={href}
+      className="group block bg-paper border border-hairline rounded-2xl overflow-hidden hover:shadow-card transition-shadow h-full"
+    >
+      <div className="relative aspect-[4/3] bg-cream-soft overflow-hidden">
+        <Image
+          src={row.heroImage}
+          alt=""
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover object-right transition-transform duration-500 group-hover:scale-105"
+          style={{
+            transform: row.heroZoom !== 1 ? `scale(${row.heroZoom})` : undefined,
+            transformOrigin: '100% 50%',
+          }}
+        />
+      </div>
+      <div className="p-3">
+        <h3 className="font-serif text-base text-ink leading-tight truncate">
+          {row.label}
+        </h3>
+        <div className="text-xs text-muted mt-0.5">
+          {row.itemCount} {row.itemCount === 1 ? 'Item' : 'Items'}
+          {row.totalValue > 0 && (
+            <>
+              <span className="mx-1">·</span>
+              {formatMoney(row.totalValue, row.totalCurrency)}
+            </>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function CustomCollectionGridCard({
+  collection,
+  itemCount,
+  totalValue,
+  totalCurrency,
+}: {
+  collection: CustomCollectionWithStats;
+  itemCount: number;
+  totalValue: number;
+  totalCurrency: string;
+}) {
+  return (
+    <Link
+      href={`/collections/${collection.id}?custom=1`}
+      className="group block bg-paper border border-hairline rounded-2xl overflow-hidden hover:shadow-card transition-shadow h-full"
+    >
+      <div className="relative aspect-[4/3] bg-gold-soft/40 overflow-hidden flex items-center justify-center">
+        {collection.imageUrl ? (
+          <Image
+            src={collection.imageUrl}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <span className="text-3xl text-gold-deep">📦</span>
+        )}
+      </div>
+      <div className="p-3">
+        <h3 className="font-serif text-base text-ink leading-tight truncate">
+          {collection.name}
+        </h3>
+        <div className="text-xs text-muted mt-0.5">
+          {itemCount} {itemCount === 1 ? 'Item' : 'Items'}
+          {totalValue > 0 && (
+            <>
+              <span className="mx-1">·</span>
+              {formatMoney(totalValue, totalCurrency)}
+            </>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function AddCollectionGridCard({
+  archetypeKey,
+}: {
+  archetypeKey: OnboardingArchetype;
+}) {
+  return (
+    <Link
+      href={`/collections/add/${archetypeKey}`}
+      className="group block bg-paper border border-dashed border-hairline rounded-2xl overflow-hidden hover:border-forest/40 transition-colors h-full"
+    >
+      <div className="relative aspect-[4/3] bg-cream-soft flex items-center justify-center text-gold-deep">
+        <PlusIcon className="w-8 h-8" />
+      </div>
+      <div className="p-3">
+        <h3 className="font-serif text-base text-ink leading-tight">
+          Add Collection
+        </h3>
+        <div className="text-xs text-muted mt-0.5">
+          Pick more from {labelOf(archetypeKey)}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function labelOf(key: OnboardingArchetype): string {
+  return findArchetype(key)?.title ?? '';
 }
 
 function SampleItems({
