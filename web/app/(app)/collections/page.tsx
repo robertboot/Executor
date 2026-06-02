@@ -444,6 +444,12 @@ function CollectionRowCard({
 
 function CollectionGridCard({ row }: { row: CollectionRow }) {
   const href = `/collections/${encodeURIComponent(row.coreKey)}?sub=${encodeURIComponent(row.subKey)}`;
+  // Grid tiles are narrower than the source hero images, so the
+  // left-edge gradient on each hero pokes into the visible area at
+  // 1:1. Bake an extra 1.45x zoom on top of the per-row heroZoom so
+  // the image always overflows the left edge of the 4:3 tile and
+  // the gradient stays hidden behind the bezel.
+  const gridScale = (row.heroZoom || 1) * 1.45;
   return (
     <Link
       href={href}
@@ -457,7 +463,7 @@ function CollectionGridCard({ row }: { row: CollectionRow }) {
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className="object-cover object-right transition-transform duration-500 group-hover:scale-105"
           style={{
-            transform: row.heroZoom !== 1 ? `scale(${row.heroZoom})` : undefined,
+            transform: `scale(${gridScale})`,
             transformOrigin: '100% 50%',
           }}
         />
