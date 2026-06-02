@@ -1,85 +1,72 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
-export default function LoginForm({ next }: { next?: string }) {
+export default function ResetPasswordForm() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (password !== confirm) {
+      setError('Passwords do not match.');
+      return;
+    }
+    if (password.length < 8) {
+      setError('Use at least 8 characters for your password.');
+      return;
+    }
     const supabase = createSupabaseBrowserClient();
     startTransition(async () => {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error } = await supabase.auth.updateUser({ password });
       if (error) {
         setError(error.message);
         return;
       }
-      router.replace(next || '/home');
+      router.replace('/home');
       router.refresh();
     });
   }
 
-  const forgotHref = `/forgot-password${
-    email ? `?email=${encodeURIComponent(email)}` : ''
-  }`;
-  const signupHref = `/signup${
-    next ? `?next=${encodeURIComponent(next)}` : ''
-  }`;
-
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
       <label className="text-xs font-medium text-ink-soft uppercase tracking-wide">
-        Email
-        <input
-          type="email"
-          required
-          autoComplete="email"
-          autoCapitalize="none"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 w-full h-11 px-3 rounded-lg bg-cream-soft border border-hairline text-ink text-sm focus:outline-none focus:ring-2 focus:ring-forest focus:border-forest"
-          placeholder="you@example.com"
-        />
-      </label>
-      <label className="text-xs font-medium text-ink-soft uppercase tracking-wide">
-        Password
+        New password
         <input
           type="password"
           required
-          autoComplete="current-password"
+          autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="mt-1 w-full h-11 px-3 rounded-lg bg-cream-soft border border-hairline text-ink text-sm focus:outline-none focus:ring-2 focus:ring-forest focus:border-forest"
-          placeholder="••••••••"
+          placeholder="At least 8 characters"
+        />
+      </label>
+      <label className="text-xs font-medium text-ink-soft uppercase tracking-wide">
+        Confirm password
+        <input
+          type="password"
+          required
+          autoComplete="new-password"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          className="mt-1 w-full h-11 px-3 rounded-lg bg-cream-soft border border-hairline text-ink text-sm focus:outline-none focus:ring-2 focus:ring-forest focus:border-forest"
         />
       </label>
       {error && <p className="text-sm text-red-700">{error}</p>}
       <Button
         type="submit"
-        disabled={pending || email.length < 3 || password.length < 6}
+        disabled={pending || password.length < 8 || !confirm}
       >
-        {pending ? 'Signing in…' : 'Sign in'}
+        {pending ? 'Saving…' : 'Save and sign in'}
       </Button>
-      <div className="flex items-center justify-between text-xs pt-1">
-        <Link href={signupHref} className="text-forest hover:underline">
-          Create an account
-        </Link>
-        <Link href={forgotHref} className="text-forest hover:underline">
-          Forgot password?
-        </Link>
-      </div>
     </form>
   );
 }

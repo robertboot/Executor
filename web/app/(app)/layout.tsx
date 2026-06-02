@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import Logo from '@/components/Logo';
 import PullToRefresh from '@/components/PullToRefresh';
 import FooterNav from '@/components/FooterNav';
 import { getCurrentUser } from '@/lib/supabase/server';
+import { WELCOME_COOKIE } from '@/app/welcome/cookie';
 import MobileNav from './MobileNav';
 import TopNav, { type NavItem } from './TopNav';
 
@@ -42,6 +44,14 @@ export default async function AppLayout({
 }) {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
+
+  // Cold-open splash: when the session cookie is missing, send the
+  // user to /welcome first. Dismissing it (via either splash CTA)
+  // sets the cookie, so in-session navigation falls through.
+  const cookieStore = await cookies();
+  if (!cookieStore.get(WELCOME_COOKIE)) {
+    redirect('/welcome');
+  }
 
   return (
     <>

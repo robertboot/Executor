@@ -25,24 +25,19 @@ async function LoginScreen({
         <div className="w-full bg-paper rounded-2xl shadow-card border border-hairline p-6">
           <h1 className="font-serif text-2xl text-ink mb-1">Welcome back</h1>
           <p className="text-sm text-muted mb-5">
-            Sign in with a one-time magic link. We&rsquo;ll email it to you.
+            Sign in with your email and password.
           </p>
 
           <LoginForm next={params.next} />
 
-          {params.sent === '1' && (
-            <p className="mt-4 text-sm text-forest">
-              Check your inbox — the magic link should arrive in under a minute.
-            </p>
-          )}
           {params.error && (
             <p className="mt-4 text-sm text-red-700">{params.error}</p>
           )}
         </div>
 
         <p className="text-xs text-muted text-center max-w-xs">
-          Heirloom is invite-only while we build. Signing in with an
-          unrecognized email creates an account automatically.
+          New to Heirloom? Create an account above. Forgotten your
+          password? Use the reset link and we&rsquo;ll email you one.
         </p>
       </div>
     </div>
