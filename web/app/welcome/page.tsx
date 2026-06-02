@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/supabase/server';
 import { APP_VERSION } from '@/lib/version';
 import { ARCHETYPES } from '@/lib/onboarding';
-import { dismissWelcome } from './actions';
+import DismissCTA from './DismissCTA';
 import InstallSection from './InstallSection';
 
 export const metadata = { title: 'Welcome — Heirloom' };
@@ -85,15 +85,12 @@ export default async function WelcomePage() {
 
         {/* Primary CTA + secondary link */}
         <div className="mt-7 flex flex-col items-center gap-4">
-          <form action={dismissWelcome} className="w-full max-w-sm">
-            <input type="hidden" name="dest" value="/home" />
-            <button
-              type="submit"
-              className="w-full h-14 rounded-xl bg-forest text-cream text-base font-medium hover:bg-forest-deep transition-colors shadow-card"
-            >
-              Begin Your Archive
-            </button>
-          </form>
+          <DismissCTA
+            dest="/home"
+            className="w-full max-w-sm h-14 rounded-xl bg-forest text-cream text-base font-medium hover:bg-forest-deep transition-colors shadow-card disabled:opacity-60"
+          >
+            Begin Your Archive
+          </DismissCTA>
           <a
             href="#install"
             className="text-sm font-medium text-forest hover:text-forest-deep inline-flex items-center gap-1"
@@ -148,29 +145,19 @@ export default async function WelcomePage() {
               </p>
             </div>
             <div className="shrink-0 flex flex-col gap-2 w-full sm:w-auto">
-              <form action={dismissWelcome}>
-                <input
-                  type="hidden"
-                  name="dest"
-                  value="/collections"
-                />
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto inline-flex items-center justify-center px-4 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
-                >
-                  Create Collection
-                </button>
-              </form>
-              <form action={dismissWelcome}>
-                <input type="hidden" name="dest" value="/scan" />
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 h-11 rounded-lg border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors"
-                >
-                  <ScanIcon />
-                  Scan Item
-                </button>
-              </form>
+              <DismissCTA
+                dest="/collections"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-4 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors disabled:opacity-60"
+              >
+                Create Collection
+              </DismissCTA>
+              <DismissCTA
+                dest="/scan"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 h-11 rounded-lg border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors disabled:opacity-60"
+              >
+                <ScanIcon />
+                Scan Item
+              </DismissCTA>
             </div>
           </div>
         </section>
