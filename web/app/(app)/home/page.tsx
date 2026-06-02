@@ -463,11 +463,11 @@ function SubCatVisualCard({
   subCat: SubCategory;
   itemCount: number;
 }) {
-  // Mirror the Collections grid tile: right-anchored crop at 1.5x
-  // baked zoom (on top of any per-sub-cat thumbZoom / homeZoom),
-  // 4:3 image up top, title + count beneath on a paper card.
-  const baseZoom = subCat.homeZoom ?? subCat.thumbZoom ?? 1;
-  const gridScale = baseZoom * 1.5;
+  // Mirror the Collections grid tile: right-anchored crop, 4:3
+  // image up top, title + count beneath on a paper card. Use the
+  // per-sub-cat thumbZoom (or homeZoom override) as-is so we don't
+  // upscale the bitmap past native resolution and softfen the image.
+  const gridScale = subCat.homeZoom ?? subCat.thumbZoom ?? 1;
   return (
     <Link
       href={`/collections/${encodeURIComponent(subCat.parent)}?sub=${encodeURIComponent(subCat.key)}`}
