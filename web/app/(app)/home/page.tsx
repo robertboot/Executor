@@ -390,35 +390,37 @@ function YourCollections({
             View all →
           </Link>
         </div>
-        <ul className="grid grid-cols-2 gap-3">
+        <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {fallbackStats.slice(0, 4).map((c) => {
             const preset = findCategory(c.key);
             return (
               <li key={c.key}>
                 <Link
                   href={`/collections/${encodeURIComponent(c.key)}`}
-                  className="flex flex-col items-center bg-paper border border-hairline rounded-xl p-3 hover:shadow-card transition-shadow"
+                  className="group block bg-paper border border-hairline rounded-2xl overflow-hidden hover:shadow-card transition-shadow h-full"
                 >
-                  <div className="w-full aspect-square relative">
+                  <div className="relative aspect-[4/3] bg-cream-soft overflow-hidden flex items-center justify-center">
                     {preset?.iconUrl ? (
                       <Image
                         src={preset.iconUrl}
                         alt=""
                         fill
-                        sizes="120px"
-                        className="object-contain"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="absolute inset-0 flex items-center justify-center text-5xl">
+                      <span className="text-5xl text-gold-deep">
                         {preset?.glyph ?? '◇'}
-                      </div>
+                      </span>
                     )}
                   </div>
-                  <div className="text-xs font-medium text-ink mt-2 text-center">
-                    {c.label}
-                  </div>
-                  <div className="text-[10px] text-muted">
-                    {c.itemCount} {c.itemCount === 1 ? 'piece' : 'pieces'}
+                  <div className="p-3">
+                    <h3 className="font-serif text-base text-ink leading-tight truncate">
+                      {c.label}
+                    </h3>
+                    <div className="text-xs text-muted mt-0.5">
+                      {c.itemCount} {c.itemCount === 1 ? 'Item' : 'Items'}
+                    </div>
                   </div>
                 </Link>
               </li>
@@ -461,53 +463,35 @@ function SubCatVisualCard({
   subCat: SubCategory;
   itemCount: number;
 }) {
-  // Crop the light-left gradient out of the source image: anchor to
-  // the right edge and zoom aggressively so the cream half stays
-  // entirely off-screen. homeZoom wins outright when set; otherwise
-  // fall back to the max of thumbZoom and a 1.8 baseline.
-  const baseZoom =
-    subCat.homeZoom ?? Math.max(subCat.thumbZoom ?? 1, 1.8);
+  // Mirror the Collections grid tile: right-anchored crop at 1.5x
+  // baked zoom (on top of any per-sub-cat thumbZoom / homeZoom),
+  // 4:3 image up top, title + count beneath on a paper card.
+  const baseZoom = subCat.homeZoom ?? subCat.thumbZoom ?? 1;
+  const gridScale = baseZoom * 1.5;
   return (
     <Link
       href={`/collections/${encodeURIComponent(subCat.parent)}?sub=${encodeURIComponent(subCat.key)}`}
-      className="group relative block aspect-[5/3] overflow-hidden rounded-xl border border-hairline shadow-card"
+      className="group block bg-paper border border-hairline rounded-2xl overflow-hidden hover:shadow-card transition-shadow h-full"
     >
-      <div
-        className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
-        style={{ transformOrigin: '100% 50%' }}
-      >
+      <div className="relative aspect-[4/3] bg-cream-soft overflow-hidden">
         <Image
           src={subCat.bgImage}
           alt=""
           fill
-          sizes="(max-width: 1024px) 50vw, 320px"
-          className="object-cover object-right"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover object-right transition-transform duration-500 group-hover:scale-105"
           style={{
-            transform: `scale(${baseZoom})`,
+            transform: `scale(${gridScale})`,
             transformOrigin: '100% 50%',
           }}
         />
       </div>
-      {/* Light bottom darkening just for text legibility. */}
-      <div
-        className="absolute inset-x-0 bottom-0 h-3/5 pointer-events-none"
-        style={{
-          background:
-            'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.2) 55%, rgba(0,0,0,0) 100%)',
-        }}
-        aria-hidden="true"
-      />
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-4 text-cream">
-        {archetypeForSubCategory(subCat.key) && (
-          <div className="text-[10px] uppercase tracking-widest opacity-80 mb-0.5 drop-shadow-sm">
-            {archetypeForSubCategory(subCat.key)!.title}
-          </div>
-        )}
-        <h3 className="font-serif text-lg sm:text-xl leading-tight drop-shadow-sm">
+      <div className="p-3">
+        <h3 className="font-serif text-base text-ink leading-tight truncate">
           {subCat.label}
         </h3>
-        <div className="text-xs opacity-90 mt-0.5 drop-shadow-sm">
-          {itemCount} {itemCount === 1 ? 'item' : 'items'}
+        <div className="text-xs text-muted mt-0.5">
+          {itemCount} {itemCount === 1 ? 'Item' : 'Items'}
         </div>
       </div>
     </Link>
