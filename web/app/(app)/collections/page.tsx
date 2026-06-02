@@ -149,15 +149,6 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
           </ul>
         )}
       </main>
-
-      <Link
-        href="/items/new"
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 inline-flex items-center gap-2 pl-4 pr-5 h-12 sm:h-14 rounded-full bg-forest text-cream shadow-xl hover:bg-forest-deep transition-colors font-medium"
-        aria-label="Add a new piece"
-      >
-        <PlusIcon className="w-5 h-5" />
-        <span className="text-sm">Add piece</span>
-      </Link>
     </div>
   );
 }

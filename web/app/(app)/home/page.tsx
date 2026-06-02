@@ -79,9 +79,8 @@ export default async function HomePage() {
   );
 
   return (
-    <>
-      <div className="space-y-10 pb-24">
-        {/* Top row: header on the left, hero card on the right */}
+    <div className="space-y-10 pb-24">
+      {/* Top row: header on the left, hero card on the right */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <div className="lg:col-span-5 xl:col-span-4 space-y-4">
             <Header
@@ -121,16 +120,6 @@ export default async function HomePage() {
           {timeline.length > 0 && <Timeline entries={timeline} />}
         </div>
       </div>
-
-      <Link
-        href="/items/new"
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 inline-flex items-center gap-2 pl-4 pr-5 h-12 sm:h-14 rounded-full bg-forest text-cream shadow-xl hover:bg-forest-deep transition-colors font-medium"
-        aria-label="Add a new piece"
-      >
-        <PlusIcon className="w-5 h-5" />
-        <span className="text-sm">Add piece</span>
-      </Link>
-    </>
   );
 }
 

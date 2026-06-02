@@ -6,14 +6,14 @@ import { usePathname } from 'next/navigation';
 type Tab = {
   href: string;
   label: string;
-  // Match the active state against any of these path prefixes so the
-  // Contributors tab lights up on /people, /inheritors, /conservators
-  // etc.
+  // Match active state against any of these path prefixes so the People
+  // tab lights up across /people, /inheritors, /conservators, and the
+  // /contributors hub.
   matches: string[];
   icon: (active: boolean) => React.ReactNode;
 };
 
-const TABS: Tab[] = [
+const LEFT_TABS: Tab[] = [
   {
     href: '/home',
     label: 'Home',
@@ -33,10 +33,13 @@ const TABS: Tab[] = [
       />
     ),
   },
+];
+
+const RIGHT_TABS: Tab[] = [
   {
-    href: '/contributors',
+    href: '/people',
     label: 'People',
-    matches: ['/contributors', '/people', '/inheritors', '/conservators'],
+    matches: ['/people', '/inheritors', '/conservators', '/contributors'],
     icon: (active) => (
       <Icon
         active={active}
@@ -47,57 +50,71 @@ const TABS: Tab[] = [
   {
     href: '/search',
     label: 'Search',
-    matches: ['/search'],
+    matches: ['/search', '/scan'],
     icon: (active) => (
       <Icon active={active} d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4" />
-    ),
-  },
-  {
-    href: '/scan',
-    label: 'Scan',
-    matches: ['/scan'],
-    icon: (active) => (
-      <Icon
-        active={active}
-        d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M7 12h10"
-      />
     ),
   },
 ];
 
 export default function FooterNav() {
   const pathname = usePathname() ?? '';
+  const isActive = (matches: string[]) =>
+    matches.some((m) => pathname === m || pathname.startsWith(`${m}/`));
+
   return (
     <nav
       aria-label="Primary"
       className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-paper/95 backdrop-blur border-t border-hairline"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <ul className="grid grid-cols-5 h-16">
-        {TABS.map((t) => {
-          const active = t.matches.some(
-            (m) => pathname === m || pathname.startsWith(`${m}/`),
-          );
-          return (
-            <li key={t.href}>
-              <Link
-                href={t.href}
-                className={`h-full flex flex-col items-center justify-center gap-1 transition-colors ${
-                  active
-                    ? 'text-forest'
-                    : 'text-muted hover:text-ink'
-                }`}
-              >
-                {t.icon(active)}
-                <span className="text-[10px] font-medium tracking-wide">
-                  {t.label}
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="grid grid-cols-5 h-16 items-center">
+        {LEFT_TABS.map((t) => (
+          <TabLink key={t.href} tab={t} active={isActive(t.matches)} />
+        ))}
+
+        {/* Centered emphasized Add button — replaces the old floating FAB. */}
+        <div className="flex items-center justify-center">
+          <Link
+            href="/items/new"
+            aria-label="Add a new piece"
+            className="-mt-7 inline-flex items-center justify-center w-14 h-14 rounded-full bg-forest text-cream shadow-raised border-4 border-paper hover:bg-forest-deep transition-colors"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width={24}
+              height={24}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </Link>
+        </div>
+
+        {RIGHT_TABS.map((t) => (
+          <TabLink key={t.href} tab={t} active={isActive(t.matches)} />
+        ))}
+      </div>
     </nav>
+  );
+}
+
+function TabLink({ tab, active }: { tab: Tab; active: boolean }) {
+  return (
+    <Link
+      href={tab.href}
+      className={`h-full flex flex-col items-center justify-center gap-1 transition-colors ${
+        active ? 'text-forest' : 'text-muted hover:text-ink'
+      }`}
+    >
+      {tab.icon(active)}
+      <span className="text-[10px] font-medium tracking-wide">{tab.label}</span>
+    </Link>
   );
 }
 
