@@ -25,7 +25,7 @@ export default async function WelcomePage() {
           }}
         >
           <Image
-            src="/welcome-hero.png"
+            src="/legacy-people-hero.png"
             alt=""
             fill
             sizes="100vw"
