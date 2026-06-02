@@ -445,12 +445,12 @@ function CollectionRowCard({
 function CollectionGridCard({ row }: { row: CollectionRow }) {
   const href = `/collections/${encodeURIComponent(row.coreKey)}?sub=${encodeURIComponent(row.subKey)}`;
   // Grid tiles crop from the left edge of the hero image. Bake a
-  // 2.3x zoom on top of the per-row heroZoom, anchored to the left
+  // 3.0x zoom on top of the per-row heroZoom, anchored to the left
   // (transformOrigin 0% 50%), so the left side of the source stays
   // pinned to the left side of the tile and the right side (where
-  // the gradient lives on most hero compositions) gets pushed
+  // the gradient lives on most hero compositions) gets pushed well
   // outside the visible frame.
-  const gridScale = (row.heroZoom || 1) * 2.3;
+  const gridScale = (row.heroZoom || 1) * 3.0;
   return (
     <Link
       href={href}
