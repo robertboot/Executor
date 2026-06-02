@@ -51,7 +51,6 @@ export default async function HomePage() {
     collectionsStats,
     needsAttention,
     timeline,
-    pendingInviteCount,
   ] = await Promise.all([
     user
       ? supabase
@@ -66,7 +65,6 @@ export default async function HomePage() {
     listMyCollectionsRich(),
     listItemsNeedingAttention(4),
     listTimelineItems(6),
-    pendingInvites(user?.email),
   ]);
 
   const profile = (profileRes?.data ?? null) as ProfileSlim | null;
@@ -103,20 +101,6 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {pendingInviteCount > 0 && (
-          <Link
-            href="/invites"
-            className="block bg-gold-soft border border-gold rounded-xl p-4 hover:shadow-card transition-shadow"
-          >
-            <span className="text-sm text-ink">
-              <strong>
-                {pendingInviteCount} pending invite
-                {pendingInviteCount === 1 ? '' : 's'}
-              </strong>{' '}
-              — tap to review.
-            </span>
-          </Link>
-        )}
 
         {needsAttention.length > 0 && (
           <ContinueCataloging items={needsAttention} />
@@ -804,17 +788,6 @@ function pickFeaturedSubCategories(
     return bc - ac;
   });
   return subCats;
-}
-
-async function pendingInvites(email: string | undefined): Promise<number> {
-  if (!email) return 0;
-  const supabase = await createSupabaseServerClient();
-  const { count } = await supabase
-    .from('inventory_shares')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'pending')
-    .ilike('invited_email', email);
-  return count ?? 0;
 }
 
 // ============================================================== //

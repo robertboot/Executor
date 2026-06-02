@@ -1,9 +1,6 @@
 // Shared types — mirror the Expo app exactly so the same Supabase rows
 // flow through both clients without translation.
 
-export type Role = 'viewer' | 'contributor';
-export type ShareStatus = 'pending' | 'accepted' | 'revoked';
-
 export type OnboardingArchetype =
   | 'family-legacy'
   | 'collector'
@@ -82,22 +79,6 @@ export interface ItemRevision {
   changed_at: string;
   snapshot: Item;
   change_note: string | null;
-}
-
-export interface InventoryShare {
-  id: string;
-  inventory_id: string;
-  invited_email: string;
-  user_id: string | null;
-  role: Role;
-  invited_by: string | null;
-  status: ShareStatus;
-  created_at: string;
-  accepted_at: string | null;
-}
-
-export interface InventoryWithRole extends Inventory {
-  role: 'owner' | Role;
 }
 
 export type ConservatorPermissionLevel =

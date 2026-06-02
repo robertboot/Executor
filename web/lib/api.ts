@@ -14,7 +14,6 @@ import type {
   Inheritor,
   InheritorStatus,
   Inventory,
-  InventoryWithRole,
   Item,
   ItemPerson,
   ItemPersonRole,
@@ -22,42 +21,27 @@ import type {
   ItemRevision,
   Person,
   Profile,
-  Role,
 } from './types';
 import { labelForCategory, normalizeCategoryKey } from './categories';
 
 // ---------- Inventories ----------
 
-export async function listMyInventories(): Promise<InventoryWithRole[]> {
+// Returns the signed-in user's first owned inventory (sorted oldest
+// first). Used as the "default archive" for entry points that need to
+// pick an inventory id without surfacing a chooser.
+export async function getMyDefaultInventory(): Promise<Inventory | null> {
   const supabase = await createSupabaseServerClient();
   const { data: me } = await supabase.auth.getUser();
-  const myId = me.user?.id;
-  if (!myId) return [];
-
-  const { data: owned, error: oErr } = await supabase
+  if (!me.user) return null;
+  const { data, error } = await supabase
     .from('inventories')
     .select('*')
-    .eq('owner_id', myId)
-    .order('created_at', { ascending: false });
-  if (oErr) throw oErr;
-
-  const { data: sharedRows, error: sErr } = await supabase
-    .from('inventory_shares')
-    .select('role, inventory:inventories(*)')
-    .eq('user_id', myId)
-    .eq('status', 'accepted');
-  if (sErr) throw sErr;
-
-  const ownerList: InventoryWithRole[] = (owned ?? []).map((inv) => ({
-    ...(inv as Inventory),
-    role: 'owner' as const,
-  }));
-  const sharedList: InventoryWithRole[] = [];
-  for (const s of (sharedRows ?? []) as Array<{ role: Role; inventory: Inventory | Inventory[] | null }>) {
-    const inv = Array.isArray(s.inventory) ? s.inventory[0] : s.inventory;
-    if (inv) sharedList.push({ ...inv, role: s.role });
-  }
-  return [...ownerList, ...sharedList];
+    .eq('owner_id', me.user.id)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as Inventory | null) ?? null;
 }
 
 export async function getInventory(id: string): Promise<Inventory | null> {
@@ -514,77 +498,6 @@ export async function listTimelineItems(limit = 6): Promise<TimelineEntry[]> {
       primaryPhotoUrl: photos[0] ? photoPublicUrl(photos[0].storage_path) : null,
     };
   });
-}
-
-// ---------- Shared With ----------
-
-export interface SharedPerson {
-  email: string;
-  displayName: string | null;
-  role: 'owner' | 'contributor' | 'viewer';
-}
-
-// People with access to inventories I own — owners (just me), accepted
-// shares with their role. Used in the home page "Shared with" card.
-export async function listInventoryPeople(): Promise<SharedPerson[]> {
-  const supabase = await createSupabaseServerClient();
-  const { data: me } = await supabase.auth.getUser();
-  if (!me.user) return [];
-
-  const myEmail = me.user.email ?? '';
-  const myName =
-    (me.user.user_metadata?.display_name as string | undefined) ?? null;
-
-  const { data: ownedInv } = await supabase
-    .from('inventories')
-    .select('id')
-    .eq('owner_id', me.user.id);
-  const ownedIds = (ownedInv ?? []).map((r) => r.id);
-  if (ownedIds.length === 0) {
-    return [{ email: myEmail, displayName: myName, role: 'owner' }];
-  }
-
-  const { data: shares } = await supabase
-    .from('inventory_shares')
-    .select('invited_email, role, status, user_id')
-    .in('inventory_id', ownedIds)
-    .eq('status', 'accepted');
-
-  const sharedUserIds = Array.from(
-    new Set(
-      (shares ?? [])
-        .map((s) => s.user_id)
-        .filter((id): id is string => !!id),
-    ),
-  );
-  const namesByEmail = new Map<string, string | null>();
-  if (sharedUserIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, display_name');
-    const namesById = new Map<string, string | null>(
-      (profiles ?? []).map((p) => [p.id, p.display_name]),
-    );
-    for (const s of shares ?? []) {
-      if (s.user_id) {
-        namesByEmail.set(s.invited_email, namesById.get(s.user_id) ?? null);
-      }
-    }
-  }
-
-  const result: SharedPerson[] = [
-    { email: myEmail, displayName: myName, role: 'owner' },
-  ];
-  for (const s of shares ?? []) {
-    const r = s as { invited_email: string; role: 'contributor' | 'viewer' };
-    if (r.invited_email.toLowerCase() === myEmail.toLowerCase()) continue;
-    result.push({
-      email: r.invited_email,
-      displayName: namesByEmail.get(r.invited_email) ?? null,
-      role: r.role,
-    });
-  }
-  return result;
 }
 
 // ---------- People & Provenance ----------

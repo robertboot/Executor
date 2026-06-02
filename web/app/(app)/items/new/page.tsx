@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { listMyInventories, listMyCollectionsRich } from '@/lib/api';
+import { getMyDefaultInventory, listMyCollectionsRich } from '@/lib/api';
 import { createSupabaseServerClient, getCurrentUser } from '@/lib/supabase/server';
 import { findArchetype, findSubCategory, type SubCategory } from '@/lib/onboarding';
 import type { OnboardingArchetype } from '@/lib/types';
@@ -14,11 +14,11 @@ export default async function NewItemPage({
   searchParams: Promise<{ category?: string; inventory?: string }>;
 }) {
   const params = await searchParams;
-  const inventories = await listMyInventories();
-  if (inventories.length === 0) {
+  const inventory = await getMyDefaultInventory();
+  if (!inventory) {
     redirect('/home');
   }
-  const targetInventory = params.inventory || inventories[0].id;
+  const targetInventory = params.inventory || inventory.id;
 
   // Category already chosen — go straight to the form.
   if (params.category) {

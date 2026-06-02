@@ -35,8 +35,6 @@ export default async function SettingsPage() {
       </Card>
 
       <ul className="space-y-2">
-        <SettingsLink href="/inventories" label="Inventories" description="Add or share inventories" />
-        <SettingsLink href="/invites" label="Pending invites" description="Accept invitations to other people's inventories" />
         <SettingsLink
           href="/billing"
           label="Billing"
