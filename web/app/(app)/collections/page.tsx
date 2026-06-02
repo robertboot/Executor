@@ -450,7 +450,7 @@ function CollectionGridCard({ row }: { row: CollectionRow }) {
   // (transformOrigin 100% 50%, object-right) and scale up by 2.0x —
   // enough to clear the gradient on most heroes without softening
   // the image to a pixelated blur.
-  const gridScale = (row.heroZoom || 1) * 1.7;
+  const gridScale = (row.heroZoom || 1) * 1.5;
   return (
     <Link
       href={href}
