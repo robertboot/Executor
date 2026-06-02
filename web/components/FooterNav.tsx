@@ -37,22 +37,27 @@ const LEFT_TABS: Tab[] = [
 
 const RIGHT_TABS: Tab[] = [
   {
-    href: '/people',
-    label: 'People',
-    matches: ['/people', '/inheritors', '/conservators', '/contributors'],
+    href: '/inheritors',
+    label: 'Inheritors',
+    matches: ['/inheritors'],
     icon: (active) => (
+      // Key + person silhouette to evoke 'designated recipient'
       <Icon
         active={active}
-        d="M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM15 14h2c2.2 0 4 1.8 4 4"
+        d="M7 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM1 19c0-3.3 2.7-6 6-6s6 2.7 6 6M14 14a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM17 11l5-5M19 8l2 2"
       />
     ),
   },
   {
-    href: '/search',
-    label: 'Search',
-    matches: ['/search', '/scan'],
+    href: '/conservators',
+    label: 'Conservators',
+    matches: ['/conservators'],
     icon: (active) => (
-      <Icon active={active} d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4" />
+      // Shield-with-check: archive protection
+      <Icon
+        active={active}
+        d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l2 2 4-4"
+      />
     ),
   },
 ];
