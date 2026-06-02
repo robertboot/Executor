@@ -7,12 +7,10 @@ import {
   listRecentItemsWithPhotos,
   listItemsNeedingAttention,
   listTimelineItems,
-  listInventoryPeople,
   type RecentItemWithPhoto,
   type ItemNeedingAttention,
   type CatalogingGap,
   type TimelineEntry,
-  type SharedPerson,
 } from '@/lib/api';
 import { formatMoney, formatRelativeTime } from '@/lib/format';
 import GreetingHeading from '@/components/GreetingHeading';
@@ -53,7 +51,6 @@ export default async function HomePage() {
     collectionsStats,
     needsAttention,
     timeline,
-    people,
     pendingInviteCount,
   ] = await Promise.all([
     user
@@ -69,7 +66,6 @@ export default async function HomePage() {
     listMyCollectionsRich(),
     listItemsNeedingAttention(4),
     listTimelineItems(6),
-    listInventoryPeople(),
     pendingInvites(user?.email),
   ]);
 
@@ -132,18 +128,14 @@ export default async function HomePage() {
           fallbackStats={collectionsStats}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div
+          className={`grid grid-cols-1 ${
+            timeline.length > 0 ? 'lg:grid-cols-2' : ''
+          } gap-6`}
+        >
           <RecentlyAdded items={recent} />
-          {timeline.length > 0 ? (
-            <Timeline entries={timeline} />
-          ) : (
-            people.length > 0 && <SharedWith people={people} />
-          )}
+          {timeline.length > 0 && <Timeline entries={timeline} />}
         </div>
-
-        {timeline.length > 0 && people.length > 0 && (
-          <SharedWith people={people} />
-        )}
       </div>
 
       <Link
@@ -785,57 +777,6 @@ function Timeline({ entries }: { entries: TimelineEntry[] }) {
         </div>
       </div>
     </section>
-  );
-}
-
-function SharedWith({ people }: { people: SharedPerson[] }) {
-  return (
-    <section className="space-y-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="font-serif text-2xl text-ink">Shared with</h2>
-        <Link
-          href="/inventories"
-          className="text-sm text-forest hover:underline"
-        >
-          Manage access →
-        </Link>
-      </div>
-      <ul className="bg-paper border border-hairline rounded-xl divide-y divide-hairline overflow-hidden">
-        {people.map((p, i) => (
-          <li
-            key={`${p.email}-${i}`}
-            className="flex items-center gap-3 p-4"
-          >
-            <Avatar name={p.displayName || p.email} />
-            <div className="flex-1 min-w-0">
-              <div className="font-medium text-ink truncate">
-                {p.displayName || p.email}
-              </div>
-              {p.displayName && (
-                <div className="text-xs text-muted truncate">{p.email}</div>
-              )}
-            </div>
-            <span className="text-xs uppercase tracking-wider text-gold-deep">
-              {p.role}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function Avatar({ name }: { name: string }) {
-  const initials = name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((n) => n[0]?.toUpperCase())
-    .filter(Boolean)
-    .join('');
-  return (
-    <div className="shrink-0 w-9 h-9 rounded-full bg-forest text-cream flex items-center justify-center text-xs font-semibold">
-      {initials || '?'}
-    </div>
   );
 }
 
