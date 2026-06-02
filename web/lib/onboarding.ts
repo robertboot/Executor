@@ -297,6 +297,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     parent: 'sports-memorabilia',
     bgImage: sub('sports-memorabilia'),
     defaultSelected: true,
+    thumbZoom: 1.5,
   },
   {
     key: 'trading-cards',
@@ -313,6 +314,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     parent: 'collectibles-curiosities',
     bgImage: sub('coins-currency'),
     defaultSelected: true,
+    thumbZoom: 1.5,
   },
   {
     key: 'comics-graphic-novels',
@@ -349,7 +351,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     parent: 'music-instruments',
     bgImage: sub('vinyl-music'),
     defaultSelected: true,
-    thumbZoom: 1.1,
+    thumbZoom: 1.5,
   },
   {
     key: 'advertising-americana',
@@ -367,7 +369,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     parent: 'outdoor-sporting',
     bgImage: sub('hunting-fishing'),
     defaultSelected: false,
-    thumbZoom: 1.15,
+    thumbZoom: 1.5,
   },
   {
     key: 'pop-culture',
