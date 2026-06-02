@@ -444,13 +444,13 @@ function CollectionRowCard({
 
 function CollectionGridCard({ row }: { row: CollectionRow }) {
   const href = `/collections/${encodeURIComponent(row.coreKey)}?sub=${encodeURIComponent(row.subKey)}`;
-  // Grid tiles are narrower than the source hero images, so the
-  // left-edge gradient on each hero pokes into the visible area at
-  // 1:1. Bake a 1.8x zoom on top of the per-row heroZoom, anchored
-  // to the right (transformOrigin 100% 50%), so the image always
-  // overflows the left edge of the 4:3 tile and the right side of
-  // the hero stays pinned to the right side of the tile.
-  const gridScale = (row.heroZoom || 1) * 1.8;
+  // Grid tiles are narrower than the source hero images and the
+  // hero gradients bleed quite far in from the left, so a modest
+  // crop leaves a visible vignette band. Bake a 2.3x zoom on top of
+  // the per-row heroZoom, anchored to the right (transformOrigin
+  // 100% 50%), so the gradient is shoved well outside the visible
+  // tile and only the focal subject remains.
+  const gridScale = (row.heroZoom || 1) * 2.3;
   return (
     <Link
       href={href}
