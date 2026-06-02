@@ -445,11 +445,12 @@ function CollectionRowCard({
 function CollectionGridCard({ row }: { row: CollectionRow }) {
   const href = `/collections/${encodeURIComponent(row.coreKey)}?sub=${encodeURIComponent(row.subKey)}`;
   // The hero compositions put the focal subject (watch / baseball /
-  // comic) on the RIGHT and a soft cream gradient on the LEFT, so we
-  // pin the right side of the source to the right side of the tile
-  // (transformOrigin 100% 50%, object-right) and scale up by 3.0x to
-  // push the left gradient fully outside the visible 4:3 frame.
-  const gridScale = (row.heroZoom || 1) * 3.0;
+  // comic) on the RIGHT and a soft cream gradient on the LEFT. Pin
+  // the right side of the source to the right side of the tile
+  // (transformOrigin 100% 50%, object-right) and scale up by 2.0x —
+  // enough to clear the gradient on most heroes without softening
+  // the image to a pixelated blur.
+  const gridScale = (row.heroZoom || 1) * 2.0;
   return (
     <Link
       href={href}
