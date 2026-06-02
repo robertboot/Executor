@@ -444,12 +444,12 @@ function CollectionRowCard({
 
 function CollectionGridCard({ row }: { row: CollectionRow }) {
   const href = `/collections/${encodeURIComponent(row.coreKey)}?sub=${encodeURIComponent(row.subKey)}`;
-  // Grid tiles are narrower than the source hero images and the
-  // hero gradients bleed quite far in from the left, so a modest
-  // crop leaves a visible vignette band. Bake a 2.3x zoom on top of
-  // the per-row heroZoom, anchored to the right (transformOrigin
-  // 100% 50%), so the gradient is shoved well outside the visible
-  // tile and only the focal subject remains.
+  // Grid tiles crop from the left edge of the hero image. Bake a
+  // 2.3x zoom on top of the per-row heroZoom, anchored to the left
+  // (transformOrigin 0% 50%), so the left side of the source stays
+  // pinned to the left side of the tile and the right side (where
+  // the gradient lives on most hero compositions) gets pushed
+  // outside the visible frame.
   const gridScale = (row.heroZoom || 1) * 2.3;
   return (
     <Link
@@ -462,10 +462,10 @@ function CollectionGridCard({ row }: { row: CollectionRow }) {
           alt=""
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover object-right transition-transform duration-500 group-hover:scale-105"
+          className="object-cover object-left transition-transform duration-500 group-hover:scale-105"
           style={{
             transform: `scale(${gridScale})`,
-            transformOrigin: '100% 50%',
+            transformOrigin: '0% 50%',
           }}
         />
       </div>
