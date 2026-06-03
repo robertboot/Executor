@@ -5,10 +5,10 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 
 // Each "drawer" inside the cabinet. The whole surface reads as a
-// walnut card-catalog cabinet pulled up from the bottom of the
-// screen — visible wood frame all four sides, brass nameplate on
-// top, brass cabinet pull on the bottom, and each option rendered
-// as a recessed drawer face with its own brass knob.
+// dark-walnut card-catalog cabinet pulled up from the bottom of the
+// screen, with wood grain visible on every side, brass nameplate on
+// top, drop-bail pull on the bottom, and each option rendered as a
+// recessed ivory drawer face with a small brass knob.
 const OPTIONS: Array<{
   href: string;
   title: string;
@@ -49,12 +49,30 @@ const OPTIONS: Array<{
 
 const ANIM_MS = 360;
 
-// Walnut wood gradient used on the cabinet frame and the bottom rail.
-const WOOD_GRADIENT =
-  'linear-gradient(180deg, #4A2D17 0%, #6A4226 35%, #4D3018 70%, #3A2114 100%)';
-// Brass gradient used on the nameplate, knobs, and bottom pull.
+// Layered CSS for the dark-walnut wood. A tight vertical-grain
+// repeating-gradient sits on top of a softer wide-band gradient,
+// over a base wood color. The result reads as figured walnut at a
+// distance and stays believable up close.
+const WOOD_BACKGROUND = [
+  // Fine grain lines
+  'repeating-linear-gradient(180deg, rgba(0,0,0,0.10) 0px, rgba(0,0,0,0.10) 1px, transparent 1px, transparent 4px)',
+  // Soft figured-wood bands
+  'repeating-linear-gradient(180deg, rgba(255,210,150,0.04) 0px, rgba(255,210,150,0.04) 6px, transparent 6px, transparent 14px)',
+  // Overall warm top-to-bottom shading
+  'linear-gradient(180deg, #3F2613 0%, #553520 35%, #3E2614 70%, #2D1A0C 100%)',
+].join(', ');
+
+// Darker walnut for the recessed drawer well (the cavity that holds
+// the stack of drawer faces).
+const WELL_BACKGROUND = [
+  'repeating-linear-gradient(180deg, rgba(0,0,0,0.18) 0px, rgba(0,0,0,0.18) 1px, transparent 1px, transparent 4px)',
+  'linear-gradient(180deg, #2A1709 0%, #3B2212 100%)',
+].join(', ');
+
+// Brass with a deeper midtone band so the highlight doesn't look
+// painted on.
 const BRASS_GRADIENT =
-  'linear-gradient(180deg, #F3D88B 0%, #D4B26A 45%, #A4823F 55%, #F0D584 100%)';
+  'linear-gradient(180deg, #F4DC93 0%, #D9B86A 40%, #9B7A36 52%, #C9A55C 68%, #F4DC93 100%)';
 
 export default function CreateDrawer() {
   const [mounted, setMounted] = useState(false);
@@ -63,7 +81,6 @@ export default function CreateDrawer() {
 
   useEffect(() => setMounted(true), []);
 
-  // Esc closes.
   useEffect(() => {
     if (!active) return;
     function onKey(e: KeyboardEvent) {
@@ -73,7 +90,6 @@ export default function CreateDrawer() {
     return () => document.removeEventListener('keydown', onKey);
   }, [active]);
 
-  // Body scroll lock while the drawer is open.
   useEffect(() => {
     if (!active) return;
     const prev = document.body.style.overflow;
@@ -97,7 +113,6 @@ export default function CreateDrawer() {
 
   return (
     <>
-      {/* Footer dock — lg:hidden so desktop never sees it. */}
       <nav
         aria-label="Create"
         className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-paper/95 backdrop-blur border-t border-hairline"
@@ -126,7 +141,7 @@ export default function CreateDrawer() {
 }
 
 // ============================================================== //
-//  Cabinet surface                                                //
+//  Cabinet                                                        //
 // ============================================================== //
 
 function CabinetSurface({
@@ -142,37 +157,37 @@ function CabinetSurface({
       <div
         aria-hidden
         onClick={onClose}
-        className="fixed inset-0 z-50 bg-black/55 transition-opacity ease-out"
+        className="fixed inset-0 z-50 bg-black/60 transition-opacity ease-out"
         style={{
           opacity: open ? 1 : 0,
           transitionDuration: `${ANIM_MS}ms`,
         }}
       />
 
-      {/* Cabinet body — the entire thing is dark walnut so any
-          padding around the inner drawer well reads as visible wood
-          frame on every side. */}
+      {/* Cabinet body */}
       <section
         role="dialog"
         aria-modal="true"
         aria-label="Create new"
-        className="fixed inset-x-0 bottom-0 z-50 max-h-[88vh] flex flex-col rounded-t-2xl transition-transform ease-out overflow-hidden"
+        className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] flex flex-col rounded-t-xl transition-transform ease-out overflow-hidden"
         style={{
           transform: open ? 'translateY(0)' : 'translateY(100%)',
           transitionDuration: `${ANIM_MS}ms`,
           paddingBottom: 'env(safe-area-inset-bottom)',
-          background: WOOD_GRADIENT,
-          boxShadow: '0 -12px 36px rgba(0,0,0,0.4)',
-          // Inset ring + outer shadow give the walnut a soft chamfered edge.
-          borderTop: '1px solid rgba(255,255,255,0.05)',
+          background: WOOD_BACKGROUND,
+          boxShadow:
+            '0 -16px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,210,150,0.08)',
         }}
       >
-        {/* Top rail with corner brass studs and the nameplate */}
+        {/* Top rail */}
         <div
           className="relative shrink-0"
           style={{
-            paddingTop: 26,
-            paddingBottom: 14,
+            paddingTop: 22,
+            paddingBottom: 18,
+            // Subtle inset shadow at the top so the lid feels grounded.
+            boxShadow:
+              'inset 0 1px 0 rgba(255,210,150,0.10), inset 0 -1px 0 rgba(0,0,0,0.55)',
           }}
         >
           <BrassStud className="absolute top-3 left-3" />
@@ -182,19 +197,16 @@ function CabinetSurface({
           </div>
         </div>
 
-        {/* Drawer well — inner ivory panel that holds the stack of
-            drawers. The wood frame is visible on left + right because
-            the well sits inside a px-3 / pb-3 inset, and on top
-            because the nameplate area lives above it. */}
+        {/* Drawer well — inset cavity holding the stack of drawers */}
         <div
           className="mx-3 mb-3 rounded-md p-2 overflow-y-auto"
           style={{
-            background:
-              'linear-gradient(180deg, rgba(58, 33, 20, 0.92) 0%, rgba(70, 40, 24, 0.92) 100%)',
-            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.55)',
+            background: WELL_BACKGROUND,
+            boxShadow:
+              'inset 0 2px 6px rgba(0,0,0,0.7), inset 0 -1px 0 rgba(255,210,150,0.05)',
           }}
         >
-          <ul className="space-y-2.5">
+          <ul className="space-y-2">
             {OPTIONS.map((opt) => (
               <li key={opt.href}>
                 <DrawerCard option={opt} onClose={onClose} />
@@ -203,15 +215,17 @@ function CabinetSurface({
           </ul>
         </div>
 
-        {/* Bottom rail with brass cabinet pull */}
+        {/* Bottom rail with drop-bail pull */}
         <div
           className="relative shrink-0 flex items-center justify-center"
           style={{
-            paddingTop: 12,
-            paddingBottom: 18,
+            paddingTop: 14,
+            paddingBottom: 20,
+            boxShadow:
+              'inset 0 1px 0 rgba(0,0,0,0.55), inset 0 -1px 0 rgba(255,210,150,0.06)',
           }}
         >
-          <BrassCabinetPull />
+          <DropBailPull />
         </div>
       </section>
     </>
@@ -219,7 +233,7 @@ function CabinetSurface({
 }
 
 // ============================================================== //
-//  Drawer card — a single archive drawer face                     //
+//  Drawer card                                                    //
 // ============================================================== //
 
 function DrawerCard({
@@ -233,23 +247,37 @@ function DrawerCard({
     <Link
       href={option.href}
       onClick={onClose}
-      className="group block rounded-md overflow-hidden active:translate-y-px transition-transform"
+      className="group block rounded-[5px] overflow-hidden active:translate-y-px transition-transform"
       style={{
+        // Subtle two-stop cream for an aged-paper feel.
         background:
-          'linear-gradient(180deg, #F1E6CD 0%, #E8D9B6 100%)',
-        boxShadow:
-          'inset 0 1px 0 rgba(255,255,255,0.65), inset 0 -1px 0 rgba(70,45,25,0.35), 0 1px 0 rgba(70,45,25,0.55), 0 2px 4px rgba(0,0,0,0.25)',
+          'linear-gradient(180deg, #F2E7CE 0%, #E6D5B0 100%)',
+        // Crisp dark edges + a glossy top highlight + a soft bottom
+        // inner shadow so it reads as a recessed wooden drawer face
+        // rather than a flat card.
+        boxShadow: [
+          'inset 0 1px 0 rgba(255,255,255,0.65)',
+          'inset 0 -2px 4px rgba(80, 50, 25, 0.30)',
+          '0 0 0 1px rgba(60, 35, 15, 0.65)',
+          '0 1px 0 rgba(255, 220, 160, 0.06)',
+          '0 2px 4px rgba(0,0,0,0.35)',
+        ].join(', '),
       }}
     >
-      <div className="flex items-center gap-3 pl-3 pr-3 py-3 relative">
-        {/* Brass medallion glyph */}
+      <div className="flex items-center gap-3 pl-3 pr-4 py-2.5 relative">
+        {/* Coin medallion */}
         <span
-          className="shrink-0 w-12 h-12 rounded-full text-gold-deep flex items-center justify-center border border-gold-deep/30 [&_svg]:w-5 [&_svg]:h-5"
+          className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center [&_svg]:w-5 [&_svg]:h-5"
           style={{
+            color: '#5C4220',
             background:
-              'radial-gradient(circle at 32% 28%, #F8EBCC 0%, #EDD9A6 55%, #D9B97A 100%)',
-            boxShadow:
-              'inset 0 1px 2px rgba(255,255,255,0.7), 0 1px 3px rgba(120,90,40,0.25)',
+              'radial-gradient(circle at 32% 28%, #F8EBCC 0%, #E6CF95 55%, #C09950 100%)',
+            // Inset highlight + an inner darker bezel ring for a struck-coin look.
+            boxShadow: [
+              'inset 0 1px 1px rgba(255,255,255,0.75)',
+              'inset 0 0 0 1px rgba(80,55,25,0.55)',
+              '0 1px 1.5px rgba(0,0,0,0.35)',
+            ].join(', '),
           }}
         >
           {option.icon}
@@ -257,18 +285,26 @@ function DrawerCard({
 
         {/* Text block */}
         <div className="flex-1 min-w-0 pr-6">
-          <h3 className="font-serif text-base sm:text-lg leading-tight"
-            style={{ color: '#2C1A0E' }}>
+          <h3
+            className="font-serif leading-tight"
+            style={{
+              color: '#2B1808',
+              fontSize: '16px',
+              letterSpacing: '-0.005em',
+            }}
+          >
             {option.title}
           </h3>
-          <p className="text-xs sm:text-[13px] mt-0.5 leading-snug"
-            style={{ color: '#5C402A' }}>
+          <p
+            className="mt-0.5 leading-snug"
+            style={{ color: '#5C4022', fontSize: '12.5px' }}
+          >
             {option.description}
           </p>
         </div>
 
-        {/* Brass knob on the right side of the drawer */}
-        <BrassKnob className="absolute right-3 top-1/2 -translate-y-1/2" />
+        {/* Small brass knob */}
+        <BrassKnob className="absolute right-2.5 top-1/2 -translate-y-1/2" />
       </div>
     </Link>
   );
@@ -282,12 +318,15 @@ function BrassStud({ className }: { className?: string }) {
   return (
     <span
       aria-hidden
-      className={`block w-3 h-3 rounded-full ${className ?? ''}`}
+      className={`block w-2.5 h-2.5 rounded-full ${className ?? ''}`}
       style={{
         background:
-          'radial-gradient(circle at 30% 30%, #F3D88B 0%, #C4A35E 60%, #8C6F38 100%)',
-        boxShadow:
-          'inset 0 1px 1px rgba(255,255,255,0.5), 0 1px 1px rgba(0,0,0,0.35)',
+          'radial-gradient(circle at 30% 28%, #F4DC93 0%, #C9A55C 55%, #6E5226 100%)',
+        boxShadow: [
+          'inset 0 1px 1px rgba(255,255,255,0.5)',
+          'inset 0 0 0 0.5px rgba(50,30,10,0.65)',
+          '0 1px 1px rgba(0,0,0,0.45)',
+        ].join(', '),
       }}
     />
   );
@@ -297,12 +336,17 @@ function BrassKnob({ className }: { className?: string }) {
   return (
     <span
       aria-hidden
-      className={`block w-3.5 h-3.5 rounded-full ${className ?? ''}`}
+      className={`block rounded-full ${className ?? ''}`}
       style={{
+        width: 11,
+        height: 11,
         background:
-          'radial-gradient(circle at 30% 28%, #F7DE8F 0%, #C8A862 55%, #6E5226 100%)',
-        boxShadow:
-          'inset 0 1px 1px rgba(255,255,255,0.55), 0 1px 2px rgba(0,0,0,0.4)',
+          'radial-gradient(circle at 32% 28%, #F7DE8F 0%, #CFAA62 55%, #6E5226 100%)',
+        boxShadow: [
+          'inset 0 1px 1px rgba(255,255,255,0.55)',
+          'inset 0 0 0 0.5px rgba(50,30,10,0.7)',
+          '0 1px 2px rgba(0,0,0,0.55)',
+        ].join(', '),
       }}
     />
   );
@@ -311,67 +355,138 @@ function BrassKnob({ className }: { className?: string }) {
 function BrassNameplate({ label }: { label: string }) {
   return (
     <div
-      className="px-6 py-1.5 rounded-md flex items-center gap-3"
+      className="px-6 py-1.5 rounded-[3px] flex items-center gap-3"
       style={{
         background: BRASS_GRADIENT,
-        border: '1px solid rgba(60, 40, 20, 0.55)',
-        boxShadow:
-          'inset 0 1px 2px rgba(255,255,255,0.55), 0 2px 5px rgba(0,0,0,0.32)',
+        boxShadow: [
+          'inset 0 1px 1px rgba(255,255,255,0.6)',
+          'inset 0 0 0 1px rgba(50,30,10,0.65)',
+          '0 2px 5px rgba(0,0,0,0.5)',
+        ].join(', '),
       }}
     >
       <span
         aria-hidden
         className="block w-1 h-1 rounded-full"
-        style={{ background: '#3D2417', opacity: 0.7 }}
+        style={{ background: '#2B1808', opacity: 0.7 }}
       />
       <span
-        className="font-serif text-xs sm:text-sm tracking-[0.28em] uppercase"
-        style={{ color: '#3D2417' }}
+        className="font-serif text-xs sm:text-sm tracking-[0.30em] uppercase"
+        style={{ color: '#2B1808', textShadow: '0 1px 0 rgba(255,255,255,0.25)' }}
       >
         {label}
       </span>
       <span
         aria-hidden
         className="block w-1 h-1 rounded-full"
-        style={{ background: '#3D2417', opacity: 0.7 }}
+        style={{ background: '#2B1808', opacity: 0.7 }}
       />
     </div>
   );
 }
 
-function BrassCabinetPull() {
+// Drop-bail style cabinet pull at the bottom of the cabinet: a
+// curved U-shaped brass bar held by two mount plates with screws.
+function DropBailPull() {
   return (
     <span
       aria-hidden
-      className="relative flex items-center"
-      style={{ width: 96, height: 14 }}
+      className="relative block"
+      style={{ width: 120, height: 22 }}
     >
-      {/* Decorative end-cap screws */}
+      {/* Left mount plate */}
       <span
-        className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+        className="absolute"
         style={{
-          background:
-            'radial-gradient(circle at 30% 30%, #F3D88B 0%, #B89758 65%, #6E5226 100%)',
-          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5)',
-        }}
-      />
-      <span
-        className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
-        style={{
-          background:
-            'radial-gradient(circle at 30% 30%, #F3D88B 0%, #B89758 65%, #6E5226 100%)',
-          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5)',
-        }}
-      />
-      {/* The pull bar itself */}
-      <span
-        className="absolute left-2 right-2 top-1/2 -translate-y-1/2 rounded-full"
-        style={{
-          height: 8,
+          left: 0,
+          top: 0,
+          width: 14,
+          height: 14,
+          borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
           background: BRASS_GRADIENT,
-          border: '1px solid rgba(60, 40, 20, 0.6)',
-          boxShadow:
-            'inset 0 1px 1px rgba(255,255,255,0.55), 0 2px 3px rgba(0,0,0,0.4)',
+          boxShadow: [
+            'inset 0 1px 1px rgba(255,255,255,0.55)',
+            'inset 0 0 0 0.5px rgba(50,30,10,0.7)',
+            '0 1px 2px rgba(0,0,0,0.55)',
+          ].join(', '),
+        }}
+      />
+      {/* Right mount plate */}
+      <span
+        className="absolute"
+        style={{
+          right: 0,
+          top: 0,
+          width: 14,
+          height: 14,
+          borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
+          background: BRASS_GRADIENT,
+          boxShadow: [
+            'inset 0 1px 1px rgba(255,255,255,0.55)',
+            'inset 0 0 0 0.5px rgba(50,30,10,0.7)',
+            '0 1px 2px rgba(0,0,0,0.55)',
+          ].join(', '),
+        }}
+      />
+      {/* Curved bail (SVG so we can control the arc nicely) */}
+      <svg
+        viewBox="0 0 120 22"
+        width={120}
+        height={22}
+        className="absolute inset-0"
+        aria-hidden
+      >
+        <defs>
+          <linearGradient id="bail" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#F4DC93" />
+            <stop offset="0.45" stopColor="#D9B86A" />
+            <stop offset="0.55" stopColor="#9B7A36" />
+            <stop offset="1" stopColor="#F4DC93" />
+          </linearGradient>
+          <linearGradient id="bailShadow" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="rgba(0,0,0,0.45)" />
+            <stop offset="1" stopColor="rgba(0,0,0,0.0)" />
+          </linearGradient>
+        </defs>
+        {/* Shadow beneath the bail */}
+        <path
+          d="M 10 8 Q 60 28 110 8"
+          fill="none"
+          stroke="url(#bailShadow)"
+          strokeWidth="5"
+          strokeLinecap="round"
+          transform="translate(0,2)"
+        />
+        {/* The bail itself */}
+        <path
+          d="M 10 8 Q 60 26 110 8"
+          fill="none"
+          stroke="url(#bail)"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+        />
+      </svg>
+      {/* Screw heads on the mount plates */}
+      <span
+        className="absolute rounded-full"
+        style={{
+          left: 5,
+          top: 5,
+          width: 4,
+          height: 4,
+          background: '#3D2417',
+          boxShadow: 'inset 0 -1px 0 rgba(255,210,150,0.3)',
+        }}
+      />
+      <span
+        className="absolute rounded-full"
+        style={{
+          right: 5,
+          top: 5,
+          width: 4,
+          height: 4,
+          background: '#3D2417',
+          boxShadow: 'inset 0 -1px 0 rgba(255,210,150,0.3)',
         }}
       />
     </span>
