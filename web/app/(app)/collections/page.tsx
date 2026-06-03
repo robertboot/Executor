@@ -13,6 +13,7 @@ import { formatMoney } from '@/lib/format';
 import {
   ARCHETYPES,
   ARCHETYPE_SUBCATEGORIES,
+  archetypeForSubCategory,
   findArchetype,
   type ArchetypeDef,
   type SubCategory,
@@ -22,13 +23,23 @@ import { removeSubCategory } from './add/actions';
 
 export const dynamic = 'force-dynamic';
 
-const ARCHETYPE_GLYPH: Record<OnboardingArchetype, string> = {
-  'family-legacy': '🏛️',
-  'collector': '🎴',
-  'luxury': '💎',
-  'historical': '📜',
-  'mixed': '🏡',
-};
+// Outlined SVG glyph per archetype, drawn to match the medallion
+// style used on the welcome page and Conservator Roles cards.
+function archetypeGlyph(key: OnboardingArchetype): React.ReactNode {
+  switch (key) {
+    case 'family-legacy':
+      return <FamilyTreeIcon />;
+    case 'collector':
+      return <TrophyIcon />;
+    case 'luxury':
+      return <DiamondIcon />;
+    case 'historical':
+      return <ColumnIcon />;
+    case 'mixed':
+    default:
+      return <ArchiveBoxIcon />;
+  }
+}
 
 interface CollectionRow {
   subKey: string;
@@ -76,14 +87,19 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
       [],
   );
 
-  // Active archetype: URL param > onboarding pick > Family Legacy fallback.
-  const requested = params.archetype as OnboardingArchetype | undefined;
-  const requestedDef = requested ? findArchetype(requested) : null;
-  const defaultDef = profileArchetypeKey
-    ? findArchetype(profileArchetypeKey)
-    : null;
-  const activeArchetype: ArchetypeDef =
-    requestedDef ?? defaultDef ?? ARCHETYPES[0];
+  // Active filter:
+  //   undefined or 'all' -> Your Gallery (aggregate across archetypes)
+  //   one of the 5 archetype keys -> filter to that curated collection
+  const requested = params.archetype;
+  const requestedDef =
+    requested && requested !== 'all'
+      ? findArchetype(requested as OnboardingArchetype)
+      : null;
+  // No archetype param OR archetype=all -> show Your Gallery.
+  const isYourGallery = !requested || requested === 'all';
+  const activeArchetype: ArchetypeDef | null = isYourGallery
+    ? null
+    : requestedDef ?? null;
 
   // View mode: default to compact list. Only 'grid' or 'list' are valid.
   const view: ViewMode = params.view === 'grid' ? 'grid' : 'list';
@@ -92,32 +108,47 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
   const bucketByCore = new Map<string, CollectionBucket>();
   for (const b of buckets) bucketByCore.set(b.key, b);
 
-  // Only surface sub-categories the user actually picked during
-  // onboarding — the rest of the archetype's offerings live behind
-  // the "Add Collection" card at the end of the row.
-  const subCats = (ARCHETYPE_SUBCATEGORIES[activeArchetype.key] ?? []).filter(
-    (s) => selectedSubCatKeys.has(s.key),
-  );
+  // Sub-cats to display:
+  //   Your Gallery -> every selected sub-cat across all archetypes
+  //   Archetype filter -> just that archetype's selected sub-cats
+  const allArchetypeSubCats: SubCategory[] = isYourGallery
+    ? ARCHETYPES.flatMap((a) => ARCHETYPE_SUBCATEGORIES[a.key] ?? [])
+    : ARCHETYPE_SUBCATEGORIES[activeArchetype?.key ?? ARCHETYPES[0].key] ?? [];
+  const seenSubCatKeys = new Set<string>();
+  const subCats = allArchetypeSubCats.filter((s) => {
+    if (!selectedSubCatKeys.has(s.key)) return false;
+    if (seenSubCatKeys.has(s.key)) return false;
+    seenSubCatKeys.add(s.key);
+    return true;
+  });
   const rows: CollectionRow[] = subCats.map((s) =>
     makeRow(s, bucketByCore.get(s.parent) ?? null, true),
   );
-  const hasUnselected =
-    (ARCHETYPE_SUBCATEGORIES[activeArchetype.key]?.length ?? 0) >
-    subCats.length;
+  // 'Add Collection' affordance only makes sense when filtered to a
+  // specific archetype (so we know which add flow to open). In Your
+  // Gallery mode the user picks an archetype from the sidebar first.
+  const hasUnselected = isYourGallery
+    ? false
+    : (ARCHETYPE_SUBCATEGORIES[activeArchetype?.key ?? ARCHETYPES[0].key]
+        ?.length ?? 0) > subCats.length;
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 pb-24">
       <Sidebar
         archetypes={ARCHETYPES}
-        activeKey={activeArchetype.key}
+        activeKey={isYourGallery ? 'all' : activeArchetype?.key ?? null}
       />
 
       <main className="flex-1 min-w-0 space-y-6">
         <MainHeader
           archetype={activeArchetype}
+          isYourGallery={isYourGallery}
           itemCount={stats.itemCount}
           collectionCount={rows.length}
-          isUserArchetype={profileArchetypeKey === activeArchetype.key}
+          isUserArchetype={
+            !!activeArchetype &&
+            profileArchetypeKey === activeArchetype.key
+          }
           view={view}
         />
 
@@ -143,7 +174,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
                 </li>
               );
             })}
-            {hasUnselected && (
+            {hasUnselected && activeArchetype && (
               <li>
                 <AddCollectionGridCard archetypeKey={activeArchetype.key} />
               </li>
@@ -151,14 +182,21 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
           </ul>
         ) : (
           <ul className="space-y-3">
-            {rows.map((row) => (
-              <li key={row.subKey}>
-                <CollectionRowCard
-                  row={row}
-                  archetypeKey={activeArchetype.key}
-                />
-              </li>
-            ))}
+            {rows.map((row) => {
+              // Each row's archetype key — needed for the per-row
+              // 'Remove collection' form. In Your Gallery mode rows
+              // come from multiple archetypes, so look it up from
+              // the sub-cat itself rather than the page-level filter.
+              const rowArch =
+                activeArchetype?.key ??
+                archetypeForSubCategory(row.subKey)?.key ??
+                ARCHETYPES[0].key;
+              return (
+                <li key={row.subKey}>
+                  <CollectionRowCard row={row} archetypeKey={rowArch} />
+                </li>
+              );
+            })}
             {customCollections.map((c) => {
               const bucket = bucketByCore.get(c.id) ?? null;
               return (
@@ -173,7 +211,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
                 </li>
               );
             })}
-            {hasUnselected && (
+            {hasUnselected && activeArchetype && (
               <li>
                 <AddCollectionCard archetypeKey={activeArchetype.key} />
               </li>
@@ -194,30 +232,41 @@ function Sidebar({
   activeKey,
 }: {
   archetypes: ArchetypeDef[];
-  activeKey: OnboardingArchetype;
+  activeKey: 'all' | OnboardingArchetype | null;
 }) {
   return (
     <aside className="lg:w-72 lg:shrink-0 space-y-3">
-      <div className="hidden lg:block">
+      <div>
         <h1 className="font-serif text-3xl text-ink leading-tight">
           Curated Collections
         </h1>
-      </div>
-
-      <div className="lg:hidden">
-        <h1 className="font-serif text-3xl text-ink leading-tight">
-          Curated Collections
-        </h1>
+        <p className="text-xs sm:text-sm text-muted mt-1.5 leading-relaxed">
+          A simple way we&rsquo;ve grouped main categories to make
+          getting started easier. <span className="text-ink">Your Gallery</span>{' '}
+          below lists every category you&rsquo;ve actually chosen —
+          regardless of which curated collection it came from.
+        </p>
       </div>
 
       <div className="-mx-4 px-4 lg:m-0 lg:p-0">
         <ul className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:gap-2 lg:overflow-visible">
+          {/* Your Gallery sits at the top as the user's primary
+              cross-archetype view. */}
+          <li className="shrink-0 lg:shrink">
+            <SidebarItem
+              href="/collections?archetype=all"
+              label="Your Gallery"
+              icon={<SparkIcon />}
+              active={activeKey === 'all'}
+              emphasized
+            />
+          </li>
           {archetypes.map((a) => (
             <li key={a.key} className="shrink-0 lg:shrink">
               <SidebarItem
                 href={`/collections?archetype=${a.key}`}
                 label={a.title}
-                glyph={ARCHETYPE_GLYPH[a.key]}
+                icon={archetypeGlyph(a.key)}
                 active={a.key === activeKey}
               />
             </li>
@@ -231,29 +280,39 @@ function Sidebar({
 function SidebarItem({
   href,
   label,
-  glyph,
+  icon,
   active,
+  emphasized,
 }: {
   href: string;
   label: string;
-  glyph: string;
+  icon: React.ReactNode;
   active?: boolean;
+  emphasized?: boolean;
 }) {
+  const ringClass = emphasized
+    ? active
+      ? 'bg-forest text-cream border border-forest shadow-card'
+      : 'bg-cream-soft border border-forest/30 text-ink hover:border-forest/60'
+    : active
+      ? 'bg-gold-soft border border-gold/40 text-ink shadow-card'
+      : 'bg-paper border border-hairline text-ink-soft hover:border-ink/20 hover:text-ink';
+  const medallionClass = emphasized
+    ? active
+      ? 'bg-cream text-forest border border-cream/50'
+      : 'bg-paper text-forest border border-forest/25'
+    : active
+      ? 'bg-gold text-cream border border-gold-deep/30'
+      : 'bg-cream-soft text-gold-deep border border-gold-deep/15';
   return (
     <Link
       href={href}
-      className={`flex items-center gap-3 px-3 py-3 rounded-xl whitespace-nowrap lg:whitespace-normal min-w-0 lg:min-w-0 transition-colors ${
-        active
-          ? 'bg-gold-soft border border-gold/40 text-ink shadow-card'
-          : 'bg-paper border border-hairline text-ink-soft hover:border-ink/20 hover:text-ink'
-      }`}
+      className={`flex items-center gap-3 px-3 py-3 rounded-xl whitespace-nowrap lg:whitespace-normal min-w-0 lg:min-w-0 transition-colors ${ringClass}`}
     >
       <span
-        className={`shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full text-base ${
-          active ? 'bg-gold text-cream' : 'bg-cream-soft text-ink'
-        }`}
+        className={`shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full ${medallionClass}`}
       >
-        {glyph}
+        {icon}
       </span>
       <span className="flex-1 min-w-0 font-medium text-sm truncate">
         {label}
@@ -269,26 +328,41 @@ function SidebarItem({
 
 function MainHeader({
   archetype,
+  isYourGallery,
   itemCount,
   collectionCount,
   isUserArchetype,
   view,
 }: {
-  archetype: ArchetypeDef;
+  archetype: ArchetypeDef | null;
+  isYourGallery: boolean;
   itemCount: number;
   collectionCount: number;
   isUserArchetype: boolean;
   view: ViewMode;
 }) {
+  const eyebrow = isYourGallery
+    ? 'Across all curated collections'
+    : isUserArchetype
+      ? 'Your Galleries'
+      : 'Exploring';
+  const title = isYourGallery
+    ? 'Your Gallery'
+    : archetype?.title ?? 'Collections';
+  // ViewToggle param: pass 'all' in Your Gallery mode so the URL
+  // stays consistent across grid/list switches.
+  const toggleKey: 'all' | OnboardingArchetype = isYourGallery
+    ? 'all'
+    : archetype?.key ?? 'all';
   return (
     <header className="space-y-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="text-xs uppercase tracking-widest text-muted">
-            {isUserArchetype ? 'Your Galleries' : 'Exploring'}
+            {eyebrow}
           </div>
           <h2 className="font-serif text-3xl text-ink leading-tight mt-1">
-            {archetype.title}
+            {title}
           </h2>
           <div className="text-sm text-muted mt-1">
             <strong className="text-ink">{itemCount.toLocaleString()}</strong>{' '}
@@ -298,7 +372,7 @@ function MainHeader({
             {collectionCount === 1 ? 'Collection' : 'Collections'}
           </div>
         </div>
-        <ViewToggle archetypeKey={archetype.key} view={view} />
+        <ViewToggle archetypeKey={toggleKey} view={view} />
       </div>
       <form action="/search" method="get" className="max-w-xl">
         <label className="relative block">
@@ -322,7 +396,7 @@ function ViewToggle({
   archetypeKey,
   view,
 }: {
-  archetypeKey: OnboardingArchetype;
+  archetypeKey: 'all' | OnboardingArchetype;
   view: ViewMode;
 }) {
   const hrefFor = (v: ViewMode) =>
@@ -850,6 +924,127 @@ function ListIcon({ className }: { className?: string }) {
       aria-hidden="true"
     >
       <path d="M3 4h10M3 8h10M3 12h10" />
+    </svg>
+  );
+}
+
+function FamilyTreeIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={16}
+      height={16}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="4" r="2" />
+      <path d="M12 6v4M6 14v-2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" />
+      <circle cx="6" cy="17" r="2" />
+      <circle cx="12" cy="17" r="2" />
+      <circle cx="18" cy="17" r="2" />
+    </svg>
+  );
+}
+
+function TrophyIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={16}
+      height={16}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M7 4h10v6a5 5 0 0 1-10 0z" />
+      <path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3" />
+      <path d="M10 16h4l-1 4h-2z" />
+      <path d="M8 20h8" />
+    </svg>
+  );
+}
+
+function DiamondIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={16}
+      height={16}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M6 3h12l4 6-10 12L2 9z" />
+      <path d="M2 9h20M9 3l3 6 3-6M9 9l3 12 3-12" />
+    </svg>
+  );
+}
+
+function ColumnIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={16}
+      height={16}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3 9L12 4l9 5" />
+      <path d="M3 9h18M3 20h18" />
+      <path d="M7 9v11M12 9v11M17 9v11" />
+    </svg>
+  );
+}
+
+function ArchiveBoxIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={16}
+      height={16}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="4" width="18" height="4" rx="1" />
+      <rect x="4" y="8" width="16" height="12" rx="1" />
+      <path d="M10 13h4" />
+    </svg>
+  );
+}
+
+function SparkIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={16}
+      height={16}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" />
+      <circle cx="12" cy="12" r="3" />
     </svg>
   );
 }
