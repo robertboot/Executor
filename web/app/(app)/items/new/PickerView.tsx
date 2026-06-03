@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { SubCategory, ArchetypeDef } from '@/lib/onboarding';
-import { archetypeForSubCategory } from '@/lib/onboarding';
 import type { OnboardingArchetype } from '@/lib/types';
 
 interface Props {
@@ -68,49 +67,36 @@ function PickerCard({
   inventoryId: string;
   itemCount: number;
 }) {
-  const parentArch = archetypeForSubCategory(subCat.key);
-  const baseZoom = Math.max(subCat.thumbZoom ?? 1, 1.8);
   const target = `/items/new?category=${encodeURIComponent(subCat.parent)}&inventory=${encodeURIComponent(inventoryId)}`;
+  // Mirror the Collections grid tile: right-anchored crop with a
+  // 1.5x bake-in on top of any per-sub-cat thumbZoom, 4:3 image up
+  // top, title + count beneath on a paper card.
+  const baseZoom = subCat.homeZoom ?? subCat.thumbZoom ?? 1;
+  const gridScale = baseZoom * 1.5;
   return (
     <Link
       href={target}
-      className="group relative block aspect-[5/3] overflow-hidden rounded-xl border border-hairline shadow-card"
+      className="group block bg-paper border border-hairline rounded-2xl overflow-hidden hover:shadow-card transition-shadow h-full"
     >
-      <div
-        className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
-        style={{ transformOrigin: '100% 50%' }}
-      >
+      <div className="relative aspect-[4/3] bg-cream-soft overflow-hidden">
         <Image
           src={subCat.bgImage}
           alt=""
           fill
-          sizes="(max-width: 1024px) 50vw, 360px"
-          className="object-cover object-right"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover object-right transition-transform duration-500 group-hover:scale-105"
           style={{
-            transform: `scale(${baseZoom})`,
+            transform: `scale(${gridScale})`,
             transformOrigin: '100% 50%',
           }}
         />
       </div>
-      <div
-        className="absolute inset-x-0 bottom-0 h-3/5 pointer-events-none"
-        style={{
-          background:
-            'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 55%, rgba(0,0,0,0) 100%)',
-        }}
-        aria-hidden="true"
-      />
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-4 text-cream">
-        {parentArch && (
-          <div className="text-[10px] uppercase tracking-widest opacity-80 mb-0.5 drop-shadow-sm">
-            {parentArch.title}
-          </div>
-        )}
-        <h3 className="font-serif text-lg sm:text-xl leading-tight drop-shadow-sm">
+      <div className="p-3">
+        <h3 className="font-serif text-base text-ink leading-tight truncate">
           {subCat.label}
         </h3>
-        <div className="text-xs opacity-90 mt-0.5 drop-shadow-sm">
-          {itemCount} {itemCount === 1 ? 'item' : 'items'}
+        <div className="text-xs text-muted mt-0.5">
+          {itemCount} {itemCount === 1 ? 'Item' : 'Items'}
         </div>
       </div>
     </Link>
@@ -125,13 +111,18 @@ function AddCollectionCard({
   return (
     <Link
       href={`/collections/add/${archetypeKey}?next=${encodeURIComponent('/items/new')}`}
-      className="group flex items-center justify-center aspect-[5/3] rounded-xl border-2 border-dashed border-gold bg-gold-soft/30 hover:bg-gold-soft/60 transition-colors"
+      className="group block bg-paper border border-dashed border-hairline rounded-2xl overflow-hidden hover:border-forest/40 transition-colors h-full"
     >
-      <div className="flex flex-col items-center text-gold-deep">
-        <div className="w-14 h-14 rounded-full bg-gold text-cream flex items-center justify-center mb-2">
-          <PlusIcon className="w-7 h-7" />
+      <div className="relative aspect-[4/3] bg-cream-soft flex items-center justify-center text-gold-deep">
+        <PlusIcon className="w-8 h-8" />
+      </div>
+      <div className="p-3">
+        <h3 className="font-serif text-base text-ink leading-tight">
+          Add Collection
+        </h3>
+        <div className="text-xs text-muted mt-0.5">
+          Pick another to add to
         </div>
-        <div className="font-serif text-base">Add Collection</div>
       </div>
     </Link>
   );
