@@ -2,10 +2,9 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import Logo from '@/components/Logo';
 import PullToRefresh from '@/components/PullToRefresh';
-import FooterNav from '@/components/FooterNav';
+import CreateDrawer from '@/components/CreateDrawer';
 import SplashGate from '@/components/SplashGate';
 import { getCurrentUser } from '@/lib/supabase/server';
-import MobileNav from './MobileNav';
 import TopNav, { type NavItem } from './TopNav';
 
 const NAV: NavItem[] = [
@@ -54,17 +53,32 @@ export default async function AppLayout({
               <Link href="/home" className="flex items-center shrink-0">
                 <Logo variant="compact" />
               </Link>
+              {/* Desktop nav stays in the middle for users who want
+                  the full menu (Contributors dropdown, etc.). */}
               <TopNav items={NAV} />
-              <div className="flex items-center gap-1">
-                <Link
+              {/* Right-side icon rail — Home, My Collections, Settings.
+                  Visible everywhere so mobile users get direct nav
+                  without a hamburger. */}
+              <nav
+                aria-label="Primary"
+                className="flex items-center gap-0.5"
+              >
+                <HeaderIconLink
+                  href="/home"
+                  label="Home"
+                  icon={<HomeIcon />}
+                />
+                <HeaderIconLink
+                  href="/collections"
+                  label="My Collections"
+                  icon={<CollectionsIcon />}
+                />
+                <HeaderIconLink
                   href="/settings"
-                  aria-label="Settings"
-                  className="w-10 h-10 rounded-md hover:bg-cream-soft flex items-center justify-center text-ink"
-                >
-                  <GearIcon />
-                </Link>
-                <MobileNav items={NAV} />
-              </div>
+                  label="Settings"
+                  icon={<GearIcon />}
+                />
+              </nav>
             </div>
           </header>
           <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-28 lg:pb-6">
@@ -75,8 +89,67 @@ export default async function AppLayout({
           </footer>
         </div>
       </PullToRefresh>
-      <FooterNav />
+      {/* Mobile create dock + archive drawer. lg+ users navigate via
+          the desktop TopNav and use page-level + buttons instead. */}
+      <CreateDrawer />
     </>
+  );
+}
+
+function HeaderIconLink({
+  href,
+  label,
+  icon,
+}: {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-label={label}
+      title={label}
+      className="w-10 h-10 rounded-md hover:bg-cream-soft flex items-center justify-center text-ink"
+    >
+      {icon}
+    </Link>
+  );
+}
+
+function HomeIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={20}
+      height={20}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3 11l9-8 9 8M5 10v10h14V10" />
+    </svg>
+  );
+}
+
+function CollectionsIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={20}
+      height={20}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 6h6v6H4zM14 6h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
+    </svg>
   );
 }
 
@@ -98,4 +171,3 @@ function GearIcon() {
     </svg>
   );
 }
-
