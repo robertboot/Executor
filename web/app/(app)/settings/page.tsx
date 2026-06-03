@@ -61,13 +61,30 @@ export default async function SettingsPage() {
         </Card>
       </form>
 
-      <form action="/auth/sign-out" method="POST" className="pt-4">
-        <button
-          type="submit"
-          className="text-sm text-red-700 hover:text-red-900 underline"
-        >
-          Sign out
-        </button>
+      <form action="/auth/sign-out" method="POST" className="pt-2">
+        <Card>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="font-medium text-ink">Sign out</div>
+              <div className="text-xs text-muted mt-1">
+                End this session on this device.
+                {user?.email && (
+                  <>
+                    {' '}
+                    You&rsquo;ll need to sign in again as{' '}
+                    <span className="text-ink">{user.email}</span>.
+                  </>
+                )}
+              </div>
+            </div>
+            <button
+              type="submit"
+              className="shrink-0 inline-flex items-center px-4 h-9 rounded-lg border border-red-700 text-red-700 text-sm font-medium hover:bg-red-700 hover:text-cream transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
+        </Card>
       </form>
     </div>
   );

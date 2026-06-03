@@ -57,13 +57,6 @@ export default async function AppLayout({
               <TopNav items={NAV} />
               <div className="flex items-center gap-1">
                 <Link
-                  href="/search"
-                  aria-label="Search"
-                  className="w-10 h-10 rounded-md hover:bg-cream-soft flex items-center justify-center text-ink"
-                >
-                  <SearchIcon />
-                </Link>
-                <Link
                   href="/settings"
                   aria-label="Settings"
                   className="w-10 h-10 rounded-md hover:bg-cream-soft flex items-center justify-center text-ink"
@@ -106,21 +99,3 @@ function GearIcon() {
   );
 }
 
-function SearchIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={20}
-      height={20}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="11" cy="11" r="6.5" />
-      <path d="M20 20l-4.2-4.2" />
-    </svg>
-  );
-}
