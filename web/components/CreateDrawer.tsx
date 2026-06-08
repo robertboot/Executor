@@ -50,31 +50,99 @@ const OPTIONS: Array<{
 
 const ANIM_MS = 360;
 
-// Layered walnut with visible vertical grain.
-const WOOD_BACKGROUND = [
-  // Fine grain striations
-  'repeating-linear-gradient(180deg, rgba(0,0,0,0.10) 0px, rgba(0,0,0,0.10) 1px, transparent 1px, transparent 5px)',
-  // Wider figured bands
-  'repeating-linear-gradient(180deg, rgba(255,210,150,0.04) 0px, rgba(255,210,150,0.04) 7px, transparent 7px, transparent 15px)',
-  // Base warm-to-deep shading
-  'linear-gradient(180deg, #4A2D17 0%, #5C3820 35%, #432712 70%, #2E1A0B 100%)',
-].join(', ');
+// SVG turbulence noise overlays. Stacked on top of the gradients to
+// give each material a real surface grain — wood gets long vertical
+// streaks, paper gets isotropic fiber, brass gets horizontal scratch.
+function noiseUri(svg: string): string {
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
+// Vertical wood grain: very high x-frequency, very low y-frequency.
+const WOOD_NOISE = noiseUri(
+  "<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'>" +
+    "<filter id='n'>" +
+    "<feTurbulence type='fractalNoise' baseFrequency='2 0.05' numOctaves='2' seed='5' stitchTiles='stitch'/>" +
+    "<feColorMatrix values='0 0 0 0 0.05  0 0 0 0 0.025  0 0 0 0 0  0.35 0.55 0.10 0 -0.05'/>" +
+    "</filter>" +
+    "<rect width='100%' height='100%' filter='url(#n)'/>" +
+    "</svg>",
+);
+
+// Isotropic fine fiber for aged paper.
+const PAPER_NOISE = noiseUri(
+  "<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'>" +
+    "<filter id='n'>" +
+    "<feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='9' stitchTiles='stitch'/>" +
+    "<feColorMatrix values='0 0 0 0 0.28  0 0 0 0 0.18  0 0 0 0 0.08  0.30 0.55 0.15 0 -0.30'/>" +
+    "</filter>" +
+    "<rect width='100%' height='100%' filter='url(#n)'/>" +
+    "</svg>",
+);
+
+// Subtle horizontal brushed-brass micro-scratches.
+const BRASS_NOISE = noiseUri(
+  "<svg xmlns='http://www.w3.org/2000/svg' width='200' height='80'>" +
+    "<filter id='n'>" +
+    "<feTurbulence type='fractalNoise' baseFrequency='0.05 3' numOctaves='2' seed='7' stitchTiles='stitch'/>" +
+    "<feColorMatrix values='0 0 0 0 0.04  0 0 0 0 0.02  0 0 0 0 0  0.30 0.55 0.15 0 -0.55'/>" +
+    "</filter>" +
+    "<rect width='100%' height='100%' filter='url(#n)'/>" +
+    "</svg>",
+);
+
+// Layered walnut with visible vertical grain + noise overlay.
+const WOOD_STYLE = {
+  backgroundImage: [
+    WOOD_NOISE,
+    // Fine grain striations
+    'repeating-linear-gradient(180deg, rgba(0,0,0,0.10) 0px, rgba(0,0,0,0.10) 1px, transparent 1px, transparent 5px)',
+    // Wider figured bands
+    'repeating-linear-gradient(180deg, rgba(255,210,150,0.04) 0px, rgba(255,210,150,0.04) 7px, transparent 7px, transparent 15px)',
+    // Base warm-to-deep shading
+    'linear-gradient(180deg, #4A2D17 0%, #5C3820 35%, #432712 70%, #2E1A0B 100%)',
+  ].join(', '),
+  backgroundSize: '400px 400px, auto, auto, auto',
+  backgroundRepeat: 'repeat, repeat, repeat, no-repeat',
+} as const;
 
 // Deeper walnut + inset shadow for the cavity that holds the drawers.
-const WELL_BACKGROUND = [
-  'repeating-linear-gradient(180deg, rgba(0,0,0,0.20) 0px, rgba(0,0,0,0.20) 1px, transparent 1px, transparent 4px)',
-  'linear-gradient(180deg, #261408 0%, #371F0E 100%)',
-].join(', ');
+const WELL_STYLE = {
+  backgroundImage: [
+    WOOD_NOISE,
+    'repeating-linear-gradient(180deg, rgba(0,0,0,0.20) 0px, rgba(0,0,0,0.20) 1px, transparent 1px, transparent 4px)',
+    'linear-gradient(180deg, #261408 0%, #371F0E 100%)',
+  ].join(', '),
+  backgroundSize: '400px 400px, auto, auto',
+  backgroundRepeat: 'repeat, repeat, no-repeat',
+} as const;
 
-// Bright polished brass — used on the plaque, knobs, chevrons, and
+// Bright polished brass — used on the plaque, chevrons, and
 // the drop-bail pull. The dark midband is the trick that makes it
 // read as metal rather than yellow paint.
 const BRASS_GRADIENT =
   'linear-gradient(180deg, #F6E09B 0%, #DDBA6E 38%, #8C6C2E 52%, #C9A55C 66%, #F2DA90 100%)';
 
+const BRASS_STYLE = {
+  backgroundImage: `${BRASS_NOISE}, ${BRASS_GRADIENT}`,
+  backgroundSize: '200px 80px, auto',
+  backgroundRepeat: 'repeat, no-repeat',
+} as const;
+
 // Deep antique forest green for the coin medallions.
 const COIN_GREEN_GRADIENT =
   'radial-gradient(circle at 32% 30%, #2F4D3E 0%, #1F3A2E 55%, #122418 100%)';
+
+// Aged paper for the drawer faces — fiber noise on top of vignetted cream.
+const PAPER_STYLE = {
+  backgroundImage: [
+    PAPER_NOISE,
+    'radial-gradient(ellipse at 28% 35%, rgba(255,255,255,0.45) 0%, transparent 55%)',
+    'radial-gradient(ellipse at 85% 75%, rgba(120,80,40,0.10) 0%, transparent 60%)',
+    'linear-gradient(180deg, #F2E5C8 0%, #E5D3A8 100%)',
+  ].join(', '),
+  backgroundSize: '240px 240px, auto, auto, auto',
+  backgroundRepeat: 'repeat, no-repeat, no-repeat, no-repeat',
+} as const;
 
 export default function CreateDrawer() {
   const [mounted, setMounted] = useState(false);
@@ -176,7 +244,7 @@ function CabinetSurface({
           transform: open ? 'translateY(0)' : 'translateY(100%)',
           transitionDuration: `${ANIM_MS}ms`,
           paddingBottom: 'env(safe-area-inset-bottom)',
-          background: WOOD_BACKGROUND,
+          ...WOOD_STYLE,
           boxShadow:
             '0 -18px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,210,150,0.10)',
         }}
@@ -202,7 +270,7 @@ function CabinetSurface({
         <div
           className="mx-3 mb-3 rounded-md p-2.5 overflow-y-auto"
           style={{
-            background: WELL_BACKGROUND,
+            ...WELL_STYLE,
             boxShadow:
               'inset 0 2px 7px rgba(0,0,0,0.75), inset 0 -1px 0 rgba(255,210,150,0.06)',
           }}
@@ -252,14 +320,7 @@ function DrawerCard({
       onClick={onClose}
       className="group block rounded-[4px] overflow-hidden active:translate-y-px transition-transform relative"
       style={{
-        // Mottled aged paper: a soft radial in the middle plus a
-        // base cream gradient. Two darker corner washes give it a
-        // slightly worn / vignetted edge.
-        background: [
-          'radial-gradient(ellipse at 28% 35%, rgba(255,255,255,0.45) 0%, transparent 55%)',
-          'radial-gradient(ellipse at 85% 75%, rgba(120,80,40,0.10) 0%, transparent 60%)',
-          'linear-gradient(180deg, #F2E5C8 0%, #E5D3A8 100%)',
-        ].join(', '),
+        ...PAPER_STYLE,
         boxShadow: [
           'inset 0 1px 0 rgba(255,255,255,0.7)',
           'inset 0 -2px 5px rgba(80,50,25,0.30)',
@@ -321,7 +382,7 @@ function CoinMedallion({ children }: { children: React.ReactNode }) {
         width: 50,
         height: 50,
         borderRadius: '50%',
-        background: BRASS_GRADIENT,
+        ...BRASS_STYLE,
         boxShadow: [
           'inset 0 1px 1px rgba(255,255,255,0.55)',
           'inset 0 0 0 0.5px rgba(45,25,5,0.8)',
@@ -420,7 +481,7 @@ function BrassCartouche({ label }: { label: string }) {
         height: 36,
         padding: '0 26px',
         borderRadius: 999,
-        background: BRASS_GRADIENT,
+        ...BRASS_STYLE,
         boxShadow: [
           'inset 0 1px 2px rgba(255,255,255,0.7)',
           'inset 0 -1px 1px rgba(50,30,5,0.5)',
@@ -540,7 +601,7 @@ function MountPlate({ style }: { style?: React.CSSProperties }) {
         width: 22,
         height: 22,
         borderRadius: '50%',
-        background: BRASS_GRADIENT,
+        ...BRASS_STYLE,
         boxShadow: [
           'inset 0 1px 1px rgba(255,255,255,0.55)',
           'inset 0 0 0 0.5px rgba(45,25,5,0.8)',
