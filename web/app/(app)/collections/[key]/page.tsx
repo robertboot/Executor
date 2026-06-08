@@ -16,7 +16,12 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 interface PageProps {
   params: Promise<{ key: string }>;
-  searchParams: Promise<{ sub?: string; custom?: string; photo_failed?: string }>;
+  searchParams: Promise<{
+    sub?: string;
+    custom?: string;
+    photo_failed?: string;
+    photo_reason?: string;
+  }>;
 }
 
 export default async function CollectionDetailPage({
@@ -26,6 +31,7 @@ export default async function CollectionDetailPage({
   const [{ key: rawKey }, search] = await Promise.all([params, searchParams]);
   const coreKey = decodeURIComponent(rawKey);
   const photoFailed = search?.photo_failed === '1';
+  const photoReason = search?.photo_reason ?? null;
 
   // Custom collections use a UUID for their key. When the URL looks
   // like one (or ?custom=1 is set), try to load it and short-circuit
@@ -73,18 +79,25 @@ export default async function CollectionDetailPage({
   return (
     <div className="space-y-6 pb-24">
       {photoFailed && (
-        <div className="bg-gold-soft/30 border border-gold/40 text-ink rounded-xl px-4 py-3 text-sm">
-          <strong className="font-medium">Heads up:</strong> the collection was
-          saved, but its cover image couldn&rsquo;t be uploaded. You can try
-          again from{' '}
-          {editHref ? (
-            <Link href={editHref} className="underline text-forest">
-              the edit page
-            </Link>
-          ) : (
-            'the edit page'
+        <div className="bg-gold-soft/30 border border-gold/40 text-ink rounded-xl px-4 py-3 text-sm space-y-1">
+          <div>
+            <strong className="font-medium">Heads up:</strong> the collection was
+            saved, but its cover image couldn&rsquo;t be uploaded. You can try
+            again from{' '}
+            {editHref ? (
+              <Link href={editHref} className="underline text-forest">
+                the edit page
+              </Link>
+            ) : (
+              'the edit page'
+            )}
+            .
+          </div>
+          {photoReason && (
+            <div className="text-xs text-muted font-mono break-all">
+              Reason: {photoReason}
+            </div>
           )}
-          .
         </div>
       )}
       <Hero

@@ -11,14 +11,18 @@ function s(v: FormDataEntryValue | null): string | null {
   return t.length === 0 ? null : t;
 }
 
-// Uploads the file and returns the storage path, or `null` if the
-// upload failed for any reason (bucket missing, RLS denial, network).
-// Never throws — callers decide whether to keep going without the image.
+type UploadResult =
+  | { ok: true; path: string }
+  | { ok: false; reason: string };
+
+// Uploads the file and returns the storage path, or a reason string
+// explaining the failure. Never throws — callers decide whether to
+// keep going without the image.
 async function uploadImage(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   userId: string,
   file: File,
-): Promise<string | null> {
+): Promise<UploadResult> {
   try {
     const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
     const path = `${userId}/${crypto.randomUUID()}.${ext}`;
@@ -31,12 +35,15 @@ async function uploadImage(
       });
     if (error) {
       console.error('custom collection image upload failed:', error.message);
-      return null;
+      return { ok: false, reason: error.message };
     }
-    return path;
+    return { ok: true, path };
   } catch (err) {
     console.error('custom collection image upload threw:', err);
-    return null;
+    return {
+      ok: false,
+      reason: err instanceof Error ? err.message : 'Unknown error',
+    };
   }
 }
 
@@ -55,11 +62,15 @@ export async function createCustomCollection(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   let imagePath: string | null = null;
-  let photoFailed = false;
+  let photoFailReason: string | null = null;
   const file = formData.get('image');
   if (file && file instanceof File && file.size > 0) {
-    imagePath = await uploadImage(supabase, user.id, file);
-    photoFailed = imagePath === null;
+    const res = await uploadImage(supabase, user.id, file);
+    if (res.ok) {
+      imagePath = res.path;
+    } else {
+      photoFailReason = res.reason;
+    }
   }
 
   const { data, error } = await supabase
@@ -80,7 +91,10 @@ export async function createCustomCollection(formData: FormData) {
   revalidatePath('/home');
 
   let target = `/collections/${encodeURIComponent(data.id)}?custom=1`;
-  if (photoFailed) target = appendQuery(target, 'photo_failed', '1');
+  if (photoFailReason) {
+    target = appendQuery(target, 'photo_failed', '1');
+    target = appendQuery(target, 'photo_reason', photoFailReason);
+  }
   redirect(target);
 }
 
@@ -97,14 +111,14 @@ export async function updateCustomCollection(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const update: Record<string, unknown> = { name };
-  let photoFailed = false;
+  let photoFailReason: string | null = null;
   const file = formData.get('image');
   if (file && file instanceof File && file.size > 0) {
-    const uploaded = await uploadImage(supabase, user.id, file);
-    if (uploaded) {
-      update.image_path = uploaded;
+    const res = await uploadImage(supabase, user.id, file);
+    if (res.ok) {
+      update.image_path = res.path;
     } else {
-      photoFailed = true;
+      photoFailReason = res.reason;
     }
   }
 
@@ -122,7 +136,10 @@ export async function updateCustomCollection(formData: FormData) {
   revalidatePath(`/collections/${id}`);
   revalidatePath('/home');
   let target = `/collections/${encodeURIComponent(id)}?custom=1`;
-  if (photoFailed) target = appendQuery(target, 'photo_failed', '1');
+  if (photoFailReason) {
+    target = appendQuery(target, 'photo_failed', '1');
+    target = appendQuery(target, 'photo_reason', photoFailReason);
+  }
   redirect(target);
 }
 
