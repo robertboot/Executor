@@ -140,7 +140,7 @@ function Sheet({ open, onClose }: { open: boolean; onClose: () => void }) {
         role="dialog"
         aria-modal="true"
         aria-label="Create new"
-        className="fixed inset-x-0 bottom-0 z-50 max-h-[92vh] flex flex-col rounded-t-3xl bg-paper transition-transform ease-out overflow-hidden"
+        className="fixed inset-x-0 bottom-0 z-50 max-h-[92vh] flex flex-col rounded-t-3xl bg-cream transition-transform ease-out overflow-hidden"
         style={{
           transform: open ? 'translateY(0)' : 'translateY(100%)',
           transitionDuration: `${ANIM_MS}ms`,
@@ -193,7 +193,7 @@ function OptionCard({
     <Link
       href={option.href}
       onClick={onClose}
-      className="group flex items-center gap-3.5 rounded-2xl bg-cream-soft border border-hairline pl-3 pr-3.5 py-3 hover:shadow-card active:translate-y-px transition-all"
+      className="group flex items-center gap-3.5 rounded-2xl bg-paper border border-hairline pl-3 pr-3.5 py-3 hover:shadow-card active:translate-y-px transition-all"
     >
       <CoinMedallion>{option.icon}</CoinMedallion>
       <div className="flex-1 min-w-0">
