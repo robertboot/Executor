@@ -11,22 +11,38 @@ function s(v: FormDataEntryValue | null): string | null {
   return t.length === 0 ? null : t;
 }
 
+// Uploads the file and returns the storage path, or `null` if the
+// upload failed for any reason (bucket missing, RLS denial, network).
+// Never throws — callers decide whether to keep going without the image.
 async function uploadImage(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   userId: string,
   file: File,
-): Promise<string> {
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-  const path = `${userId}/${crypto.randomUUID()}.${ext}`;
-  const buffer = await file.arrayBuffer();
-  const { error } = await supabase.storage
-    .from(CUSTOM_COLLECTION_PHOTO_BUCKET)
-    .upload(path, buffer, {
-      contentType: file.type || 'image/jpeg',
-      upsert: false,
-    });
-  if (error) throw new Error(`Image upload failed: ${error.message}`);
-  return path;
+): Promise<string | null> {
+  try {
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+    const buffer = await file.arrayBuffer();
+    const { error } = await supabase.storage
+      .from(CUSTOM_COLLECTION_PHOTO_BUCKET)
+      .upload(path, buffer, {
+        contentType: file.type || 'image/jpeg',
+        upsert: false,
+      });
+    if (error) {
+      console.error('custom collection image upload failed:', error.message);
+      return null;
+    }
+    return path;
+  } catch (err) {
+    console.error('custom collection image upload threw:', err);
+    return null;
+  }
+}
+
+function appendQuery(href: string, key: string, value: string): string {
+  const sep = href.includes('?') ? '&' : '?';
+  return `${href}${sep}${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
 }
 
 export async function createCustomCollection(formData: FormData) {
@@ -39,9 +55,11 @@ export async function createCustomCollection(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   let imagePath: string | null = null;
+  let photoFailed = false;
   const file = formData.get('image');
   if (file && file instanceof File && file.size > 0) {
     imagePath = await uploadImage(supabase, user.id, file);
+    photoFailed = imagePath === null;
   }
 
   const { data, error } = await supabase
@@ -60,9 +78,10 @@ export async function createCustomCollection(formData: FormData) {
 
   revalidatePath('/collections');
   revalidatePath('/home');
-  redirect(
-    `/collections/${encodeURIComponent(data.id)}?custom=1`,
-  );
+
+  let target = `/collections/${encodeURIComponent(data.id)}?custom=1`;
+  if (photoFailed) target = appendQuery(target, 'photo_failed', '1');
+  redirect(target);
 }
 
 export async function updateCustomCollection(formData: FormData) {
@@ -78,9 +97,15 @@ export async function updateCustomCollection(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 
   const update: Record<string, unknown> = { name };
+  let photoFailed = false;
   const file = formData.get('image');
   if (file && file instanceof File && file.size > 0) {
-    update.image_path = await uploadImage(supabase, user.id, file);
+    const uploaded = await uploadImage(supabase, user.id, file);
+    if (uploaded) {
+      update.image_path = uploaded;
+    } else {
+      photoFailed = true;
+    }
   }
 
   const { error } = await supabase
@@ -96,7 +121,9 @@ export async function updateCustomCollection(formData: FormData) {
   revalidatePath('/collections');
   revalidatePath(`/collections/${id}`);
   revalidatePath('/home');
-  redirect(`/collections/${encodeURIComponent(id)}?custom=1`);
+  let target = `/collections/${encodeURIComponent(id)}?custom=1`;
+  if (photoFailed) target = appendQuery(target, 'photo_failed', '1');
+  redirect(target);
 }
 
 export async function deleteCustomCollection(formData: FormData) {
