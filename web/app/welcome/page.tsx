@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/supabase/server';
 import { APP_VERSION } from '@/lib/version';
 import { ARCHETYPES } from '@/lib/onboarding';
+import Logo from '@/components/Logo';
 import DismissCTA from './DismissCTA';
 import InstallSection from './InstallSection';
 
@@ -53,26 +54,15 @@ export default async function WelcomePage() {
           }}
         />
 
-        {/* Keepsake-box medallion overlapping the curve */}
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-6 sm:bottom-10">
-          <div
-            className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-paper border border-hairline shadow-card flex items-center justify-center text-gold-deep"
-            style={{
-              boxShadow:
-                'inset 0 1px 2px rgba(255,255,255,0.7), 0 6px 18px rgba(180,140,55,0.18)',
-            }}
-          >
-            <KeepsakeBoxIcon />
-          </div>
+        {/* Logo overlapping the curve */}
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-4 sm:bottom-8">
+          <Logo />
         </div>
       </section>
 
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 -mt-2">
-        {/* Branded title + decorative rule */}
+        {/* Welcome title */}
         <div className="text-center space-y-2 pt-2">
-          <h2 className="font-serif text-2xl sm:text-3xl text-forest leading-none">
-            Heirloom
-          </h2>
           <DecorativeRule />
           <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-ink leading-tight">
             Welcome to Heirloom
@@ -110,9 +100,12 @@ export default async function WelcomePage() {
             <LeafFlourish />
           </header>
 
-          <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <ul className="flex flex-wrap justify-center gap-3">
             {ARCHETYPES.map((a) => (
-              <li key={a.key}>
+              <li
+                key={a.key}
+                className="basis-[calc(50%-0.375rem)] sm:basis-[calc(33.333%-0.5rem)] lg:basis-[calc(20%-0.6rem)]"
+              >
                 <ArchetypeCard
                   title={a.title}
                   tagline={a.tagline}
