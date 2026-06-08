@@ -22,7 +22,7 @@ import type {
   Person,
   Profile,
 } from './types';
-import { labelForCategory, normalizeCategoryKey } from './categories';
+import { CATEGORY_PRESETS, labelForCategory, normalizeCategoryKey } from './categories';
 
 // ---------- Inventories ----------
 
@@ -195,11 +195,31 @@ export async function dashboardStats(): Promise<{
     .from('conservators')
     .select('id', { count: 'exact', head: true });
 
+  // Profile's selected sub-categories — empty collections still count.
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('selected_collections')
+    .eq('id', myId)
+    .maybeSingle();
+  const selected: string[] =
+    (profile?.selected_collections as string[] | null | undefined) ?? [];
+
+  // selected_collections holds both Core 12 parent keys AND sub-cat
+  // keys. The "Collections" stat means user-facing collections, so
+  // count just the sub-cats (the parent core keys are groupings, not
+  // collections themselves).
+  const coreKeys = new Set(CATEGORY_PRESETS.map((c) => c.key));
+  const selectedSubCatCount = selected.filter((k) => !coreKeys.has(k)).length;
+
+  // Plus any custom collections the user has created.
+  const { count: customCollectionCount } = await supabase
+    .from('custom_collections')
+    .select('id', { count: 'exact', head: true });
+
   let totalValue = 0;
   let totalCurrency = 'USD';
   let taggedForSaleCount = 0;
   let lastUpdatedAt: string | null = null;
-  const seenCategories = new Set<string>();
   for (const it of items ?? []) {
     if (typeof it.value_amount === 'number') {
       totalValue += it.value_amount;
@@ -209,10 +229,6 @@ export async function dashboardStats(): Promise<{
     if (it.updated_at && (!lastUpdatedAt || it.updated_at > lastUpdatedAt)) {
       lastUpdatedAt = it.updated_at;
     }
-    if (it.category) {
-      const normalized = normalizeCategoryKey(it.category);
-      if (normalized) seenCategories.add(normalized);
-    }
   }
   return {
     itemCount: items?.length ?? 0,
@@ -221,7 +237,7 @@ export async function dashboardStats(): Promise<{
     conservatorCount: conservatorCount ?? 0,
     taggedForSaleCount,
     lastUpdatedAt,
-    collectionCount: seenCategories.size,
+    collectionCount: selectedSubCatCount + (customCollectionCount ?? 0),
   };
 }
 
