@@ -242,7 +242,7 @@ function Sidebar({
         </h1>
         <p className="text-xs sm:text-sm text-muted mt-1.5 leading-relaxed">
           A simple way we&rsquo;ve grouped main categories to make
-          getting started easier. <span className="text-ink">Your Gallery</span>{' '}
+          getting started easier. <span className="text-ink">Your Collections</span>{' '}
           below lists every category you&rsquo;ve actually chosen —
           regardless of which curated collection it came from.
         </p>
@@ -255,7 +255,7 @@ function Sidebar({
           <li className="shrink-0 lg:shrink">
             <SidebarItem
               href="/collections?archetype=all"
-              label="Your Gallery"
+              label="Your Collections"
               icon={<SparkIcon />}
               active={activeKey === 'all'}
               emphasized
@@ -344,10 +344,10 @@ function MainHeader({
   const eyebrow = isYourGallery
     ? 'Across all curated collections'
     : isUserArchetype
-      ? 'Your Galleries'
+      ? 'Your Collections'
       : 'Exploring';
   const title = isYourGallery
-    ? 'Your Gallery'
+    ? 'Your Collections'
     : archetype?.title ?? 'Collections';
   // ViewToggle param: pass 'all' in Your Gallery mode so the URL
   // stays consistent across grid/list switches.

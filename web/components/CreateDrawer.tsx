@@ -122,11 +122,11 @@ export default function CreateDrawer() {
           </div>
           <Link
             href="/collections"
-            aria-label="Galleries"
+            aria-label="Collections"
             className="flex flex-col items-center gap-0.5 text-ink hover:text-forest transition-colors"
           >
             <GalleriesIcon />
-            <span className="text-xs">Galleries</span>
+            <span className="text-xs">Collections</span>
           </Link>
         </div>
       </nav>
