@@ -96,20 +96,38 @@ export default function CreateDrawer() {
   return (
     <>
       <nav
-        aria-label="Create"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-paper/95 backdrop-blur border-t border-hairline"
+        aria-label="Primary"
+        className="fixed bottom-0 left-0 right-0 z-30 bg-cream/95 backdrop-blur border-t border-hairline"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="flex justify-center items-center h-16">
-          <button
-            type="button"
-            aria-label="Create new"
-            aria-expanded={active}
-            onClick={startOpen}
-            className="-mt-7 inline-flex items-center justify-center w-16 h-16 rounded-full bg-forest text-cream shadow-raised border-4 border-paper hover:bg-forest-deep active:scale-95 transition-transform"
+        <div className="grid grid-cols-3 items-center h-16 max-w-md mx-auto px-6">
+          <Link
+            href="/home"
+            aria-label="Home"
+            className="flex flex-col items-center gap-0.5 text-ink hover:text-forest transition-colors"
           >
-            <PlusIcon />
-          </button>
+            <HomeIcon />
+            <span className="text-xs">Home</span>
+          </Link>
+          <div className="flex items-center justify-center">
+            <button
+              type="button"
+              aria-label="Create new"
+              aria-expanded={active}
+              onClick={startOpen}
+              className="-mt-7 inline-flex items-center justify-center w-16 h-16 rounded-full bg-forest text-cream shadow-raised border-4 border-cream hover:bg-forest-deep active:scale-95 transition-transform"
+            >
+              <PlusIcon />
+            </button>
+          </div>
+          <Link
+            href="/collections"
+            aria-label="Galleries"
+            className="flex flex-col items-center gap-0.5 text-ink hover:text-forest transition-colors"
+          >
+            <GalleriesIcon />
+            <span className="text-xs">Galleries</span>
+          </Link>
         </div>
       </nav>
 
@@ -319,6 +337,38 @@ function PlusIcon() {
       aria-hidden="true"
     >
       <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+function HomeIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={22}
+      height={22}
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M12 3l9 8h-2v9h-5v-6h-4v6H5v-9H3z" />
+    </svg>
+  );
+}
+
+function GalleriesIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={22}
+      height={22}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
     </svg>
   );
 }

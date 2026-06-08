@@ -5,35 +5,6 @@ import PullToRefresh from '@/components/PullToRefresh';
 import CreateDrawer from '@/components/CreateDrawer';
 import SplashGate from '@/components/SplashGate';
 import { getCurrentUser } from '@/lib/supabase/server';
-import TopNav, { type NavItem } from './TopNav';
-
-const NAV: NavItem[] = [
-  { href: '/home', label: 'Home' },
-  { href: '/collections', label: 'Collections' },
-  {
-    href: '/contributors',
-    label: 'Contributors',
-    children: [
-      {
-        href: '/people',
-        label: 'Legacy People',
-        description: 'Family and friends behind every item.',
-      },
-      {
-        href: '/inheritors',
-        label: 'Inheritors',
-        description: 'Designated recipients for the future.',
-      },
-      {
-        href: '/conservators',
-        label: 'Conservators',
-        description: 'People who can help maintain the archive.',
-      },
-    ],
-  },
-  { href: '/search', label: 'Search' },
-  { href: '/scan', label: 'Scan' },
-];
 
 export default async function AppLayout({
   children,
@@ -48,107 +19,64 @@ export default async function AppLayout({
       <SplashGate />
       <PullToRefresh>
         <div className="min-h-screen flex flex-col">
-          <header className="w-full bg-paper border-b border-hairline">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+          <header className="sticky top-0 z-20 w-full bg-cream/95 backdrop-blur border-b border-hairline">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
               <Link href="/home" className="flex items-center shrink-0">
                 <Logo variant="compact" />
               </Link>
-              {/* Desktop nav stays in the middle for users who want
-                  the full menu (Contributors dropdown, etc.). */}
-              <TopNav items={NAV} />
-              {/* Right-side icon rail — Home, My Collections, Settings.
-                  Visible everywhere so mobile users get direct nav
-                  without a hamburger. */}
-              <nav
-                aria-label="Primary"
-                className="flex items-center gap-0.5"
+              <form
+                action="/search"
+                method="get"
+                className="flex-1 min-w-0 max-w-2xl"
               >
-                <HeaderIconLink
-                  href="/home"
-                  label="Home"
-                  icon={<HomeIcon />}
-                />
-                <HeaderIconLink
-                  href="/collections"
-                  label="My Collections"
-                  icon={<CollectionsIcon />}
-                />
-                <HeaderIconLink
-                  href="/settings"
-                  label="Settings"
-                  icon={<GearIcon />}
-                />
-              </nav>
+                <label className="relative block">
+                  <span className="sr-only">Search your archive</span>
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+                    <SearchIcon />
+                  </span>
+                  <input
+                    type="search"
+                    name="q"
+                    placeholder="Search your archive..."
+                    className="w-full bg-paper border border-hairline rounded-full pl-10 pr-4 h-10 text-sm placeholder:text-muted focus:outline-none focus:border-forest"
+                  />
+                </label>
+              </form>
+              <Link
+                href="/settings"
+                aria-label="Settings"
+                title="Settings"
+                className="shrink-0 w-10 h-10 rounded-md hover:bg-cream-soft flex items-center justify-center text-ink"
+              >
+                <GearIcon />
+              </Link>
             </div>
           </header>
-          <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-28 lg:pb-6">
+          <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-28">
             {children}
           </main>
-          <footer className="hidden lg:block text-center text-xs text-muted py-6">
-            Heirloom · {new Date().getFullYear()}
-          </footer>
         </div>
       </PullToRefresh>
-      {/* Mobile create dock + archive drawer. lg+ users navigate via
-          the desktop TopNav and use page-level + buttons instead. */}
       <CreateDrawer />
     </>
   );
 }
 
-function HeaderIconLink({
-  href,
-  label,
-  icon,
-}: {
-  href: string;
-  label: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      aria-label={label}
-      title={label}
-      className="w-10 h-10 rounded-md hover:bg-cream-soft flex items-center justify-center text-ink"
-    >
-      {icon}
-    </Link>
-  );
-}
-
-function HomeIcon() {
+function SearchIcon() {
   return (
     <svg
-      viewBox="0 0 24 24"
-      width={20}
-      height={20}
+      viewBox="0 0 20 20"
+      width={16}
+      height={16}
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.7"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="M3 11l9-8 9 8M5 10v10h14V10" />
-    </svg>
-  );
-}
-
-function CollectionsIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={20}
-      height={20}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M4 6h6v6H4zM14 6h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
+      <circle cx="9" cy="9" r="6" />
+      <path d="M14 14l4 4" />
     </svg>
   );
 }

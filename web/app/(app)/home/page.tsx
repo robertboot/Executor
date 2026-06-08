@@ -12,8 +12,7 @@ import {
   type CatalogingGap,
   type TimelineEntry,
 } from '@/lib/api';
-import { formatMoney, formatRelativeTime } from '@/lib/format';
-import GreetingHeading from '@/components/GreetingHeading';
+import { formatRelativeTime } from '@/lib/format';
 import {
   findArchetype,
   findSubCategory,
@@ -37,10 +36,10 @@ interface ProfileSlim {
 
 export default async function HomePage() {
   const user = await getCurrentUser();
-  const firstName =
-    (user?.user_metadata?.display_name as string | undefined)?.split(' ')[0] ||
+  const displayName =
+    (user?.user_metadata?.display_name as string | undefined) ||
     user?.email?.split('@')[0] ||
-    'there';
+    'Collector';
 
   const supabase = await createSupabaseServerClient();
 
@@ -79,47 +78,34 @@ export default async function HomePage() {
   );
 
   return (
-    <div className="space-y-10 pb-24">
-      {/* Top row: header on the left, hero card on the right */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          <div className="lg:col-span-5 xl:col-span-4 space-y-4">
-            <Header
-              firstName={firstName}
-              archetypeTitle={archetype?.title ?? null}
-              itemCount={stats.itemCount}
-              collectionCount={stats.collectionCount}
-              conservatorCount={stats.conservatorCount}
-            />
-          </div>
-          <div className="lg:col-span-7 xl:col-span-8">
-            <HeroCard
-              archetype={archetype}
-              itemCount={stats.itemCount}
-              lastUpdatedAt={stats.lastUpdatedAt}
-            />
-          </div>
-        </div>
+    <div className="space-y-8 pb-24">
+      <HeroCard
+        displayName={displayName}
+        archetype={archetype}
+        itemCount={stats.itemCount}
+        collectionCount={stats.collectionCount}
+        conservatorCount={stats.conservatorCount}
+      />
 
+      {needsAttention.length > 0 && (
+        <ContinueCataloging items={needsAttention} />
+      )}
 
-        {needsAttention.length > 0 && (
-          <ContinueCataloging items={needsAttention} />
-        )}
+      <YourCollections
+        subCats={featuredSubCats}
+        itemCountByCoreKey={itemCountByCoreKey}
+        fallbackStats={collectionsStats}
+      />
 
-        <YourCollections
-          subCats={featuredSubCats}
-          itemCountByCoreKey={itemCountByCoreKey}
-          fallbackStats={collectionsStats}
-        />
-
-        <div
-          className={`grid grid-cols-1 ${
-            timeline.length > 0 ? 'lg:grid-cols-2' : ''
-          } gap-6`}
-        >
-          <RecentlyAdded items={recent} />
-          {timeline.length > 0 && <Timeline entries={timeline} />}
-        </div>
+      <div
+        className={`grid grid-cols-1 ${
+          timeline.length > 0 ? 'lg:grid-cols-2' : ''
+        } gap-6`}
+      >
+        <RecentlyAdded items={recent} />
+        {timeline.length > 0 && <Timeline entries={timeline} />}
       </div>
+    </div>
   );
 }
 
@@ -127,75 +113,20 @@ export default async function HomePage() {
 //  Sections                                                       //
 // ============================================================== //
 
-function Header({
-  firstName,
-  archetypeTitle,
+function HeroCard({
+  displayName,
+  archetype,
   itemCount,
   collectionCount,
   conservatorCount,
 }: {
-  firstName: string;
-  archetypeTitle: string | null;
+  displayName: string;
+  archetype: ArchetypeDef | null;
   itemCount: number;
   collectionCount: number;
   conservatorCount: number;
 }) {
-  return (
-    <section className="space-y-4">
-      <div>
-        <GreetingHeading
-          firstName={firstName}
-          className="font-serif text-3xl sm:text-4xl lg:text-5xl text-ink leading-tight"
-        />
-        {archetypeTitle && (
-          <p className="text-gold-deep text-base sm:text-lg font-medium mt-2">
-            Curated as {archetypeTitle}
-          </p>
-        )}
-      </div>
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-ink-soft">
-        <span>
-          <strong className="text-ink">{itemCount.toLocaleString()}</strong>{' '}
-          {itemCount === 1 ? 'Item' : 'Items'}
-        </span>
-        <span className="text-muted">·</span>
-        <span>
-          <strong className="text-ink">{collectionCount}</strong>{' '}
-          {collectionCount === 1 ? 'Collection' : 'Collections'}
-        </span>
-        <span className="text-muted">·</span>
-        <span>
-          <strong className="text-ink">{conservatorCount}</strong>{' '}
-          {conservatorCount === 1 ? 'Conservator' : 'Conservators'}
-        </span>
-      </div>
-      <form action="/search" method="get" className="max-w-md">
-        <label className="relative block">
-          <span className="sr-only">Search your archive</span>
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
-            <SearchIcon className="w-4 h-4" />
-          </span>
-          <input
-            type="search"
-            name="q"
-            placeholder="Search your archive…"
-            className="w-full bg-paper border border-hairline rounded-full pl-10 pr-4 h-11 text-sm placeholder:text-muted focus:outline-none focus:border-forest"
-          />
-        </label>
-      </form>
-    </section>
-  );
-}
-
-function HeroCard({
-  archetype,
-  itemCount,
-  lastUpdatedAt,
-}: {
-  archetype: ArchetypeDef | null;
-  itemCount: number;
-  lastUpdatedAt: string | null;
-}) {
+  // No archetype yet — show setup card.
   if (!archetype) {
     return (
       <section className="bg-paper border border-hairline rounded-2xl p-6">
@@ -216,66 +147,81 @@ function HeroCard({
   }
 
   const heroImage = archetype.fullImage ?? archetype.bgImage;
-  const overlayStyle = archetype.heroOverlayStyle ?? 'fade';
-  const overlayBackground =
-    overlayStyle === 'none'
-      ? null
-      : overlayStyle === 'scrim'
-        ? // Flat 33% dark wash for legibility without dimming the
-          // photo too much. Tuned for cream text on a mid-bright
-          // background image.
-          'rgba(0,0,0,0.33)'
-        : // Left-to-right forest-green fade — matches images that bake
-          // a light left half into the source.
-          'linear-gradient(to right, rgba(15,61,46,0.78) 0%, rgba(15,61,46,0.55) 35%, rgba(15,61,46,0.15) 65%, rgba(15,61,46,0) 100%)';
+
   return (
-    <section className="relative overflow-hidden bg-paper border border-hairline rounded-2xl shadow-card aspect-[16/9] lg:aspect-[2/1] xl:aspect-[5/2]">
+    <section className="relative overflow-hidden rounded-2xl shadow-card aspect-[4/5] sm:aspect-[16/10] lg:aspect-[2/1]">
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url('${heroImage}')` }}
-        aria-hidden="true"
+        aria-hidden
       />
-      {overlayBackground && (
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: overlayBackground }}
-          aria-hidden="true"
-        />
-      )}
-      <div className="relative z-10 h-full p-6 sm:p-8 max-w-md flex flex-col justify-between text-cream">
-        <div>
-          <h2 className="font-serif text-3xl sm:text-4xl leading-tight">
-            {archetype.title}
-          </h2>
+      {/* Left-side dark gradient so cream text reads on any image */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.55) 30%, rgba(0,0,0,0.2) 55%, rgba(0,0,0,0) 75%)',
+        }}
+        aria-hidden
+      />
+      <div className="relative z-10 h-full p-6 sm:p-8 max-w-md flex flex-col justify-center text-cream">
+        <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl leading-tight">
+          The curated
+          <br />
+          collections of
+        </h1>
+        <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold leading-tight mt-1">
+          {displayName}
+        </h2>
+
+        <div className="flex items-center gap-2 mt-4 mb-4 w-40 text-gold">
+          <div className="h-px bg-gold flex-1" />
+          <div
+            className="w-1.5 h-1.5 rotate-45 bg-gold"
+            aria-hidden
+          />
+          <div className="h-px bg-gold flex-1" />
         </div>
-        <div className="space-y-3">
-          <div className="text-sm space-y-0.5">
-            <div>
+
+        <ul className="space-y-2 text-sm mb-5">
+          <li className="flex items-center gap-2.5">
+            <ItemsIcon />
+            <span>
               <strong>{itemCount.toLocaleString()}</strong>{' '}
-              {itemCount === 1 ? 'Item' : 'Items'} Cataloged
-            </div>
-            {lastUpdatedAt && (
-              <div className="text-cream/80">
-                Last updated {formatRelativeTime(lastUpdatedAt)}
-              </div>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/items/new"
-              className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-[#C68A2E] text-cream text-sm font-medium hover:bg-[#A8741F] transition-colors shadow-sm"
-            >
-              <PlusIcon className="w-4 h-4" />
-              Add Item
-            </Link>
-            <Link
-              href="/scan"
-              className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-cream/10 backdrop-blur-sm border border-cream/30 text-cream text-sm font-medium hover:bg-cream/20 transition-colors"
-            >
-              <CameraIcon className="w-4 h-4" />
-              Scan Item
-            </Link>
-          </div>
+              {itemCount === 1 ? 'Item' : 'Items'}
+            </span>
+          </li>
+          <li className="flex items-center gap-2.5">
+            <FolderIcon />
+            <span>
+              <strong>{collectionCount}</strong>{' '}
+              {collectionCount === 1 ? 'Collection' : 'Collections'}
+            </span>
+          </li>
+          <li className="flex items-center gap-2.5">
+            <ConservatorIcon />
+            <span>
+              <strong>{conservatorCount}</strong>{' '}
+              {conservatorCount === 1 ? 'Conservator' : 'Conservators'}
+            </span>
+          </li>
+        </ul>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/items/new"
+            className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors shadow-sm"
+          >
+            <PlusIcon className="w-4 h-4" />
+            Add Item
+          </Link>
+          <Link
+            href="/scan"
+            className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-cream text-ink text-sm font-medium hover:bg-paper transition-colors shadow-sm"
+          >
+            <CameraIcon className="w-4 h-4" />
+            Scan Item
+          </Link>
         </div>
       </div>
     </section>
@@ -301,35 +247,40 @@ const GAP_DOT_COLOR: Record<CatalogingGap, string> = {
 function ContinueCataloging({ items }: { items: ItemNeedingAttention[] }) {
   return (
     <section className="space-y-4">
-      <h2 className="font-serif text-2xl text-ink">Continue cataloging</h2>
-      <div className="-mx-4 sm:mx-0">
-        <ul className="flex gap-3 overflow-x-auto px-4 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 snap-x snap-mandatory pb-2">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="shrink-0 w-72 sm:w-auto snap-start"
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="font-serif text-2xl text-ink">Continue cataloging</h2>
+        <Link
+          href="/collections"
+          className="text-gold-deep text-sm font-medium inline-flex items-center gap-1 hover:text-forest"
+        >
+          View All <ChevronRightIcon className="w-3 h-3" />
+        </Link>
+      </div>
+      <ul className="grid grid-cols-2 gap-3 sm:gap-4">
+        {items.map((item) => (
+          <li key={item.id}>
+            <Link
+              href={`/items/${item.id}`}
+              className="group block bg-paper border border-hairline rounded-2xl overflow-hidden hover:shadow-card transition-shadow h-full"
             >
-              <Link
-                href={`/items/${item.id}`}
-                className="group flex items-stretch gap-3 bg-paper border border-hairline rounded-xl overflow-hidden hover:shadow-card transition-shadow h-full"
-              >
-                <div className="relative w-24 shrink-0 bg-cream-soft overflow-hidden">
-                  {item.primaryPhotoUrl ? (
-                    <Image
-                      src={item.primaryPhotoUrl}
-                      alt=""
-                      fill
-                      sizes="96px"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-3xl text-muted/50">
-                      {glyphForCategory(item.category)}
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0 p-3 flex flex-col justify-center">
-                  <div className="font-medium text-ink text-sm truncate">
+              <div className="relative aspect-[4/3] bg-cream-soft overflow-hidden">
+                {item.primaryPhotoUrl ? (
+                  <Image
+                    src={item.primaryPhotoUrl}
+                    alt=""
+                    fill
+                    sizes="(max-width: 640px) 50vw, 25vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-4xl text-muted/50">
+                    {glyphForCategory(item.category)}
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-2 p-3">
+                <div className="flex-1 min-w-0">
+                  <div className="font-serif text-base text-ink leading-tight truncate">
                     {item.name}
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-ink-soft mt-1">
@@ -339,14 +290,14 @@ function ContinueCataloging({ items }: { items: ItemNeedingAttention[] }) {
                     <span>{GAP_LABEL[item.gap]}</span>
                   </div>
                 </div>
-                <span className="flex items-center pr-3 text-muted">
+                <span className="text-muted shrink-0">
                   <ChevronRightIcon className="w-4 h-4" />
                 </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -783,20 +734,61 @@ function PlusIcon({ className }: { className?: string }) {
   );
 }
 
-function SearchIcon({ className }: { className?: string }) {
+function ItemsIcon() {
   return (
     <svg
-      viewBox="0 0 20 20"
+      viewBox="0 0 24 24"
+      width={18}
+      height={18}
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.7"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={className}
       aria-hidden="true"
+      className="text-gold-soft"
     >
-      <circle cx="9" cy="9" r="6" />
-      <path d="M14 14l4 4" />
+      <path d="M6 7h12l-1 13H7z" />
+      <path d="M9 7V5a3 3 0 0 1 6 0v2" />
+    </svg>
+  );
+}
+
+function FolderIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={18}
+      height={18}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="text-gold-soft"
+    >
+      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    </svg>
+  );
+}
+
+function ConservatorIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={18}
+      height={18}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="text-gold-soft"
+    >
+      <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
+      <path d="M12 9v6M9 12h6" />
     </svg>
   );
 }
