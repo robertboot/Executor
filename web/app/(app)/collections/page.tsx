@@ -647,7 +647,7 @@ function SampleItems({
   if (samples.length === 0) {
     return (
       <div className="h-full flex items-center justify-center text-sm text-muted italic py-6">
-        Nothing here yet — add a piece to start filling this collection.
+        Nothing here yet — add an item to start filling this collection.
       </div>
     );
   }

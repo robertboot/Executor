@@ -626,7 +626,7 @@ function RecentlyAdded({ items }: { items: RecentItemWithPhoto[] }) {
           <p className="text-muted text-sm">
             Nothing here yet.{' '}
             <Link href="/items/new" className="text-forest underline">
-              Add your first piece
+              Add your first item
             </Link>
             .
           </p>

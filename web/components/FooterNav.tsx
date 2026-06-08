@@ -82,7 +82,7 @@ export default function FooterNav() {
         <div className="flex items-center justify-center">
           <Link
             href="/items/new"
-            aria-label="Add a new piece"
+            aria-label="Add a new item"
             className="-mt-7 inline-flex items-center justify-center w-14 h-14 rounded-full bg-forest text-cream shadow-raised border-4 border-paper hover:bg-forest-deep transition-colors"
           >
             <svg

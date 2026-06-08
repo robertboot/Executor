@@ -27,7 +27,7 @@ export default function PickerView({
 
       <div>
         <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-ink leading-tight">
-          Add a piece
+          Add an Item
         </h1>
         <p className="text-muted text-sm mt-2">
           First, choose which collection it belongs to.
@@ -133,7 +133,7 @@ function EmptyPicker({ archetype }: { archetype: ArchetypeDef | null }) {
     <div className="bg-paper border border-hairline rounded-2xl p-10 text-center space-y-4">
       <h2 className="font-serif text-2xl text-ink">No collections yet</h2>
       <p className="text-muted text-sm">
-        You need at least one collection before you can add a piece.
+        You need at least one collection before you can add an item.
       </p>
       {archetype ? (
         <Link
