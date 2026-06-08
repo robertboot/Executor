@@ -48,101 +48,13 @@ const OPTIONS: Array<{
   },
 ];
 
-const ANIM_MS = 360;
+const ANIM_MS = 320;
 
-// SVG turbulence noise overlays. Stacked on top of the gradients to
-// give each material a real surface grain — wood gets long vertical
-// streaks, paper gets isotropic fiber, brass gets horizontal scratch.
-function noiseUri(svg: string): string {
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-}
-
-// Vertical wood grain: very high x-frequency, very low y-frequency.
-const WOOD_NOISE = noiseUri(
-  "<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'>" +
-    "<filter id='n'>" +
-    "<feTurbulence type='fractalNoise' baseFrequency='2 0.05' numOctaves='2' seed='5' stitchTiles='stitch'/>" +
-    "<feColorMatrix values='0 0 0 0 0.05  0 0 0 0 0.025  0 0 0 0 0  0.35 0.55 0.10 0 -0.05'/>" +
-    "</filter>" +
-    "<rect width='100%' height='100%' filter='url(#n)'/>" +
-    "</svg>",
-);
-
-// Isotropic fine fiber for aged paper.
-const PAPER_NOISE = noiseUri(
-  "<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'>" +
-    "<filter id='n'>" +
-    "<feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='9' stitchTiles='stitch'/>" +
-    "<feColorMatrix values='0 0 0 0 0.28  0 0 0 0 0.18  0 0 0 0 0.08  0.30 0.55 0.15 0 -0.30'/>" +
-    "</filter>" +
-    "<rect width='100%' height='100%' filter='url(#n)'/>" +
-    "</svg>",
-);
-
-// Subtle horizontal brushed-brass micro-scratches.
-const BRASS_NOISE = noiseUri(
-  "<svg xmlns='http://www.w3.org/2000/svg' width='200' height='80'>" +
-    "<filter id='n'>" +
-    "<feTurbulence type='fractalNoise' baseFrequency='0.05 3' numOctaves='2' seed='7' stitchTiles='stitch'/>" +
-    "<feColorMatrix values='0 0 0 0 0.04  0 0 0 0 0.02  0 0 0 0 0  0.30 0.55 0.15 0 -0.55'/>" +
-    "</filter>" +
-    "<rect width='100%' height='100%' filter='url(#n)'/>" +
-    "</svg>",
-);
-
-// Layered walnut with visible vertical grain + noise overlay.
-const WOOD_STYLE = {
-  backgroundImage: [
-    WOOD_NOISE,
-    // Fine grain striations
-    'repeating-linear-gradient(180deg, rgba(0,0,0,0.10) 0px, rgba(0,0,0,0.10) 1px, transparent 1px, transparent 5px)',
-    // Wider figured bands
-    'repeating-linear-gradient(180deg, rgba(255,210,150,0.04) 0px, rgba(255,210,150,0.04) 7px, transparent 7px, transparent 15px)',
-    // Base warm-to-deep shading
-    'linear-gradient(180deg, #4A2D17 0%, #5C3820 35%, #432712 70%, #2E1A0B 100%)',
-  ].join(', '),
-  backgroundSize: '400px 400px, auto, auto, auto',
-  backgroundRepeat: 'repeat, repeat, repeat, no-repeat',
-} as const;
-
-// Deeper walnut + inset shadow for the cavity that holds the drawers.
-const WELL_STYLE = {
-  backgroundImage: [
-    WOOD_NOISE,
-    'repeating-linear-gradient(180deg, rgba(0,0,0,0.20) 0px, rgba(0,0,0,0.20) 1px, transparent 1px, transparent 4px)',
-    'linear-gradient(180deg, #261408 0%, #371F0E 100%)',
-  ].join(', '),
-  backgroundSize: '400px 400px, auto, auto',
-  backgroundRepeat: 'repeat, repeat, no-repeat',
-} as const;
-
-// Bright polished brass — used on the plaque, chevrons, and
-// the drop-bail pull. The dark midband is the trick that makes it
-// read as metal rather than yellow paint.
 const BRASS_GRADIENT =
   'linear-gradient(180deg, #F6E09B 0%, #DDBA6E 38%, #8C6C2E 52%, #C9A55C 66%, #F2DA90 100%)';
 
-const BRASS_STYLE = {
-  backgroundImage: `${BRASS_NOISE}, ${BRASS_GRADIENT}`,
-  backgroundSize: '200px 80px, auto',
-  backgroundRepeat: 'repeat, no-repeat',
-} as const;
-
-// Deep antique forest green for the coin medallions.
 const COIN_GREEN_GRADIENT =
   'radial-gradient(circle at 32% 30%, #2F4D3E 0%, #1F3A2E 55%, #122418 100%)';
-
-// Aged paper for the drawer faces — fiber noise on top of vignetted cream.
-const PAPER_STYLE = {
-  backgroundImage: [
-    PAPER_NOISE,
-    'radial-gradient(ellipse at 28% 35%, rgba(255,255,255,0.45) 0%, transparent 55%)',
-    'radial-gradient(ellipse at 85% 75%, rgba(120,80,40,0.10) 0%, transparent 60%)',
-    'linear-gradient(180deg, #F2E5C8 0%, #E5D3A8 100%)',
-  ].join(', '),
-  backgroundSize: '240px 240px, auto, auto, auto',
-  backgroundRepeat: 'repeat, no-repeat, no-repeat, no-repeat',
-} as const;
 
 export default function CreateDrawer() {
   const [mounted, setMounted] = useState(false);
@@ -191,7 +103,7 @@ export default function CreateDrawer() {
         <div className="flex justify-center items-center h-16">
           <button
             type="button"
-            aria-label="Open archive cabinet"
+            aria-label="Create new"
             aria-expanded={active}
             onClick={startOpen}
             className="-mt-7 inline-flex items-center justify-center w-16 h-16 rounded-full bg-forest text-cream shadow-raised border-4 border-paper hover:bg-forest-deep active:scale-95 transition-transform"
@@ -201,113 +113,76 @@ export default function CreateDrawer() {
         </div>
       </nav>
 
-      {mounted && active &&
+      {mounted &&
+        active &&
         createPortal(
-          <CabinetSurface open={open} onClose={startClose} />,
+          <Sheet open={open} onClose={startClose} />,
           document.body,
         )}
     </>
   );
 }
 
-// ============================================================== //
-//  Cabinet                                                        //
-// ============================================================== //
-
-function CabinetSurface({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+function Sheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <>
-      {/* Backdrop */}
       <div
         aria-hidden
         onClick={onClose}
-        className="fixed inset-0 z-50 bg-black/65 transition-opacity ease-out"
+        className="fixed inset-0 z-50 bg-black/55 transition-opacity ease-out"
         style={{
           opacity: open ? 1 : 0,
           transitionDuration: `${ANIM_MS}ms`,
         }}
       />
 
-      {/* Cabinet body */}
       <section
         role="dialog"
         aria-modal="true"
         aria-label="Create new"
-        className="fixed inset-x-0 bottom-0 z-50 max-h-[92vh] flex flex-col rounded-t-lg transition-transform ease-out overflow-hidden"
+        className="fixed inset-x-0 bottom-0 z-50 max-h-[92vh] flex flex-col rounded-t-3xl bg-paper transition-transform ease-out overflow-hidden"
         style={{
           transform: open ? 'translateY(0)' : 'translateY(100%)',
           transitionDuration: `${ANIM_MS}ms`,
           paddingBottom: 'env(safe-area-inset-bottom)',
-          ...WOOD_STYLE,
-          boxShadow:
-            '0 -18px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,210,150,0.10)',
+          boxShadow: '0 -16px 40px rgba(40,25,10,0.35)',
         }}
       >
-        {/* Top rail with brass corner studs + cartouche nameplate */}
-        <div
-          className="relative shrink-0"
-          style={{
-            paddingTop: 16,
-            paddingBottom: 16,
-            boxShadow:
-              'inset 0 1px 0 rgba(255,210,150,0.12), inset 0 -1px 0 rgba(0,0,0,0.6)',
-          }}
-        >
-          <BrassStud className="absolute top-3 left-3" />
-          <BrassStud className="absolute top-3 right-3" />
-          <div className="flex justify-center">
-            <BrassCartouche label="Create New" />
+        <div className="relative shrink-0 pt-7 pb-4 px-6">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute top-4 right-4 w-9 h-9 rounded-full border border-hairline flex items-center justify-center text-muted hover:bg-cream-soft transition-colors"
+          >
+            <CloseIcon />
+          </button>
+          <div className="flex flex-col items-center text-center">
+            <Ornament />
+            <h2 className="font-serif text-3xl text-ink mt-2 leading-tight">
+              Create New
+            </h2>
+            <p className="text-sm text-muted mt-1">
+              Choose what you want to add to your archive.
+            </p>
           </div>
         </div>
 
-        {/* Drawer well */}
-        <div
-          className="mx-3 mb-3 rounded-md p-2.5 overflow-y-auto"
-          style={{
-            ...WELL_STYLE,
-            boxShadow:
-              'inset 0 2px 7px rgba(0,0,0,0.75), inset 0 -1px 0 rgba(255,210,150,0.06)',
-          }}
-        >
+        <div className="overflow-y-auto px-4 pb-6">
           <ul className="space-y-2.5">
             {OPTIONS.map((opt) => (
               <li key={opt.href}>
-                <DrawerCard option={opt} onClose={onClose} />
+                <OptionCard option={opt} onClose={onClose} />
               </li>
             ))}
           </ul>
-        </div>
-
-        {/* Bottom rail with corner studs + drop-bail pull */}
-        <div
-          className="relative shrink-0 flex items-center justify-center"
-          style={{
-            paddingTop: 14,
-            paddingBottom: 18,
-            boxShadow:
-              'inset 0 1px 0 rgba(0,0,0,0.55), inset 0 -1px 0 rgba(255,210,150,0.06)',
-          }}
-        >
-          <BrassStud className="absolute bottom-3 left-3" />
-          <BrassStud className="absolute bottom-3 right-3" />
-          <DropBailPull />
         </div>
       </section>
     </>
   );
 }
 
-// ============================================================== //
-//  Drawer card                                                    //
-// ============================================================== //
-
-function DrawerCard({
+function OptionCard({
   option,
   onClose,
 }: {
@@ -318,75 +193,38 @@ function DrawerCard({
     <Link
       href={option.href}
       onClick={onClose}
-      className="group block rounded-[4px] overflow-hidden active:translate-y-px transition-transform relative"
-      style={{
-        ...PAPER_STYLE,
-        boxShadow: [
-          'inset 0 1px 0 rgba(255,255,255,0.7)',
-          'inset 0 -2px 5px rgba(80,50,25,0.30)',
-          '0 0 0 1px rgba(60, 35, 15, 0.7)',
-          '0 1px 0 rgba(255, 220, 160, 0.08)',
-          '0 3px 5px rgba(0,0,0,0.4)',
-        ].join(', '),
-      }}
+      className="group flex items-center gap-3.5 rounded-2xl bg-cream-soft border border-hairline pl-3 pr-3.5 py-3 hover:shadow-card active:translate-y-px transition-all"
     >
-      <div className="flex items-center gap-3.5 pl-3 pr-3.5 py-3 relative">
-        {/* Forest-green brass-rimmed coin medallion */}
-        <CoinMedallion>{option.icon}</CoinMedallion>
-
-        {/* Text */}
-        <div className="flex-1 min-w-0 pr-5">
-          <h3
-            className="font-serif leading-tight"
-            style={{
-              color: '#241408',
-              fontSize: '17px',
-              letterSpacing: '-0.005em',
-            }}
-          >
-            {option.title}
-          </h3>
-          <p
-            className="mt-0.5 leading-snug"
-            style={{ color: '#4F361F', fontSize: '12.5px' }}
-          >
-            {option.description}
-          </p>
-          <p
-            className="mt-0.5 leading-snug truncate"
-            style={{ color: '#6B4D2D', fontSize: '11px' }}
-          >
-            <span style={{ fontWeight: 600 }}>Examples:</span> {option.examples}
-          </p>
-        </div>
-
-        {/* Brass chevron on the right */}
-        <BrassChevron className="absolute right-2.5 top-1/2 -translate-y-1/2" />
+      <CoinMedallion>{option.icon}</CoinMedallion>
+      <div className="flex-1 min-w-0">
+        <h3 className="font-serif text-lg text-ink leading-tight">
+          {option.title}
+        </h3>
+        <p className="text-sm text-muted mt-0.5 leading-snug">
+          {option.description}
+        </p>
+        <p className="text-xs text-muted mt-0.5 truncate">
+          <span className="font-medium">Examples:</span> {option.examples}
+        </p>
       </div>
+      <BrassChevron />
     </Link>
   );
 }
 
-// ============================================================== //
-//  Coin medallion                                                 //
-// ============================================================== //
-
 function CoinMedallion({ children }: { children: React.ReactNode }) {
-  // Two layers: the forest-green coin body, sitting inside a brass
-  // outer ring. The brass ring is a separate wrapper so it can carry
-  // its own metallic highlight + dark rim.
   return (
     <span
       className="shrink-0 relative flex items-center justify-center"
       style={{
-        width: 50,
-        height: 50,
+        width: 52,
+        height: 52,
         borderRadius: '50%',
-        ...BRASS_STYLE,
+        background: BRASS_GRADIENT,
         boxShadow: [
           'inset 0 1px 1px rgba(255,255,255,0.55)',
-          'inset 0 0 0 0.5px rgba(45,25,5,0.8)',
-          '0 2px 3px rgba(0,0,0,0.4)',
+          'inset 0 0 0 0.5px rgba(45,25,5,0.7)',
+          '0 2px 4px rgba(60,40,15,0.25)',
         ].join(', '),
       }}
     >
@@ -411,42 +249,14 @@ function CoinMedallion({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ============================================================== //
-//  Brass hardware                                                 //
-// ============================================================== //
-
-function BrassStud({ className }: { className?: string }) {
-  return (
-    <span
-      aria-hidden
-      className={`block rounded-full ${className ?? ''}`}
-      style={{
-        width: 12,
-        height: 12,
-        background:
-          'radial-gradient(circle at 32% 28%, #F6E09B 0%, #CFAA62 55%, #6E5226 100%)',
-        boxShadow: [
-          'inset 0 1px 1px rgba(255,255,255,0.55)',
-          'inset 0 0 0 0.5px rgba(45,25,5,0.75)',
-          '0 1px 2px rgba(0,0,0,0.55)',
-        ].join(', '),
-      }}
-    />
-  );
-}
-
-function BrassChevron({ className }: { className?: string }) {
+function BrassChevron() {
   return (
     <svg
       aria-hidden
       viewBox="0 0 12 18"
-      width={11}
-      height={17}
-      className={className}
-      style={{
-        filter:
-          'drop-shadow(0 1px 1px rgba(0,0,0,0.45)) drop-shadow(0 0 0.5px rgba(60,40,15,0.8))',
-      }}
+      width={12}
+      height={18}
+      className="shrink-0"
     >
       <defs>
         <linearGradient id="brass-chev" x1="0" y1="0" x2="0" y2="1">
@@ -468,169 +278,33 @@ function BrassChevron({ className }: { className?: string }) {
   );
 }
 
-// Long pill-shaped brass cartouche with small screw dots near each
-// end and serif "CREATE NEW" copy centered.
-function BrassCartouche({ label }: { label: string }) {
+function Ornament() {
   return (
-    <div
-      className="relative flex items-center justify-center"
-      style={{
-        // Long, slim pill — wider than tall so it reads as a label
-        // holder pinned to the cabinet.
-        minWidth: 220,
-        height: 36,
-        padding: '0 26px',
-        borderRadius: 999,
-        ...BRASS_STYLE,
-        boxShadow: [
-          'inset 0 1px 2px rgba(255,255,255,0.7)',
-          'inset 0 -1px 1px rgba(50,30,5,0.5)',
-          'inset 0 0 0 1px rgba(45,25,5,0.65)',
-          '0 3px 7px rgba(0,0,0,0.55)',
-        ].join(', '),
-      }}
-    >
-      {/* Screw dots flanking the text */}
-      <span
-        aria-hidden
-        className="absolute rounded-full"
-        style={{
-          left: 10,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          width: 4.5,
-          height: 4.5,
-          background: '#2B1808',
-          boxShadow:
-            'inset 0 -1px 0 rgba(255,210,150,0.35), 0 0 0 0.5px rgba(0,0,0,0.5)',
-        }}
-      />
-      <span
-        aria-hidden
-        className="absolute rounded-full"
-        style={{
-          right: 10,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          width: 4.5,
-          height: 4.5,
-          background: '#2B1808',
-          boxShadow:
-            'inset 0 -1px 0 rgba(255,210,150,0.35), 0 0 0 0.5px rgba(0,0,0,0.5)',
-        }}
-      />
-      <span
-        className="font-serif uppercase"
-        style={{
-          color: '#2B1808',
-          fontSize: '13px',
-          letterSpacing: '0.32em',
-          textShadow: '0 1px 0 rgba(255,255,255,0.32)',
-        }}
-      >
-        <span style={{ marginRight: '0.5em' }}>•</span>
-        {label}
-        <span style={{ marginLeft: '0.5em' }}>•</span>
-      </span>
-    </div>
-  );
-}
-
-// Drop-bail cabinet pull: a curved brass bar between two larger
-// rounded mount plates with dark screw heads.
-function DropBailPull() {
-  return (
-    <span
+    <svg
       aria-hidden
-      className="relative block"
-      style={{ width: 168, height: 26 }}
+      viewBox="0 0 80 12"
+      width={64}
+      height={10}
+      style={{ color: '#A8852E' }}
     >
-      {/* Left mount plate */}
-      <MountPlate style={{ left: 0 }} />
-      {/* Right mount plate */}
-      <MountPlate style={{ right: 0 }} />
-      {/* Curved bail */}
-      <svg
-        viewBox="0 0 168 26"
-        width={168}
-        height={26}
-        className="absolute inset-0"
-        aria-hidden
-      >
-        <defs>
-          <linearGradient id="bail-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#F6E09B" />
-            <stop offset="0.4" stopColor="#DDBA6E" />
-            <stop offset="0.55" stopColor="#8C6C2E" />
-            <stop offset="1" stopColor="#F2DA90" />
-          </linearGradient>
-          <linearGradient id="bail-shadow" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="rgba(0,0,0,0.5)" />
-            <stop offset="1" stopColor="rgba(0,0,0,0)" />
-          </linearGradient>
-        </defs>
-        {/* Cast shadow under the bail */}
-        <path
-          d="M 14 11 Q 84 32 154 11"
-          fill="none"
-          stroke="url(#bail-shadow)"
-          strokeWidth="6"
-          strokeLinecap="round"
-          transform="translate(0,3)"
-        />
-        {/* The brass bail */}
-        <path
-          d="M 14 11 Q 84 30 154 11"
-          fill="none"
-          stroke="url(#bail-fill)"
-          strokeWidth="4.5"
-          strokeLinecap="round"
-        />
-      </svg>
-    </span>
-  );
-}
-
-function MountPlate({ style }: { style?: React.CSSProperties }) {
-  return (
-    <span
-      className="absolute"
-      style={{
-        ...style,
-        top: 0,
-        width: 22,
-        height: 22,
-        borderRadius: '50%',
-        ...BRASS_STYLE,
-        boxShadow: [
-          'inset 0 1px 1px rgba(255,255,255,0.55)',
-          'inset 0 0 0 0.5px rgba(45,25,5,0.8)',
-          '0 2px 3px rgba(0,0,0,0.55)',
-        ].join(', '),
-      }}
-    >
-      {/* Dark screw head inset */}
-      <span
-        aria-hidden
-        className="absolute rounded-full"
-        style={{
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 6,
-          height: 6,
-          background: '#2B1808',
-          boxShadow:
-            'inset 0 -1px 0 rgba(255,210,150,0.35), 0 0 0 0.5px rgba(0,0,0,0.4)',
-        }}
+      <path
+        d="M 5 6 Q 18 0 30 6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
       />
-    </span>
+      <path
+        d="M 50 6 Q 62 0 75 6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+      <path d="M 40 1 L 44 6 L 40 11 L 36 6 Z" fill="currentColor" />
+    </svg>
   );
 }
-
-// ============================================================== //
-//  Glyphs                                                         //
-// ============================================================== //
 
 function PlusIcon() {
   return (
@@ -645,6 +319,23 @@ function PlusIcon() {
       aria-hidden="true"
     >
       <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={16}
+      height={16}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <path d="M6 6l12 12M18 6L6 18" />
     </svg>
   );
 }
