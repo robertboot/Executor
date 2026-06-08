@@ -135,7 +135,7 @@ export const FOCUS_MODES: FocusDef[] = [
   {
     key: 'preservation',
     title: 'Preservation',
-    tagline: 'Keep each piece in its best possible condition.',
+    tagline: 'Keep each item in its best possible condition.',
     bullets: [
       'Restoration reminders',
       'Environmental alerts',
@@ -442,7 +442,7 @@ const LUXURY_SUBCATEGORIES: SubCategory[] = [
   {
     key: 'estate-furnishings',
     label: 'Estate Furnishings',
-    description: 'Mahogany, leather, and inherited furniture pieces.',
+    description: 'Mahogany, leather, and inherited furniture.',
     parent: 'antiques-decor',
     bgImage: sub('estate-furnishings'),
     defaultSelected: true,
@@ -552,7 +552,7 @@ const MIXED_SUBCATEGORIES: SubCategory[] = [
   {
     key: 'family-heirlooms',
     label: 'Family Heirlooms',
-    description: 'Inherited pieces and meaningful keepsakes.',
+    description: 'Inherited items and meaningful keepsakes.',
     parent: 'family-keepsakes',
     bgImage: sub('family-heirlooms'),
     defaultSelected: true,
@@ -638,7 +638,7 @@ export const CUSTOM_SUBCATEGORY: SubCategory = {
   key: 'custom-collection',
   label: 'Custom Collection',
   description:
-    "For pieces that don't fit any of the curated collections — give it your own name and stories.",
+    "For items that don't fit any of the curated collections — give it your own name and stories.",
   parent: 'custom',
   bgImage: `/categories/custom.png?v=3`,
   defaultSelected: false,

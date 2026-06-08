@@ -156,7 +156,7 @@ function Header({
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-ink-soft">
         <span>
           <strong className="text-ink">{itemCount.toLocaleString()}</strong>{' '}
-          {itemCount === 1 ? 'Piece' : 'Pieces'}
+          {itemCount === 1 ? 'Item' : 'Items'}
         </span>
         <span className="text-muted">·</span>
         <span>

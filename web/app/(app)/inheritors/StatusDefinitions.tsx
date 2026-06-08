@@ -18,7 +18,7 @@ const DEFS: Def[] = [
     status: 'designated_heir',
     icon: <CrownIcon />,
     description:
-      'Your primary recipient. The person you most want to receive each piece.',
+      'Your primary recipient. The person you most want to receive each item.',
     best: ['Pass items down a family line', 'Default for most assignments'],
     notes: [],
   },
