@@ -390,19 +390,24 @@ function YourCollections({
           href="/collections"
           className="text-sm text-forest hover:underline"
         >
-          Manage →
+          View All →
         </Link>
       </div>
-      <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3">
-        {subCats.map((s) => (
-          <li key={s.key}>
-            <SubCatVisualCard
-              subCat={s}
-              itemCount={itemCountByCoreKey.get(s.parent) ?? 0}
-            />
-          </li>
-        ))}
-      </ul>
+      <div className="-mx-4 sm:mx-0">
+        <ul className="flex gap-3 overflow-x-auto px-4 sm:px-0 snap-x snap-mandatory pb-2">
+          {subCats.map((s) => (
+            <li
+              key={s.key}
+              className="shrink-0 w-28 sm:w-32 snap-start"
+            >
+              <SubCatVisualCard
+                subCat={s}
+                itemCount={itemCountByCoreKey.get(s.parent) ?? 0}
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
@@ -437,11 +442,11 @@ function SubCatVisualCard({
           }}
         />
       </div>
-      <div className="p-3">
-        <h3 className="font-serif text-base text-ink leading-tight truncate">
+      <div className="px-2 py-2">
+        <h3 className="font-serif text-xs sm:text-sm text-ink leading-tight truncate">
           {subCat.label}
         </h3>
-        <div className="text-xs text-muted mt-0.5">
+        <div className="text-[11px] text-muted mt-0.5">
           {itemCount} {itemCount === 1 ? 'Item' : 'Items'}
         </div>
       </div>
