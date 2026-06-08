@@ -220,7 +220,7 @@ function Sidebar({
   activeKey: 'all' | OnboardingArchetype | null;
 }) {
   return (
-    <aside className="lg:w-[22rem] xl:w-[26rem] lg:shrink-0 space-y-4">
+    <aside className="lg:w-72 lg:shrink-0 space-y-3">
       {/* "Your Collections" — the aggregate across every archetype */}
       <SidebarItem
         href="/collections?archetype=all"
@@ -240,16 +240,18 @@ function Sidebar({
         </p>
       </div>
 
-      <ul className="space-y-3">
-        {archetypes.map((a) => (
-          <li key={a.key}>
-            <ArchetypeBannerCard
-              archetype={a}
-              active={a.key === activeKey}
-            />
-          </li>
-        ))}
-      </ul>
+      <div className="-mx-4 px-4 lg:m-0 lg:p-0">
+        <ul className="flex gap-2.5 overflow-x-auto pb-2 lg:flex-col lg:gap-2 lg:overflow-visible">
+          {archetypes.map((a) => (
+            <li key={a.key} className="shrink-0 lg:shrink-0 w-64 lg:w-auto">
+              <ArchetypeBannerCard
+                archetype={a}
+                active={a.key === activeKey}
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
     </aside>
   );
 }
@@ -265,12 +267,12 @@ function ArchetypeBannerCard({
     <Link
       href={`/collections?archetype=${archetype.key}`}
       aria-current={active ? 'page' : undefined}
-      className={`group relative block w-full overflow-hidden rounded-2xl border transition-all ${
+      className={`group relative block w-full overflow-hidden rounded-xl border transition-all ${
         active
           ? 'border-forest shadow-card'
           : 'border-hairline hover:border-forest/40 hover:shadow-card'
       }`}
-      style={{ minHeight: 160 }}
+      style={{ height: 84 }}
     >
       <div
         className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
@@ -282,18 +284,15 @@ function ArchetypeBannerCard({
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'linear-gradient(to right, rgba(241,233,218,0.96) 0%, rgba(241,233,218,0.85) 30%, rgba(241,233,218,0.35) 60%, rgba(241,233,218,0) 80%)',
+            'linear-gradient(to right, rgba(241,233,218,0.96) 0%, rgba(241,233,218,0.82) 35%, rgba(241,233,218,0.3) 65%, rgba(241,233,218,0) 85%)',
         }}
         aria-hidden
       />
-      <div className="relative z-10 p-5 sm:p-6 max-w-[62%]">
-        <h3 className="font-serif text-xl sm:text-2xl text-ink leading-tight">
+      <div className="relative z-10 h-full px-3.5 py-2.5 max-w-[68%] flex flex-col justify-center">
+        <h3 className="font-serif text-base text-ink leading-tight truncate">
           {archetype.title}
         </h3>
-        <p className="text-sm text-ink-soft mt-1.5 leading-snug">
-          {archetype.tagline}
-        </p>
-        <p className="text-[11px] uppercase tracking-wider text-muted mt-3 leading-relaxed">
+        <p className="text-[10px] uppercase tracking-wider text-muted mt-0.5 leading-tight line-clamp-2">
           {archetype.bestFor}
         </p>
       </div>
