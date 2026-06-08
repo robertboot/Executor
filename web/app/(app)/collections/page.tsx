@@ -19,7 +19,7 @@ import {
   type SubCategory,
 } from '@/lib/onboarding';
 import type { OnboardingArchetype } from '@/lib/types';
-import { removeSubCategory } from './add/actions';
+import { addOneSubCategory, removeSubCategory } from './add/actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,23 +99,36 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
   const allArchetypeSubCats: SubCategory[] = isYourGallery
     ? ARCHETYPES.flatMap((a) => ARCHETYPE_SUBCATEGORIES[a.key] ?? [])
     : ARCHETYPE_SUBCATEGORIES[activeArchetype?.key ?? ARCHETYPES[0].key] ?? [];
+  // De-dupe sub-cats by key (Your Collections mode pulls from every
+  // archetype). In Your Collections mode we only surface what the user
+  // already owns; in archetype mode we surface every sub-cat so the
+  // page doubles as the picker — selected ones get the usual card,
+  // unselected ones get an inline "+ Add to my collection" button.
   const seenSubCatKeys = new Set<string>();
-  const subCats = allArchetypeSubCats.filter((s) => {
-    if (!selectedSubCatKeys.has(s.key)) return false;
+  const visibleSubCats = allArchetypeSubCats.filter((s) => {
     if (seenSubCatKeys.has(s.key)) return false;
+    if (isYourGallery && !selectedSubCatKeys.has(s.key)) return false;
     seenSubCatKeys.add(s.key);
     return true;
   });
-  const rows: CollectionRow[] = subCats.map((s) =>
-    makeRow(s, bucketByCore.get(s.parent) ?? null, true),
-  );
-  // 'Add Collection' affordance only makes sense when filtered to a
-  // specific archetype (so we know which add flow to open). In Your
-  // Gallery mode the user picks an archetype from the sidebar first.
-  const hasUnselected = isYourGallery
-    ? false
-    : (ARCHETYPE_SUBCATEGORIES[activeArchetype?.key ?? ARCHETYPES[0].key]
-        ?.length ?? 0) > subCats.length;
+  type SubCatRow = {
+    sub: SubCategory;
+    isSelected: boolean;
+    row: CollectionRow | null;
+  };
+  const subCatRows: SubCatRow[] = visibleSubCats.map((s) => {
+    const isSelected = selectedSubCatKeys.has(s.key);
+    return {
+      sub: s,
+      isSelected,
+      row: isSelected
+        ? makeRow(s, bucketByCore.get(s.parent) ?? null, true)
+        : null,
+    };
+  });
+  const rows: CollectionRow[] = subCatRows
+    .map((r) => r.row)
+    .filter((r): r is CollectionRow => r !== null);
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 pb-24">
@@ -137,15 +150,21 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
           view={view}
         />
 
-        {rows.length === 0 &&
-        !hasUnselected &&
+        {subCatRows.length === 0 &&
         (!isYourGallery || customCollections.length === 0) ? (
           <EmptyState />
         ) : view === 'grid' ? (
           <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {rows.map((row) => (
-              <li key={row.subKey}>
-                <CollectionGridCard row={row} />
+            {subCatRows.map(({ sub, isSelected, row }) => (
+              <li key={sub.key}>
+                {isSelected && row ? (
+                  <CollectionGridCard row={row} />
+                ) : activeArchetype ? (
+                  <UnselectedSubCatGridCard
+                    sub={sub}
+                    archetypeKey={activeArchetype.key}
+                  />
+                ) : null}
               </li>
             ))}
             {/* Custom collections are owner-wide (not archetype-scoped),
@@ -164,26 +183,24 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
                   </li>
                 );
               })}
-            {hasUnselected && activeArchetype && (
-              <li>
-                <AddCollectionGridCard archetypeKey={activeArchetype.key} />
-              </li>
-            )}
           </ul>
         ) : (
           <ul className="space-y-3">
-            {rows.map((row) => {
-              // Each row's archetype key — needed for the per-row
-              // 'Remove collection' form. In Your Gallery mode rows
-              // come from multiple archetypes, so look it up from
-              // the sub-cat itself rather than the page-level filter.
+            {subCatRows.map(({ sub, isSelected, row }) => {
               const rowArch =
                 activeArchetype?.key ??
-                archetypeForSubCategory(row.subKey)?.key ??
+                archetypeForSubCategory(sub.key)?.key ??
                 ARCHETYPES[0].key;
               return (
-                <li key={row.subKey}>
-                  <CollectionRowCard row={row} archetypeKey={rowArch} />
+                <li key={sub.key}>
+                  {isSelected && row ? (
+                    <CollectionRowCard row={row} archetypeKey={rowArch} />
+                  ) : (
+                    <UnselectedSubCatRowCard
+                      sub={sub}
+                      archetypeKey={rowArch}
+                    />
+                  )}
                 </li>
               );
             })}
@@ -203,12 +220,20 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
                   </li>
                 );
               })}
-            {hasUnselected && activeArchetype && (
-              <li>
-                <AddCollectionCard archetypeKey={activeArchetype.key} />
-              </li>
-            )}
           </ul>
+        )}
+
+        {activeArchetype && (
+          <div className="pt-2">
+            <Link
+              href={`/collections/custom/new?next=${encodeURIComponent(
+                `/collections?archetype=${activeArchetype.key}`,
+              )}`}
+              className="text-sm text-gold-deep hover:text-forest inline-flex items-center gap-1"
+            >
+              + Start a custom collection
+            </Link>
+          </div>
         )}
       </main>
     </div>
@@ -638,33 +663,113 @@ function CustomCollectionGridCard({
   );
 }
 
-function AddCollectionGridCard({
+function UnselectedSubCatRowCard({
+  sub,
   archetypeKey,
 }: {
+  sub: SubCategory;
   archetypeKey: OnboardingArchetype;
 }) {
   return (
-    <Link
-      href={`/collections/add/${archetypeKey}`}
-      className="group block bg-paper border border-dashed border-hairline rounded-2xl overflow-hidden hover:border-forest/40 transition-colors h-full"
-    >
-      <div className="relative aspect-[4/3] bg-cream-soft flex items-center justify-center text-gold-deep">
-        <PlusIcon className="w-8 h-8" />
-      </div>
-      <div className="p-3">
-        <h3 className="font-serif text-base text-ink leading-tight">
-          Add Collection
-        </h3>
-        <div className="text-xs text-muted mt-0.5">
-          Pick more from {labelOf(archetypeKey)}
+    <article className="bg-paper/80 border border-dashed border-hairline rounded-2xl overflow-hidden">
+      <div className="flex items-stretch">
+        {/* Rectangle thumbnail at reduced opacity to mark "not added yet" */}
+        <div className="relative shrink-0 w-28 sm:w-36 lg:w-44 bg-cream-soft overflow-hidden">
+          <Image
+            src={sub.bgImage}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 112px, (max-width: 1024px) 144px, 176px"
+            className="object-cover object-right opacity-70"
+            style={{
+              transform:
+                sub.thumbZoom && sub.thumbZoom !== 1
+                  ? `scale(${sub.thumbZoom})`
+                  : undefined,
+              transformOrigin: '100% 50%',
+            }}
+          />
+        </div>
+
+        {/* Meta — title + description + inline Add button */}
+        <div className="flex-1 min-w-0 p-3 sm:p-4 flex flex-col justify-between gap-2">
+          <div className="min-w-0">
+            <h3 className="font-serif text-base sm:text-lg text-ink leading-tight truncate">
+              {sub.label}
+            </h3>
+            {sub.description && (
+              <p className="text-xs sm:text-sm text-ink-soft mt-1 leading-snug line-clamp-2">
+                {sub.description}
+              </p>
+            )}
+          </div>
+          <form action={addOneSubCategory}>
+            <input type="hidden" name="archetype" value={archetypeKey} />
+            <input type="hidden" name="subCatKey" value={sub.key} />
+            <input
+              type="hidden"
+              name="next"
+              value={`/collections?archetype=${archetypeKey}`}
+            />
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg bg-forest text-cream text-xs sm:text-sm font-medium hover:bg-forest-deep transition-colors"
+            >
+              <PlusIcon className="w-3.5 h-3.5" />
+              Add to my collection
+            </button>
+          </form>
         </div>
       </div>
-    </Link>
+    </article>
   );
 }
 
-function labelOf(key: OnboardingArchetype): string {
-  return findArchetype(key)?.title ?? '';
+function UnselectedSubCatGridCard({
+  sub,
+  archetypeKey,
+}: {
+  sub: SubCategory;
+  archetypeKey: OnboardingArchetype;
+}) {
+  return (
+    <form
+      action={addOneSubCategory}
+      className="group block bg-paper/80 border border-dashed border-hairline rounded-2xl overflow-hidden hover:border-forest/40 transition-colors h-full"
+    >
+      <input type="hidden" name="archetype" value={archetypeKey} />
+      <input type="hidden" name="subCatKey" value={sub.key} />
+      <input
+        type="hidden"
+        name="next"
+        value={`/collections?archetype=${archetypeKey}`}
+      />
+      <button type="submit" className="w-full text-left">
+        <div className="relative aspect-[4/3] bg-cream-soft overflow-hidden">
+          <Image
+            src={sub.bgImage}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover object-right opacity-70"
+            style={{
+              transform: `scale(${(sub.thumbZoom ?? 1) * 1.5})`,
+              transformOrigin: '100% 50%',
+            }}
+          />
+        </div>
+        <div className="p-3">
+          <h3 className="font-serif text-base text-ink leading-tight truncate">
+            {sub.label}
+          </h3>
+          <div className="text-xs text-forest mt-0.5 font-medium inline-flex items-center gap-1">
+            <PlusIcon className="w-3 h-3" />
+            Add to my collection
+          </div>
+        </div>
+      </button>
+    </form>
+  );
 }
 
 function SampleItems({
@@ -798,32 +903,6 @@ function CustomCollectionRowCard({
         </div>
       </div>
     </article>
-  );
-}
-
-function AddCollectionCard({
-  archetypeKey,
-}: {
-  archetypeKey: OnboardingArchetype;
-}) {
-  return (
-    <Link
-      href={`/collections/add/${archetypeKey}`}
-      className="flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-gold/60 hover:border-gold hover:bg-gold-soft/30 transition-colors"
-    >
-      <span className="shrink-0 w-9 h-9 rounded-full bg-gold/15 text-gold-deep flex items-center justify-center">
-        <PlusIcon className="w-4 h-4" />
-      </span>
-      <div className="flex-1 min-w-0">
-        <div className="font-serif text-base text-ink leading-tight">
-          Add Collection
-        </div>
-        <div className="text-xs text-muted mt-0.5 truncate">
-          Browse more sub-categories from this archetype
-        </div>
-      </div>
-      <span className="text-sm font-medium text-gold-deep shrink-0">→</span>
-    </Link>
   );
 }
 

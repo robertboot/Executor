@@ -88,6 +88,20 @@ export async function addSubCategories(
   redirect(target);
 }
 
+// Form-friendly wrapper for adding a single sub-category from an inline
+// "+ Add to my collection" button on the Collections page. Re-uses the
+// shared addSubCategories logic so the validation and merge behavior
+// stay in one place.
+export async function addOneSubCategory(formData: FormData) {
+  const archetype = String(formData.get('archetype') ?? '').trim() as OnboardingArchetype;
+  const subCatKey = String(formData.get('subCatKey') ?? '').trim();
+  const next = String(formData.get('next') ?? '').trim() || undefined;
+  if (!archetype || !subCatKey) {
+    throw new Error('Missing archetype or subCatKey');
+  }
+  await addSubCategories(archetype, [subCatKey], next);
+}
+
 // Removes a single sub-category key from the user's selected_collections.
 // Also drops the parent core key if no other selected sub-cat shares it.
 // Intended for empty collections — the row card surfaces the button
