@@ -23,23 +23,8 @@ import { removeSubCategory } from './add/actions';
 
 export const dynamic = 'force-dynamic';
 
-// Outlined SVG glyph per archetype, drawn to match the medallion
-// style used on the welcome page and Conservator Roles cards.
-function archetypeGlyph(key: OnboardingArchetype): React.ReactNode {
-  switch (key) {
-    case 'family-legacy':
-      return <FamilyTreeIcon />;
-    case 'collector':
-      return <TrophyIcon />;
-    case 'luxury':
-      return <DiamondIcon />;
-    case 'historical':
-      return <ColumnIcon />;
-    case 'mixed':
-    default:
-      return <ArchiveBoxIcon />;
-  }
-}
+// (Archetype glyphs are no longer used in the sidebar — the curated
+// collection cards now render the archetype's bgImage and tagline.)
 
 interface CollectionRow {
   subKey: string;
@@ -235,45 +220,84 @@ function Sidebar({
   activeKey: 'all' | OnboardingArchetype | null;
 }) {
   return (
-    <aside className="lg:w-72 lg:shrink-0 space-y-3">
+    <aside className="lg:w-[22rem] xl:w-[26rem] lg:shrink-0 space-y-4">
+      {/* "Your Collections" — the aggregate across every archetype */}
+      <SidebarItem
+        href="/collections?archetype=all"
+        label="Your Collections"
+        icon={<SparkIcon />}
+        active={activeKey === 'all'}
+        emphasized
+      />
+
       <div>
-        <h1 className="font-serif text-3xl text-ink leading-tight">
+        <h1 className="font-serif text-2xl sm:text-3xl text-ink leading-tight">
           Curated Collections
         </h1>
         <p className="text-xs sm:text-sm text-muted mt-1.5 leading-relaxed">
           A simple way we&rsquo;ve grouped main categories to make
-          getting started easier. <span className="text-ink">Your Collections</span>{' '}
-          below lists every category you&rsquo;ve actually chosen —
-          regardless of which curated collection it came from.
+          getting started easier. Tap a card to focus on that set.
         </p>
       </div>
 
-      <div className="-mx-4 px-4 lg:m-0 lg:p-0">
-        <ul className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:gap-2 lg:overflow-visible">
-          {/* Your Gallery sits at the top as the user's primary
-              cross-archetype view. */}
-          <li className="shrink-0 lg:shrink">
-            <SidebarItem
-              href="/collections?archetype=all"
-              label="Your Collections"
-              icon={<SparkIcon />}
-              active={activeKey === 'all'}
-              emphasized
+      <ul className="space-y-3">
+        {archetypes.map((a) => (
+          <li key={a.key}>
+            <ArchetypeBannerCard
+              archetype={a}
+              active={a.key === activeKey}
             />
           </li>
-          {archetypes.map((a) => (
-            <li key={a.key} className="shrink-0 lg:shrink">
-              <SidebarItem
-                href={`/collections?archetype=${a.key}`}
-                label={a.title}
-                icon={archetypeGlyph(a.key)}
-                active={a.key === activeKey}
-              />
-            </li>
-          ))}
-        </ul>
-      </div>
+        ))}
+      </ul>
     </aside>
+  );
+}
+
+function ArchetypeBannerCard({
+  archetype,
+  active,
+}: {
+  archetype: ArchetypeDef;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={`/collections?archetype=${archetype.key}`}
+      aria-current={active ? 'page' : undefined}
+      className={`group relative block w-full overflow-hidden rounded-2xl border transition-all ${
+        active
+          ? 'border-forest shadow-card'
+          : 'border-hairline hover:border-forest/40 hover:shadow-card'
+      }`}
+      style={{ minHeight: 160 }}
+    >
+      <div
+        className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+        style={{ backgroundImage: `url('${archetype.bgImage}')` }}
+        aria-hidden
+      />
+      {/* Cream wash on the left so the dark serif title reads on any image */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(to right, rgba(241,233,218,0.96) 0%, rgba(241,233,218,0.85) 30%, rgba(241,233,218,0.35) 60%, rgba(241,233,218,0) 80%)',
+        }}
+        aria-hidden
+      />
+      <div className="relative z-10 p-5 sm:p-6 max-w-[62%]">
+        <h3 className="font-serif text-xl sm:text-2xl text-ink leading-tight">
+          {archetype.title}
+        </h3>
+        <p className="text-sm text-ink-soft mt-1.5 leading-snug">
+          {archetype.tagline}
+        </p>
+        <p className="text-[11px] uppercase tracking-wider text-muted mt-3 leading-relaxed">
+          {archetype.bestFor}
+        </p>
+      </div>
+    </Link>
   );
 }
 
