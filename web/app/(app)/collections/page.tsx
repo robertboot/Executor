@@ -267,7 +267,7 @@ function ArchetypeBannerCard({
     <Link
       href={`/collections?archetype=${archetype.key}`}
       aria-current={active ? 'page' : undefined}
-      className={`group relative block w-full overflow-hidden rounded-xl border transition-all ${
+      className={`group relative block w-full overflow-hidden rounded-xl border transition-all bg-[#FBF5E6] ${
         active
           ? 'border-forest shadow-card'
           : 'border-hairline hover:border-forest/40 hover:shadow-card'
@@ -279,12 +279,12 @@ function ArchetypeBannerCard({
         style={{ backgroundImage: `url('${archetype.bgImage}')` }}
         aria-hidden
       />
-      {/* Cream wash on the left so the dark serif title reads on any image */}
+      {/* Pale-ivory wash on the left so the dark serif title reads on any image */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'linear-gradient(to right, rgba(241,233,218,0.96) 0%, rgba(241,233,218,0.82) 35%, rgba(241,233,218,0.3) 65%, rgba(241,233,218,0) 85%)',
+            'linear-gradient(to right, rgba(251,245,230,0.97) 0%, rgba(251,245,230,0.86) 35%, rgba(251,245,230,0.32) 65%, rgba(251,245,230,0) 85%)',
         }}
         aria-hidden
       />
