@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/supabase/server';
 import { APP_VERSION } from '@/lib/version';
 import { ARCHETYPES } from '@/lib/onboarding';
-import Logo from '@/components/Logo';
 import DismissCTA from './DismissCTA';
 import InstallSection from './InstallSection';
 
@@ -54,9 +53,16 @@ export default async function WelcomePage() {
           }}
         />
 
-        {/* Logo overlapping the curve */}
+        {/* Logo icon (no wordmark) overlapping the curve */}
         <div className="absolute left-1/2 -translate-x-1/2 bottom-4 sm:bottom-8">
-          <Logo />
+          <Image
+            src="/icon-192.png"
+            alt="Heirloom"
+            width={96}
+            height={96}
+            priority
+            className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl shadow-card"
+          />
         </div>
       </section>
 
