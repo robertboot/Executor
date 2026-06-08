@@ -802,27 +802,20 @@ function AddCollectionCard({
   return (
     <Link
       href={`/collections/add/${archetypeKey}`}
-      className="block bg-paper border-2 border-dashed border-gold rounded-2xl overflow-hidden hover:bg-gold-soft/40 transition-colors"
+      className="flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-gold/60 hover:border-gold hover:bg-gold-soft/30 transition-colors"
     >
-      <div className="flex flex-col lg:flex-row items-stretch">
-        <div className="relative w-full lg:w-56 shrink-0 aspect-square bg-gold-soft/40 flex items-center justify-center">
-          <div className="w-16 h-16 rounded-full bg-gold text-cream flex items-center justify-center">
-            <PlusIcon className="w-8 h-8" />
-          </div>
+      <span className="shrink-0 w-9 h-9 rounded-full bg-gold/15 text-gold-deep flex items-center justify-center">
+        <PlusIcon className="w-4 h-4" />
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="font-serif text-base text-ink leading-tight">
+          Add Collection
         </div>
-        <div className="flex-1 p-5 flex flex-col justify-center gap-2">
-          <h3 className="font-serif text-xl text-ink leading-tight">
-            Add Collection
-          </h3>
-          <p className="text-sm text-ink-soft leading-snug max-w-md">
-            Browse more sub-categories from this archetype and add them
-            to your archive.
-          </p>
-          <span className="self-start inline-flex items-center gap-1 mt-2 text-sm font-medium text-gold-deep">
-            Choose from the list →
-          </span>
+        <div className="text-xs text-muted mt-0.5 truncate">
+          Browse more sub-categories from this archetype
         </div>
       </div>
+      <span className="text-sm font-medium text-gold-deep shrink-0">→</span>
     </Link>
   );
 }
