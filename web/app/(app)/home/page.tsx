@@ -256,48 +256,48 @@ function ContinueCataloging({ items }: { items: ItemNeedingAttention[] }) {
           View All <ChevronRightIcon className="w-3 h-3" />
         </Link>
       </div>
-      <ul className="grid grid-cols-2 gap-3 sm:gap-4">
-        {items.map((item) => (
-          <li key={item.id}>
-            <Link
-              href={`/items/${item.id}`}
-              className="group block bg-paper border border-hairline rounded-2xl overflow-hidden hover:shadow-card transition-shadow h-full"
+      <div className="-mx-4 sm:mx-0">
+        <ul className="flex gap-3 overflow-x-auto px-4 sm:px-0 snap-x snap-mandatory pb-2">
+          {items.map((item) => (
+            <li
+              key={item.id}
+              className="shrink-0 w-28 sm:w-32 snap-start"
             >
-              <div className="relative aspect-[4/3] bg-cream-soft overflow-hidden">
-                {item.primaryPhotoUrl ? (
-                  <Image
-                    src={item.primaryPhotoUrl}
-                    alt=""
-                    fill
-                    sizes="(max-width: 640px) 50vw, 25vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-4xl text-muted/50">
-                    {glyphForCategory(item.category)}
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center gap-2 p-3">
-                <div className="flex-1 min-w-0">
-                  <div className="font-serif text-base text-ink leading-tight truncate">
+              <Link
+                href={`/items/${item.id}`}
+                className="group block"
+              >
+                <div className="relative aspect-square bg-cream-soft border border-hairline rounded-xl overflow-hidden">
+                  {item.primaryPhotoUrl ? (
+                    <Image
+                      src={item.primaryPhotoUrl}
+                      alt=""
+                      fill
+                      sizes="128px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-3xl text-muted/50">
+                      {glyphForCategory(item.category)}
+                    </div>
+                  )}
+                </div>
+                <div className="mt-1.5 px-0.5">
+                  <div className="text-xs font-medium text-ink leading-tight truncate">
                     {item.name}
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-ink-soft mt-1">
+                  <div className="flex items-center gap-1 text-[11px] text-ink-soft mt-0.5">
                     <span
-                      className={`w-1.5 h-1.5 rounded-full ${GAP_DOT_COLOR[item.gap]}`}
+                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${GAP_DOT_COLOR[item.gap]}`}
                     />
-                    <span>{GAP_LABEL[item.gap]}</span>
+                    <span className="truncate">{GAP_LABEL[item.gap]}</span>
                   </div>
                 </div>
-                <span className="text-muted shrink-0">
-                  <ChevronRightIcon className="w-4 h-4" />
-                </span>
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
