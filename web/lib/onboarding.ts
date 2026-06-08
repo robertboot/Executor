@@ -638,7 +638,7 @@ export const CUSTOM_SUBCATEGORY: SubCategory = {
   key: 'custom-collection',
   label: 'Custom Collection',
   description:
-    "For items that don't fit any of the curated collections — give it your own name and stories.",
+    "For items that don't fit any of the curated galleries — give it your own name and stories.",
   parent: 'custom',
   bgImage: `/categories/custom.png?v=3`,
   defaultSelected: false,

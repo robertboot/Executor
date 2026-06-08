@@ -239,7 +239,7 @@ function Sidebar({
 
       <div>
         <h1 className="font-serif text-2xl sm:text-3xl text-ink leading-tight">
-          Curated Collections
+          Curated Galleries
         </h1>
         <p className="text-xs sm:text-sm text-muted mt-1.5 leading-relaxed">
           A simple way we&rsquo;ve grouped main categories to make
@@ -372,7 +372,7 @@ function MainHeader({
   view: ViewMode;
 }) {
   const eyebrow = isYourGallery
-    ? 'Across all curated collections'
+    ? 'Across all curated galleries'
     : isUserArchetype
       ? 'Your Collections'
       : 'Exploring';
