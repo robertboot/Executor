@@ -68,11 +68,10 @@ function PickerCard({
   itemCount: number;
 }) {
   const target = `/items/new?category=${encodeURIComponent(subCat.parent)}&inventory=${encodeURIComponent(inventoryId)}`;
-  // Mirror the Collections grid tile: right-anchored crop with a
-  // 1.5x bake-in on top of any per-sub-cat thumbZoom, 4:3 image up
-  // top, title + count beneath on a paper card.
+  // 4:3 tile with a right-anchored crop. Zoomed 2.0x so the source
+  // image's left-side fade gets pushed off the tile completely.
   const baseZoom = subCat.homeZoom ?? subCat.thumbZoom ?? 1;
-  const gridScale = baseZoom * 1.5;
+  const gridScale = Math.max(baseZoom, 1) * 2.0;
   return (
     <Link
       href={target}
