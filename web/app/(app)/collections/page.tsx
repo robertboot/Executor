@@ -137,7 +137,9 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
           view={view}
         />
 
-        {rows.length === 0 && !hasUnselected && customCollections.length === 0 ? (
+        {rows.length === 0 &&
+        !hasUnselected &&
+        (!isYourGallery || customCollections.length === 0) ? (
           <EmptyState />
         ) : view === 'grid' ? (
           <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -146,19 +148,22 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
                 <CollectionGridCard row={row} />
               </li>
             ))}
-            {customCollections.map((c) => {
-              const bucket = bucketByCore.get(c.id) ?? null;
-              return (
-                <li key={c.id}>
-                  <CustomCollectionGridCard
-                    collection={c}
-                    itemCount={bucket?.itemCount ?? 0}
-                    totalValue={bucket?.totalValue ?? 0}
-                    totalCurrency={bucket?.totalCurrency ?? 'USD'}
-                  />
-                </li>
-              );
-            })}
+            {/* Custom collections are owner-wide (not archetype-scoped),
+                so only surface them in the cross-archetype aggregate. */}
+            {isYourGallery &&
+              customCollections.map((c) => {
+                const bucket = bucketByCore.get(c.id) ?? null;
+                return (
+                  <li key={c.id}>
+                    <CustomCollectionGridCard
+                      collection={c}
+                      itemCount={bucket?.itemCount ?? 0}
+                      totalValue={bucket?.totalValue ?? 0}
+                      totalCurrency={bucket?.totalCurrency ?? 'USD'}
+                    />
+                  </li>
+                );
+              })}
             {hasUnselected && activeArchetype && (
               <li>
                 <AddCollectionGridCard archetypeKey={activeArchetype.key} />
@@ -182,20 +187,22 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
                 </li>
               );
             })}
-            {customCollections.map((c) => {
-              const bucket = bucketByCore.get(c.id) ?? null;
-              return (
-                <li key={c.id}>
-                  <CustomCollectionRowCard
-                    collection={c}
-                    itemCount={bucket?.itemCount ?? 0}
-                    totalValue={bucket?.totalValue ?? 0}
-                    totalCurrency={bucket?.totalCurrency ?? 'USD'}
-                    samples={bucket?.sampleItems ?? []}
-                  />
-                </li>
-              );
-            })}
+            {/* Custom collections only render in the aggregate view. */}
+            {isYourGallery &&
+              customCollections.map((c) => {
+                const bucket = bucketByCore.get(c.id) ?? null;
+                return (
+                  <li key={c.id}>
+                    <CustomCollectionRowCard
+                      collection={c}
+                      itemCount={bucket?.itemCount ?? 0}
+                      totalValue={bucket?.totalValue ?? 0}
+                      totalCurrency={bucket?.totalCurrency ?? 'USD'}
+                      samples={bucket?.sampleItems ?? []}
+                    />
+                  </li>
+                );
+              })}
             {hasUnselected && activeArchetype && (
               <li>
                 <AddCollectionCard archetypeKey={activeArchetype.key} />
