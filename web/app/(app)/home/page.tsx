@@ -84,6 +84,8 @@ export default async function HomePage() {
         archetype={archetype}
         itemCount={stats.itemCount}
         collectionCount={stats.collectionCount}
+        peopleCount={stats.peopleCount}
+        inheritorCount={stats.inheritorCount}
         conservatorCount={stats.conservatorCount}
       />
 
@@ -118,12 +120,16 @@ function HeroCard({
   archetype,
   itemCount,
   collectionCount,
+  peopleCount,
+  inheritorCount,
   conservatorCount,
 }: {
   displayName: string;
   archetype: ArchetypeDef | null;
   itemCount: number;
   collectionCount: number;
+  peopleCount: number;
+  inheritorCount: number;
   conservatorCount: number;
 }) {
   // No archetype yet — show setup card.
@@ -183,7 +189,7 @@ function HeroCard({
           <div className="h-px bg-gold flex-1" />
         </div>
 
-        <ul className="space-y-2 text-sm mb-5">
+        <ul className="space-y-1.5 text-sm mb-5">
           <li className="flex items-center gap-2.5">
             <ItemsIcon />
             <span>
@@ -196,6 +202,20 @@ function HeroCard({
             <span>
               <strong>{collectionCount}</strong>{' '}
               {collectionCount === 1 ? 'Collection' : 'Collections'}
+            </span>
+          </li>
+          <li className="flex items-center gap-2.5">
+            <PeopleStatIcon />
+            <span>
+              <strong>{peopleCount}</strong>{' '}
+              {peopleCount === 1 ? 'Legacy Person' : 'Legacy People'}
+            </span>
+          </li>
+          <li className="flex items-center gap-2.5">
+            <ScrollStatIcon />
+            <span>
+              <strong>{inheritorCount}</strong>{' '}
+              {inheritorCount === 1 ? 'Inheritor' : 'Inheritors'}
             </span>
           </li>
           <li className="flex items-center gap-2.5">
@@ -794,6 +814,48 @@ function ConservatorIcon() {
     >
       <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
       <path d="M12 9v6M9 12h6" />
+    </svg>
+  );
+}
+
+function PeopleStatIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={18}
+      height={18}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="text-gold-soft"
+    >
+      <circle cx="9" cy="8" r="3" />
+      <path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+      <circle cx="17" cy="9.5" r="2.4" />
+      <path d="M15 14h2c2.2 0 4 1.8 4 4" />
+    </svg>
+  );
+}
+
+function ScrollStatIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={18}
+      height={18}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="text-gold-soft"
+    >
+      <path d="M7 2h11a3 3 0 0 1 3 3v3h-3M7 2a3 3 0 0 0-3 3v14a3 3 0 0 0 3 3h11a3 3 0 0 0 3-3v-3H7M7 2v18" />
+      <path d="M10 7h6M10 11h6" />
     </svg>
   );
 }

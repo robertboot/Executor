@@ -166,6 +166,8 @@ export async function dashboardStats(): Promise<{
   itemCount: number;
   totalValue: number;
   totalCurrency: string;
+  peopleCount: number;
+  inheritorCount: number;
   conservatorCount: number;
   taggedForSaleCount: number;
   lastUpdatedAt: string | null;
@@ -179,6 +181,8 @@ export async function dashboardStats(): Promise<{
       itemCount: 0,
       totalValue: 0,
       totalCurrency: 'USD',
+      peopleCount: 0,
+      inheritorCount: 0,
       conservatorCount: 0,
       taggedForSaleCount: 0,
       lastUpdatedAt: null,
@@ -191,9 +195,15 @@ export async function dashboardStats(): Promise<{
     .from('items')
     .select('value_amount, value_currency, tagged_for_sale, updated_at, category');
 
-  const { count: conservatorCount } = await supabase
-    .from('conservators')
-    .select('id', { count: 'exact', head: true });
+  const [
+    { count: peopleCount },
+    { count: inheritorCount },
+    { count: conservatorCount },
+  ] = await Promise.all([
+    supabase.from('people').select('id', { count: 'exact', head: true }),
+    supabase.from('inheritors').select('id', { count: 'exact', head: true }),
+    supabase.from('conservators').select('id', { count: 'exact', head: true }),
+  ]);
 
   // Profile's selected sub-categories — empty collections still count.
   const { data: profile } = await supabase
@@ -234,6 +244,8 @@ export async function dashboardStats(): Promise<{
     itemCount: items?.length ?? 0,
     totalValue,
     totalCurrency,
+    peopleCount: peopleCount ?? 0,
+    inheritorCount: inheritorCount ?? 0,
     conservatorCount: conservatorCount ?? 0,
     taggedForSaleCount,
     lastUpdatedAt,
