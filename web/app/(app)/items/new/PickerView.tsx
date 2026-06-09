@@ -2,12 +2,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { SubCategory, ArchetypeDef } from '@/lib/onboarding';
 import type { OnboardingArchetype } from '@/lib/types';
+import type { CustomCollectionWithStats } from '@/lib/api';
 
 interface Props {
   subCats: SubCategory[];
   archetype: ArchetypeDef | null;
   inventoryId: string;
   itemCountByCoreKey: Map<string, number>;
+  customCollections: CustomCollectionWithStats[];
 }
 
 export default function PickerView({
@@ -15,7 +17,9 @@ export default function PickerView({
   archetype,
   inventoryId,
   itemCountByCoreKey,
+  customCollections,
 }: Props) {
+  const isEmpty = subCats.length === 0 && customCollections.length === 0;
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-24">
       <Link
@@ -34,16 +38,24 @@ export default function PickerView({
         </p>
       </div>
 
-      {subCats.length === 0 ? (
+      {isEmpty ? (
         <EmptyPicker archetype={archetype} />
       ) : (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <ul className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
           {subCats.map((s) => (
             <li key={s.key}>
               <PickerCard
                 subCat={s}
                 inventoryId={inventoryId}
                 itemCount={itemCountByCoreKey.get(s.parent) ?? 0}
+              />
+            </li>
+          ))}
+          {customCollections.map((c) => (
+            <li key={c.id}>
+              <CustomPickerCard
+                collection={c}
+                inventoryId={inventoryId}
               />
             </li>
           ))}
@@ -68,21 +80,21 @@ function PickerCard({
   itemCount: number;
 }) {
   const target = `/items/new?category=${encodeURIComponent(subCat.parent)}&inventory=${encodeURIComponent(inventoryId)}`;
-  // 4:3 tile with a right-anchored crop. Zoomed 2.0x so the source
-  // image's left-side fade gets pushed off the tile completely.
+  // Square thumb, right-anchored crop. Zoomed 2x so the source image's
+  // left-side fade gets pushed off the tile.
   const baseZoom = subCat.homeZoom ?? subCat.thumbZoom ?? 1;
   const gridScale = Math.max(baseZoom, 1) * 2.0;
   return (
     <Link
       href={target}
-      className="group block bg-paper border border-hairline rounded-2xl overflow-hidden hover:shadow-card transition-shadow h-full"
+      className="group block bg-paper border border-hairline rounded-xl overflow-hidden hover:shadow-card transition-shadow h-full"
     >
-      <div className="relative aspect-[4/3] bg-cream-soft overflow-hidden">
+      <div className="relative aspect-square bg-cream-soft overflow-hidden">
         <Image
           src={subCat.bgImage}
           alt=""
           fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 20vw"
           className="object-cover object-right transition-transform duration-500 group-hover:scale-105"
           style={{
             transform: `scale(${gridScale})`,
@@ -90,12 +102,56 @@ function PickerCard({
           }}
         />
       </div>
-      <div className="p-3">
-        <h3 className="font-serif text-base text-ink leading-tight truncate">
+      <div className="px-2 py-1.5">
+        <h3 className="font-serif text-xs sm:text-sm text-ink leading-tight truncate">
           {subCat.label}
         </h3>
-        <div className="text-xs text-muted mt-0.5">
+        <div className="text-[11px] text-muted mt-0.5">
           {itemCount} {itemCount === 1 ? 'Item' : 'Items'}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function CustomPickerCard({
+  collection,
+  inventoryId,
+}: {
+  collection: CustomCollectionWithStats;
+  inventoryId: string;
+}) {
+  const target = `/items/new?category=${encodeURIComponent(collection.id)}&inventory=${encodeURIComponent(inventoryId)}`;
+  return (
+    <Link
+      href={target}
+      className="group block bg-paper border border-hairline rounded-xl overflow-hidden hover:shadow-card transition-shadow h-full"
+    >
+      <div className="relative aspect-square bg-cream-soft overflow-hidden">
+        {collection.imageUrl ? (
+          <Image
+            src={collection.imageUrl}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 20vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-3xl text-gold-deep bg-gold-soft/40">
+            ✦
+          </div>
+        )}
+        <span className="absolute top-1.5 left-1.5 inline-flex items-center px-1.5 py-0.5 rounded bg-gold-soft/90 text-[9px] uppercase tracking-widest text-gold-deep font-medium">
+          Custom
+        </span>
+      </div>
+      <div className="px-2 py-1.5">
+        <h3 className="font-serif text-xs sm:text-sm text-ink leading-tight truncate">
+          {collection.name}
+        </h3>
+        <div className="text-[11px] text-muted mt-0.5">
+          {collection.itemCount}{' '}
+          {collection.itemCount === 1 ? 'Item' : 'Items'}
         </div>
       </div>
     </Link>
@@ -110,18 +166,16 @@ function AddCollectionCard({
   return (
     <Link
       href={`/collections/add/${archetypeKey}?next=${encodeURIComponent('/items/new')}`}
-      className="group block bg-paper border border-dashed border-hairline rounded-2xl overflow-hidden hover:border-forest/40 transition-colors h-full"
+      className="group block bg-paper border border-dashed border-hairline rounded-xl overflow-hidden hover:border-forest/40 transition-colors h-full"
     >
-      <div className="relative aspect-[4/3] bg-cream-soft flex items-center justify-center text-gold-deep">
-        <PlusIcon className="w-8 h-8" />
+      <div className="relative aspect-square bg-cream-soft flex items-center justify-center text-gold-deep">
+        <PlusIcon className="w-6 h-6" />
       </div>
-      <div className="p-3">
-        <h3 className="font-serif text-base text-ink leading-tight">
+      <div className="px-2 py-1.5">
+        <h3 className="font-serif text-xs sm:text-sm text-ink leading-tight">
           Add Collection
         </h3>
-        <div className="text-xs text-muted mt-0.5">
-          Pick another to add to
-        </div>
+        <div className="text-[11px] text-muted mt-0.5">Pick another</div>
       </div>
     </Link>
   );

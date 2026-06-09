@@ -1,5 +1,9 @@
 import { redirect } from 'next/navigation';
-import { getMyDefaultInventory, listMyCollectionsRich } from '@/lib/api';
+import {
+  getMyDefaultInventory,
+  listMyCollectionsRich,
+  listMyCustomCollections,
+} from '@/lib/api';
 import { createSupabaseServerClient, getCurrentUser } from '@/lib/supabase/server';
 import { findArchetype, findSubCategory, type SubCategory } from '@/lib/onboarding';
 import type { OnboardingArchetype } from '@/lib/types';
@@ -38,7 +42,7 @@ export default async function NewItemPage({
   // one of their own collections before filling out fields.
   const user = await getCurrentUser();
   const supabase = await createSupabaseServerClient();
-  const [profileRes, collectionsStats] = await Promise.all([
+  const [profileRes, collectionsStats, customCollections] = await Promise.all([
     user
       ? supabase
           .from('profiles')
@@ -48,6 +52,7 @@ export default async function NewItemPage({
           .then((res) => res, () => ({ data: null }))
       : Promise.resolve({ data: null }),
     listMyCollectionsRich(),
+    listMyCustomCollections(),
   ]);
 
   const profile = (profileRes?.data ?? null) as {
@@ -80,6 +85,7 @@ export default async function NewItemPage({
       archetype={archetype}
       inventoryId={targetInventory}
       itemCountByCoreKey={itemCountByCoreKey}
+      customCollections={customCollections}
     />
   );
 }
