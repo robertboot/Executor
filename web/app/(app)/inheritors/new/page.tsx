@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createInheritor } from '../actions';
 import InheritorForm from '../InheritorForm';
 import StatusDefinitions from '../StatusDefinitions';
+import RoleIntroPanel from '@/components/RoleIntroPanel';
 import { listPeoplePicker } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -27,6 +28,8 @@ export default async function NewInheritorPage() {
           edit page.
         </p>
       </div>
+
+      <RoleIntroPanel role="inheritor" />
 
       <InheritorForm
         mode="create"

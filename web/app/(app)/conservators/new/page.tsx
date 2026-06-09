@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createConservator } from '../actions';
 import ConservatorForm from '../ConservatorForm';
+import RoleIntroPanel from '@/components/RoleIntroPanel';
 import { listPeoplePicker } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -26,6 +27,8 @@ export default async function NewConservatorPage() {
           permanently.
         </p>
       </div>
+
+      <RoleIntroPanel role="conservator" />
 
       <ConservatorForm
         mode="create"
