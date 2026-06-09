@@ -12,9 +12,9 @@ const OPTIONS: Array<{
   icon: React.ReactNode;
 }> = [
   {
-    href: '/collections/custom/new',
+    href: '/collections/add',
     title: 'Collection',
-    description: 'Create a new collection category.',
+    description: 'Pick from the curated set or start your own.',
     examples: 'Sports Memorabilia, Military Artifacts, Family Photographs',
     icon: <FolderIcon />,
   },
