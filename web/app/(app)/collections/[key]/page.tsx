@@ -78,6 +78,12 @@ export default async function CollectionDetailPage({
 
   return (
     <div className="space-y-6 pb-24">
+      <Link
+        href="/collections"
+        className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink"
+      >
+        ← My Collections
+      </Link>
       {photoFailed && (
         <div className="bg-gold-soft/30 border border-gold/40 text-ink rounded-xl px-4 py-3 text-sm space-y-1">
           <div>
