@@ -14,6 +14,7 @@ interface SaveInput {
   location: string;
   value_amount: number | null;
   value_currency: string;
+  acquired_date: string | null;
   provenance: string;
   notes: string;
   intended_recipient_name: string;
@@ -36,6 +37,7 @@ export async function saveItem(input: SaveInput): Promise<Item> {
     location: input.location.trim() || null,
     value_amount: input.value_amount,
     value_currency: input.value_currency || 'USD',
+    acquired_date: input.acquired_date || null,
     provenance: input.provenance.trim() || null,
     notes: input.notes.trim() || null,
     intended_recipient_name: input.intended_recipient_name.trim() || null,

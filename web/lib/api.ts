@@ -23,6 +23,7 @@ import type {
   Profile,
 } from './types';
 import { CATEGORY_PRESETS, labelForCategory, normalizeCategoryKey } from './categories';
+import { findSubCategory } from './onboarding';
 
 // ---------- Inventories ----------
 
@@ -1071,6 +1072,82 @@ export async function listInheritorsLight(): Promise<Inheritor[]> {
     .order('display_name', { ascending: true });
   if (error) throw error;
   return (data ?? []) as Inheritor[];
+}
+
+// ---------- Available collections (dropdown) ----------
+
+export interface AvailableCollection {
+  // The string we put into items.category (Core 12 key for curated
+  // sub-cats, UUID for custom collections).
+  key: string;
+  label: string;
+  itemCount: number;
+  iconUrl: string | null;
+  isCustom: boolean;
+}
+
+// Combines the user's selected curated sub-cats and their custom
+// collections into a single flat list suitable for the "Collection"
+// dropdown in the item editor. Deduped by category key.
+export async function listMyAvailableCollections(): Promise<
+  AvailableCollection[]
+> {
+  const supabase = await createSupabaseServerClient();
+  const { data: me } = await supabase.auth.getUser();
+  const myId = me.user?.id;
+  if (!myId) return [];
+
+  const [{ data: profile }, { data: items }, customs] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('selected_collections')
+      .eq('id', myId)
+      .maybeSingle(),
+    supabase.from('items').select('category'),
+    listMyCustomCollections(),
+  ]);
+
+  const selected: string[] =
+    (profile?.selected_collections as string[] | null | undefined) ?? [];
+  const coreKeys = new Set(CATEGORY_PRESETS.map((c) => c.key));
+  const subCatKeys = selected.filter((k) => !coreKeys.has(k));
+
+  const counts = new Map<string, number>();
+  for (const it of items ?? []) {
+    if (!it.category) continue;
+    counts.set(it.category, (counts.get(it.category) ?? 0) + 1);
+  }
+
+  const result: AvailableCollection[] = [];
+  const seen = new Set<string>();
+
+  for (const k of subCatKeys) {
+    const s = findSubCategory(k);
+    if (!s) continue;
+    if (seen.has(s.parent)) continue;
+    seen.add(s.parent);
+    result.push({
+      key: s.parent,
+      label: s.label,
+      itemCount: counts.get(s.parent) ?? 0,
+      iconUrl: s.bgImage,
+      isCustom: false,
+    });
+  }
+
+  for (const c of customs) {
+    if (seen.has(c.id)) continue;
+    seen.add(c.id);
+    result.push({
+      key: c.id,
+      label: c.name,
+      itemCount: c.itemCount,
+      iconUrl: c.imageUrl,
+      isCustom: true,
+    });
+  }
+
+  return result;
 }
 
 // ---------- Custom Collections ----------

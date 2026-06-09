@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import {
   getMyDefaultInventory,
+  listMyAvailableCollections,
   listMyCollectionsRich,
   listMyCustomCollections,
 } from '@/lib/api';
@@ -26,6 +27,7 @@ export default async function NewItemPage({
 
   // Category already chosen — go straight to the form.
   if (params.category) {
+    const collections = await listMyAvailableCollections();
     return (
       <ItemEditor
         mode="new"
@@ -34,6 +36,7 @@ export default async function NewItemPage({
           category: params.category,
           inventory_id: targetInventory,
         }}
+        collections={collections}
       />
     );
   }
