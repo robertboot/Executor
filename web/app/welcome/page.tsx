@@ -2,7 +2,6 @@ import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/supabase/server';
 import { APP_VERSION } from '@/lib/version';
-import { ARCHETYPES } from '@/lib/onboarding';
 import DismissCTA from './DismissCTA';
 import InstallSection from './InstallSection';
 
@@ -82,7 +81,7 @@ export default async function WelcomePage() {
         {/* Primary CTA + secondary link */}
         <div className="mt-7 flex flex-col items-center gap-4">
           <DismissCTA
-            dest="/home"
+            dest="/tutorial"
             className="w-full max-w-sm h-14 rounded-xl bg-forest text-cream text-base font-medium hover:bg-forest-deep transition-colors shadow-card disabled:opacity-60"
           >
             Begin Your Archive
@@ -96,31 +95,54 @@ export default async function WelcomePage() {
           </a>
         </div>
 
-        {/* "What Type of Collector Are You?" */}
+        {/* "Meet Your Contributors" — explains the three roles */}
         <section className="mt-12 space-y-5">
           <header className="flex items-center justify-center gap-3">
             <LeafFlourish flip />
             <h2 className="font-serif text-xl sm:text-2xl text-ink text-center">
-              What Type of Collector Are You?
+              Meet Your Contributors
             </h2>
             <LeafFlourish />
           </header>
+          <p className="text-sm text-muted text-center max-w-xl mx-auto leading-relaxed">
+            Every heirloom has a human chain — past, present, and future.
+            Three role types let you capture each side.
+          </p>
 
-          <ul className="flex flex-wrap justify-center gap-3">
-            {ARCHETYPES.map((a) => (
-              <li
-                key={a.key}
-                className="basis-[calc(50%-0.375rem)] sm:basis-[calc(33.333%-0.5rem)] lg:basis-[calc(20%-0.6rem)]"
-              >
-                <ArchetypeCard
-                  title={a.title}
-                  tagline={a.tagline}
-                  imageSrc={`/archetypes/${a.key}-full.png`}
-                  icon={iconFor(a.key)}
-                />
-              </li>
-            ))}
+          <ul className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <li>
+              <RoleCard
+                kicker="The Past"
+                title="Legacy Person"
+                body="People who owned, made, or appear in an item's story."
+                example="Grandpa Joe · Aunt Martha · Original owner"
+                icon={<PeopleRoleIcon />}
+              />
+            </li>
+            <li>
+              <RoleCard
+                kicker="The Future"
+                title="Inheritor"
+                body="People you want each item to reach next."
+                example="Daughter Sarah · Alternate recipient"
+                icon={<ScrollRoleIcon />}
+              />
+            </li>
+            <li>
+              <RoleCard
+                kicker="The Present"
+                title="Conservator"
+                body="People who help you keep the archive accurate today."
+                example="Spouse · Family historian · Archivist"
+                icon={<ShieldRoleIcon />}
+              />
+            </li>
           </ul>
+
+          <p className="text-xs italic text-muted text-center max-w-md mx-auto">
+            A single person can hold more than one of these roles —
+            an inheritor today could be a legacy person tomorrow.
+          </p>
         </section>
 
         {/* Install (collapsible) */}
@@ -176,35 +198,27 @@ export default async function WelcomePage() {
 }
 
 // ============================================================== //
-//  Archetype card                                                 //
+//  Contributor role card                                          //
 // ============================================================== //
 
-function ArchetypeCard({
+function RoleCard({
+  kicker,
   title,
-  tagline,
-  imageSrc,
+  body,
+  example,
   icon,
 }: {
+  kicker: string;
   title: string;
-  tagline: string;
-  imageSrc: string;
+  body: string;
+  example: string;
   icon: React.ReactNode;
 }) {
   return (
-    <article className="relative bg-paper border border-hairline rounded-2xl overflow-hidden shadow-card h-full flex flex-col">
-      <div className="relative aspect-[4/3] bg-cream-soft">
-        <Image
-          src={imageSrc}
-          alt=""
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-          className="object-cover"
-        />
-      </div>
-      {/* Gold medallion overlapping bottom of image */}
-      <div className="relative -mt-6 mb-2 flex justify-center">
+    <article className="h-full bg-paper border border-hairline rounded-2xl p-5 shadow-card flex flex-col gap-3">
+      <div className="flex items-center gap-3">
         <span
-          className="w-12 h-12 rounded-full text-gold-deep flex items-center justify-center border border-gold-deep/25"
+          className="shrink-0 w-11 h-11 rounded-full text-gold-deep flex items-center justify-center border border-gold-deep/25"
           style={{
             background:
               'radial-gradient(circle at 32% 28%, #F8EBCC 0%, #EDD9A6 55%, #D9B97A 100%)',
@@ -214,36 +228,21 @@ function ArchetypeCard({
         >
           {icon}
         </span>
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-widest text-muted">
+            {kicker}
+          </div>
+          <h3 className="font-serif text-lg text-ink leading-tight">
+            {title}
+          </h3>
+        </div>
       </div>
-      <div className="px-3 pb-4 text-center space-y-1.5 flex-1 flex flex-col">
-        <h4 className="font-serif text-base text-ink leading-tight">
-          {title}
-        </h4>
-        <p className="text-[11px] text-muted leading-snug flex-1">
-          {tagline}
-        </p>
-      </div>
+      <p className="text-sm text-ink-soft leading-relaxed">{body}</p>
+      <p className="text-[11px] italic text-muted leading-snug mt-auto">
+        {example}
+      </p>
     </article>
   );
-}
-
-// Pick a glyph for each archetype card.
-function iconFor(
-  key: string,
-): React.ReactNode {
-  switch (key) {
-    case 'family-legacy':
-      return <FamilyTreeIcon />;
-    case 'collector':
-      return <TrophyIcon />;
-    case 'luxury':
-      return <DiamondIcon />;
-    case 'historical':
-      return <ColumnIcon />;
-    case 'mixed':
-    default:
-      return <ArchiveIcon />;
-  }
 }
 
 // ============================================================== //
@@ -353,13 +352,13 @@ function ScanIcon() {
   );
 }
 
-// Archetype glyphs
-function FamilyTreeIcon() {
+// Contributor role glyphs
+function PeopleRoleIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      width={18}
-      height={18}
+      width={20}
+      height={20}
       fill="none"
       stroke="currentColor"
       strokeWidth="1.7"
@@ -367,21 +366,20 @@ function FamilyTreeIcon() {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <circle cx="12" cy="4" r="2" />
-      <path d="M12 6v4M6 14v-2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" />
-      <circle cx="6" cy="17" r="2" />
-      <circle cx="12" cy="17" r="2" />
-      <circle cx="18" cy="17" r="2" />
+      <circle cx="9" cy="8" r="3" />
+      <path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+      <circle cx="17" cy="9.5" r="2.4" />
+      <path d="M15 14h2c2.2 0 4 1.8 4 4" />
     </svg>
   );
 }
 
-function TrophyIcon() {
+function ScrollRoleIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      width={18}
-      height={18}
+      width={20}
+      height={20}
       fill="none"
       stroke="currentColor"
       strokeWidth="1.7"
@@ -389,20 +387,18 @@ function TrophyIcon() {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="M7 4h10v6a5 5 0 0 1-10 0z" />
-      <path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3" />
-      <path d="M10 16h4l-1 4h-2z" />
-      <path d="M8 20h8" />
+      <path d="M7 2h11a3 3 0 0 1 3 3v3h-3M7 2a3 3 0 0 0-3 3v14a3 3 0 0 0 3 3h11a3 3 0 0 0 3-3v-3H7M7 2v18" />
+      <path d="M10 7h6M10 11h6" />
     </svg>
   );
 }
 
-function DiamondIcon() {
+function ShieldRoleIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      width={18}
-      height={18}
+      width={20}
+      height={20}
       fill="none"
       stroke="currentColor"
       strokeWidth="1.7"
@@ -410,48 +406,8 @@ function DiamondIcon() {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="M6 3h12l4 6-10 12L2 9z" />
-      <path d="M2 9h20M9 3l3 6 3-6M9 9l3 12 3-12" />
-    </svg>
-  );
-}
-
-function ColumnIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={18}
-      height={18}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M3 9L12 4l9 5" />
-      <path d="M3 9h18M3 20h18" />
-      <path d="M7 9v11M12 9v11M17 9v11" />
-    </svg>
-  );
-}
-
-function ArchiveIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={18}
-      height={18}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="3" y="4" width="18" height="4" rx="1" />
-      <rect x="4" y="8" width="16" height="12" rx="1" />
-      <path d="M10 13h4" />
+      <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
+      <path d="M9 12l2 2 4-4" />
     </svg>
   );
 }

@@ -21,7 +21,11 @@ export default async function AppLayout({
         <div className="min-h-screen flex flex-col">
           <header className="sticky top-0 z-20 w-full bg-cream/95 backdrop-blur border-b border-hairline">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
-              <Link href="/home" className="flex items-center shrink-0">
+              <Link
+                href="/welcome"
+                aria-label="Heirloom welcome"
+                className="flex items-center shrink-0"
+              >
                 <Logo variant="compact" />
               </Link>
               <form
