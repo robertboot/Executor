@@ -89,12 +89,20 @@ export default function AddCollectionsClient({
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-24">
-      <Link
-        href={`/collections?archetype=${archetypeKey}`}
-        className="inline-flex items-center text-sm text-muted hover:text-ink"
-      >
-        ← Back to {archetypeTitle}
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href={`/collections?archetype=${archetypeKey}`}
+          className="inline-flex items-center text-sm text-muted hover:text-ink"
+        >
+          ← Back to {archetypeTitle}
+        </Link>
+        <Link
+          href="/collections"
+          className="inline-flex items-center text-sm text-forest hover:text-forest-deep font-medium"
+        >
+          My Collections →
+        </Link>
+      </div>
 
       <div>
         <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-ink leading-tight">
