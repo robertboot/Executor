@@ -84,7 +84,7 @@ function PickerCard({
   // source image still reads at a glance now that the tiles are
   // smaller — too much zoom and the subject crops out of frame.
   const baseZoom = subCat.homeZoom ?? subCat.thumbZoom ?? 1;
-  const gridScale = Math.max(baseZoom, 1) * 1.3;
+  const gridScale = Math.max(baseZoom, 1) * 1.15;
   return (
     <Link
       href={target}
