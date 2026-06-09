@@ -201,16 +201,18 @@ function Hero({
           }}
           priority
         />
+        {/* No blanket dark wash — source images already carry a soft
+            left-side fade; text relies on a subtle drop-shadow for
+            legibility instead. */}
         <div
-          className="absolute inset-0 pointer-events-none bg-black/60"
-          aria-hidden="true"
-        />
-        <div className="relative z-10 h-full p-6 sm:p-8 max-w-md flex flex-col justify-end text-white">
+          className="relative z-10 h-full p-6 sm:p-8 max-w-md flex flex-col justify-end text-white"
+          style={{ textShadow: '0 1px 3px rgba(0,0,0,0.55), 0 0 12px rgba(0,0,0,0.35)' }}
+        >
           <h1 className="font-serif text-3xl sm:text-4xl leading-tight">
             {title}
           </h1>
           {description && (
-            <p className="text-sm sm:text-base mt-2 text-white/90 max-w-xs">
+            <p className="text-sm sm:text-base mt-2 text-white/95 max-w-xs">
               {description}
             </p>
           )}
@@ -220,14 +222,15 @@ function Hero({
             </span>
             <Link
               href={addItemHref}
-              className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-[#C68A2E] text-white text-sm font-medium hover:bg-[#A8741F] transition-colors"
+              className="inline-flex items-center gap-2 px-4 h-10 rounded-lg bg-[#C68A2E] text-white text-sm font-medium hover:bg-[#A8741F] transition-colors shadow"
+              style={{ textShadow: 'none' }}
             >
               + Add item
             </Link>
             {editHref && (
               <Link
                 href={editHref}
-                className="text-sm text-white/90 underline hover:text-white"
+                className="text-sm text-white/95 underline hover:text-white"
               >
                 Edit
               </Link>
