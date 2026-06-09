@@ -306,6 +306,7 @@ const COLLECTOR_SUBCATEGORIES: SubCategory[] = [
     parent: 'collectibles-curiosities',
     bgImage: sub('trading-cards'),
     defaultSelected: true,
+    thumbZoom: 1.2,
   },
   {
     key: 'coins-currency',

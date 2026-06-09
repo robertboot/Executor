@@ -95,7 +95,11 @@ function PickerCard({
           src={subCat.bgImage}
           alt=""
           fill
-          sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 20vw"
+          // Overshoot so Next picks a source larger than the rendered
+          // size — the 1.15x transform below would otherwise upscale a
+          // too-small bitmap and pixelate.
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          quality={90}
           className="object-cover object-right transition-transform duration-500 group-hover:scale-105"
           style={{
             transform: `scale(${gridScale})`,
@@ -134,7 +138,8 @@ function CustomPickerCard({
             src={collection.imageUrl}
             alt=""
             fill
-            sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 20vw"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            quality={90}
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
