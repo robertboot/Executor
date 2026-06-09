@@ -80,10 +80,11 @@ function PickerCard({
   itemCount: number;
 }) {
   const target = `/items/new?category=${encodeURIComponent(subCat.parent)}&inventory=${encodeURIComponent(inventoryId)}`;
-  // Square thumb, right-anchored crop. Zoomed 2x so the source image's
-  // left-side fade gets pushed off the tile.
+  // Square thumb, right-anchored crop. Light 1.3x scale so the
+  // source image still reads at a glance now that the tiles are
+  // smaller — too much zoom and the subject crops out of frame.
   const baseZoom = subCat.homeZoom ?? subCat.thumbZoom ?? 1;
-  const gridScale = Math.max(baseZoom, 1) * 2.0;
+  const gridScale = Math.max(baseZoom, 1) * 1.3;
   return (
     <Link
       href={target}
