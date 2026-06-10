@@ -100,14 +100,22 @@ export default function CreateDrawer() {
         className="fixed bottom-0 left-0 right-0 z-30 bg-cream/95 backdrop-blur border-t border-hairline"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="grid grid-cols-3 items-center h-16 max-w-md mx-auto px-6">
+        <div className="grid grid-cols-5 items-center h-16 max-w-lg mx-auto px-3 sm:px-6">
           <Link
             href="/home"
             aria-label="Home"
             className="flex flex-col items-center gap-0.5 text-ink hover:text-forest transition-colors"
           >
             <HomeIcon />
-            <span className="text-xs">Home</span>
+            <span className="text-[11px] sm:text-xs">Home</span>
+          </Link>
+          <Link
+            href="/contributors"
+            aria-label="Contributors"
+            className="flex flex-col items-center gap-0.5 text-ink hover:text-forest transition-colors"
+          >
+            <ContributorsIcon />
+            <span className="text-[11px] sm:text-xs">Contributors</span>
           </Link>
           <div className="flex items-center justify-center">
             <button
@@ -126,7 +134,15 @@ export default function CreateDrawer() {
             className="flex flex-col items-center gap-0.5 text-ink hover:text-forest transition-colors"
           >
             <GalleriesIcon />
-            <span className="text-xs">My Collections</span>
+            <span className="text-[11px] sm:text-xs">My Collections</span>
+          </Link>
+          <Link
+            href="/scan"
+            aria-label="Scan"
+            className="flex flex-col items-center gap-0.5 text-ink hover:text-forest transition-colors"
+          >
+            <ScanIcon />
+            <span className="text-[11px] sm:text-xs">Scan</span>
           </Link>
         </div>
       </nav>
@@ -369,6 +385,46 @@ function GalleriesIcon() {
       aria-hidden="true"
     >
       <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    </svg>
+  );
+}
+
+function ContributorsIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={22}
+      height={22}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="9" cy="8" r="3" />
+      <path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+      <circle cx="17" cy="9.5" r="2.4" />
+      <path d="M15 14h2c2.2 0 4 1.8 4 4" />
+    </svg>
+  );
+}
+
+function ScanIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={22}
+      height={22}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3" />
+      <path d="M7 12h10" />
     </svg>
   );
 }
