@@ -18,20 +18,19 @@ export default async function PeoplePage() {
 
   return (
     <div className="space-y-8 pb-24">
-      {/* Header */}
-      <header className="flex justify-end">
+      <HeroCard />
+
+      {people.length > 0 && <PeopleList people={people} />}
+
+      <div>
         <Link
           href="/people/new"
-          className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors shrink-0"
+          className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
         >
           <UserPlusIcon className="w-4 h-4" />
           Add Originator
         </Link>
-      </header>
-
-      <HeroCard />
-
-      {people.length > 0 && <PeopleList people={people} />}
+      </div>
 
       <PeopleRolesSection />
 
