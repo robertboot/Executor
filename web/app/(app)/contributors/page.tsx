@@ -17,18 +17,6 @@ export default async function ContributorsPage() {
 
   return (
     <div className="space-y-6 pb-24">
-      {/* Header */}
-      <header>
-        <h1 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
-          Contributors
-        </h1>
-        <p className="text-muted text-sm sm:text-base mt-2 max-w-2xl">
-          Everyone who shapes your archive — the people in your items&rsquo;
-          stories, the people who will receive them, and the people
-          helping you preserve the record.
-        </p>
-      </header>
-
       {/* Hero */}
       <HeroCard totalContributors={totalContributors} />
 
