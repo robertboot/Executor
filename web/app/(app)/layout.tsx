@@ -19,7 +19,7 @@ export default async function AppLayout({
       <SplashGate />
       <PullToRefresh>
         <div className="min-h-screen flex flex-col">
-          <header className="sticky top-0 z-20 w-full bg-cream/95 backdrop-blur border-b border-hairline">
+          <header className="sticky top-0 z-20 w-full bg-cream-soft/95 backdrop-blur border-b border-hairline">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
               <Link
                 href="/welcome"

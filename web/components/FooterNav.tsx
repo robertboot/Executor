@@ -70,7 +70,7 @@ export default function FooterNav() {
   return (
     <nav
       aria-label="Primary"
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-paper/95 backdrop-blur border-t border-hairline"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-cream-soft/95 backdrop-blur border-t border-hairline"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <div className="grid grid-cols-5 h-16 items-center">
