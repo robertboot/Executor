@@ -61,7 +61,7 @@ export default function DemoRoleCard({
         </span>
       </div>
 
-      <div className="text-sm text-white">({tag})</div>
+      <div className="text-sm text-ink">({tag})</div>
 
       <div className="mt-1">
         <button
