@@ -61,14 +61,16 @@ export default function DemoRoleCard({
         </span>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="text-sm italic text-muted">{tag}</div>
+
+      <div className="mt-1.5">
         <button
           type="button"
           onClick={() => setOpen(true)}
           aria-label={`Open ${name}'s profile`}
-          className="group/name inline-flex items-center gap-1.5 rounded-lg border border-hairline bg-paper px-3 py-1.5 hover:border-forest/40 hover:bg-cream-soft transition-colors"
+          className="group/name inline-flex items-center gap-1.5 rounded-lg bg-forest px-3.5 py-2 text-cream hover:bg-forest-deep transition-colors"
         >
-          <span className="font-serif text-xl text-ink leading-none">{name}</span>
+          <span className="font-serif text-xl leading-none">{name}</span>
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -78,18 +80,15 @@ export default function DemoRoleCard({
             strokeLinejoin="round"
             width="14"
             height="14"
-            className="text-gold-deep transition-transform group-hover/name:translate-x-0.5"
+            className="text-cream transition-transform group-hover/name:translate-x-0.5"
             aria-hidden="true"
           >
             <path d="M9 6l6 6-6 6" />
           </svg>
         </button>
-        <span className="text-[10px] uppercase tracking-widest font-medium px-2 py-0.5 rounded bg-paper text-ink-soft border border-hairline">
-          {tag}
-        </span>
       </div>
 
-      <div className="text-xs text-muted mt-1">{relationship}</div>
+      <div className="text-xs text-muted mt-2">{relationship}</div>
 
       <p className="text-sm text-ink-soft mt-2 leading-relaxed">{body}</p>
 
