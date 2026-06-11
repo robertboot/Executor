@@ -1,19 +1,25 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { listPeople, listInheritors, listConservators } from '@/lib/api';
+import {
+  listPeople,
+  listInheritors,
+  listConservators,
+  listContributors,
+  type ContributorRow,
+} from '@/lib/api';
 import DemoRoleCard from './DemoRoleCard';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ContributorsPage() {
-  const [people, inheritors, conservators] = await Promise.all([
+  const [people, inheritors, conservators, contributors] = await Promise.all([
     listPeople(),
     listInheritors(),
     listConservators(),
+    listContributors(),
   ]);
 
-  const totalContributors =
-    people.length + inheritors.length + conservators.length;
+  const totalContributors = contributors.length;
 
   return (
     <div className="space-y-6 pb-24">
@@ -31,6 +37,9 @@ export default async function ContributorsPage() {
           helping you preserve the record.
         </p>
       </header>
+
+      {/* All contributors */}
+      <AllContributors rows={contributors} />
 
       {/* Three role cards */}
       <ul className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -91,6 +100,100 @@ export default async function ContributorsPage() {
       />
     </div>
   );
+}
+
+// ============================================================== //
+//  All contributors                                              //
+// ============================================================== //
+
+function AllContributors({ rows }: { rows: ContributorRow[] }) {
+  return (
+    <section className="space-y-3">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="font-serif text-2xl text-ink">All contributors</h2>
+        <span className="text-xs text-muted">
+          {rows.length} {rows.length === 1 ? 'person' : 'people'}
+        </span>
+      </div>
+
+      {rows.length === 0 ? (
+        <div className="bg-paper border border-hairline rounded-2xl p-8 text-center text-sm text-muted">
+          No contributors yet — add one from a role card below.
+        </div>
+      ) : (
+        <div className="bg-paper border border-hairline rounded-2xl overflow-hidden">
+          <ul className="max-h-96 overflow-y-auto divide-y divide-divider">
+            {rows.map((c) => (
+              <li key={c.id}>
+                <Link
+                  href={`/people/${c.id}`}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-cream-soft/40 transition-colors"
+                >
+                  <span className="shrink-0 relative w-10 h-10 rounded-full overflow-hidden bg-gold-soft/60 flex items-center justify-center">
+                    {c.primaryPhotoUrl ? (
+                      <Image
+                        src={c.primaryPhotoUrl}
+                        alt=""
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm font-serif text-gold-deep">
+                        {contributorInitials(c.name)}
+                      </span>
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium text-ink truncate">
+                      {c.name || 'Unnamed'}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                      {c.isOriginator && (
+                        <RolePill
+                          label="Originator"
+                          detail={`${c.originatorItems} ${c.originatorItems === 1 ? 'item' : 'items'}`}
+                        />
+                      )}
+                      {c.inheritor && (
+                        <RolePill
+                          label="Inheritor"
+                          detail={`${c.inheritor.items} ${c.inheritor.items === 1 ? 'item' : 'items'}`}
+                        />
+                      )}
+                      {c.conservator && (
+                        <RolePill
+                          label="Conservator"
+                          detail={c.conservator.level}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  <span className="shrink-0 text-muted">›</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function RolePill({ label, detail }: { label: string; detail: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-gold-soft/60 text-gold-deep text-[11px] font-medium px-2 py-0.5">
+      {label}
+      <span className="text-gold-deep/70">· {detail}</span>
+    </span>
+  );
+}
+
+function contributorInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 // ============================================================== //

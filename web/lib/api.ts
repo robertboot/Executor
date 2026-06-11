@@ -564,6 +564,76 @@ export async function listPeople(): Promise<PersonWithStats[]> {
   });
 }
 
+// Every contributor (person) with the roles they hold and how many items
+// they're linked to in each. Powers the "All contributors" list on the
+// Contributors page. Conservator carries an access level rather than an
+// item count, so that's surfaced instead.
+export interface ContributorRow {
+  id: string;
+  name: string;
+  primaryPhotoUrl: string | null;
+  isOriginator: boolean;
+  originatorItems: number;
+  inheritor: { items: number; collections: number } | null;
+  conservator: { level: ConservatorPermissionLevel } | null;
+}
+
+export async function listContributors(): Promise<ContributorRow[]> {
+  const supabase = await createSupabaseServerClient();
+  const [{ data, error }, inheritors, conservators] = await Promise.all([
+    supabase
+      .from('people')
+      .select(
+        'id, first_name, middle_name, last_name, profile_photo_path, is_originator, item_people(id)',
+      )
+      .order('first_name', { ascending: true }),
+    listInheritors(),
+    listConservators(),
+  ]);
+  if (error) throw error;
+
+  const inhByPerson = new Map<string, { items: number; collections: number }>();
+  for (const i of inheritors) {
+    if (i.person_id) {
+      inhByPerson.set(i.person_id, {
+        items: i.itemCount,
+        collections: i.collectionCount,
+      });
+    }
+  }
+  const conByPerson = new Map<string, { level: ConservatorPermissionLevel }>();
+  for (const c of conservators) {
+    if (c.person_id) conByPerson.set(c.person_id, { level: c.permission_level });
+  }
+
+  return (data ?? []).map((row) => {
+    const r = row as {
+      id: string;
+      first_name: string;
+      middle_name: string | null;
+      last_name: string | null;
+      profile_photo_path: string | null;
+      is_originator: boolean;
+      item_people?: Array<{ id: string }>;
+    };
+    const name = [r.first_name, r.middle_name, r.last_name]
+      .filter((s) => s && s.trim().length > 0)
+      .join(' ')
+      .trim();
+    return {
+      id: r.id,
+      name,
+      primaryPhotoUrl: r.profile_photo_path
+        ? personPhotoPublicUrl(r.profile_photo_path)
+        : null,
+      isOriginator: r.is_originator,
+      originatorItems: r.item_people?.length ?? 0,
+      inheritor: inhByPerson.get(r.id) ?? null,
+      conservator: conByPerson.get(r.id) ?? null,
+    };
+  });
+}
+
 // Lightweight directory for the "Link to an Originator" picker on
 // the Inheritor and Conservator forms.
 export interface PersonPickerEntry {
