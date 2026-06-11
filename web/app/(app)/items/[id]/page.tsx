@@ -276,7 +276,7 @@ export default async function ItemDetailPage({
         </form>
       </Section>
 
-      <Section title="Legacy People">
+      <Section title="Originators">
         {peopleLinks.length === 0 ? (
           <p className="text-sm text-muted italic">
             Nobody linked yet. Use the form below to add someone.

@@ -7,7 +7,7 @@ import { LEVEL_LABEL, LEVEL_OPTIONS } from '@/lib/conservators';
 // Shared cross-role toggles for the Inheritor and Conservator forms.
 // `current` is the role this form is FOR (omit it from the toggle list).
 // When one of the toggles is checked but the form isn't linked to a
-// Legacy Person yet, the action will auto-create one so all the role
+// Originator yet, the action will auto-create one so all the role
 // rows can share the same identity.
 export default function CrossRoleToggles({
   current,
@@ -42,13 +42,13 @@ export default function CrossRoleToggles({
       <legend className="font-serif text-lg text-ink">Also designate as</legend>
       <p className="text-xs text-muted leading-relaxed -mt-1">
         Designate this person as additional roles. They&rsquo;ll appear in
-        each section they hold. Linking everything to a single Legacy
-        Person record keeps name and photo updates in sync across the
+        each section they hold. Linking everything to a single Originator
+        record keeps name and photo updates in sync across the
         archive — if you haven&rsquo;t linked one, we&rsquo;ll create one
         from this form&rsquo;s name on save.
       </p>
 
-      {/* Always-on: ensure a Legacy Person backs this row */}
+      {/* Always-on: ensure an Originator backs this row */}
       <div className="bg-paper border border-hairline rounded-xl p-4 space-y-2">
         <label className="flex items-center gap-3 cursor-pointer select-none">
           <input
@@ -60,11 +60,11 @@ export default function CrossRoleToggles({
             onChange={(e) => setAlsoPerson(e.target.checked)}
             className="h-4 w-4 accent-forest"
           />
-          <span className="font-medium text-ink">Legacy Person</span>
+          <span className="font-medium text-ink">Originator</span>
           <span className="text-xs text-muted">
             {legacyPerson
               ? '— already linked'
-              : '— save as a Legacy Person too (auto-created from the name on this form)'}
+              : '— save as an Originator too (auto-created from the name on this form)'}
           </span>
         </label>
       </div>

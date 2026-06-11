@@ -208,7 +208,7 @@ function HeroCard({
             <PeopleStatIcon />
             <span>
               <strong>{peopleCount}</strong>{' '}
-              {peopleCount === 1 ? 'Legacy Person' : 'Legacy People'}
+              {peopleCount === 1 ? 'Originator' : 'Originators'}
             </span>
           </li>
           <li className="flex items-center gap-2.5">

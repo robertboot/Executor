@@ -113,7 +113,7 @@ export default async function WelcomePage() {
             <li>
               <RoleCard
                 kicker="The Past"
-                title="Legacy Person"
+                title="Originator"
                 body="People who owned, made, or appear in an item's story."
                 example="Grandpa Joe · Aunt Martha · Original owner"
                 icon={<PeopleRoleIcon />}

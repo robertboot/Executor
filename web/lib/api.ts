@@ -147,7 +147,7 @@ export async function listConservators(): Promise<ConservatorWithPhoto[]> {
       : null;
     const out: ConservatorWithPhoto = {
       ...r,
-      // Prefer the linked Legacy Person's full name when set.
+      // Prefer the linked Originator's full name when set.
       name: linkedName || r.name,
       // profile_photo_path stays as-is (pointing into the
       // conservator-photos bucket for legacy standalone uploads).
@@ -563,7 +563,7 @@ export async function listPeople(): Promise<PersonWithStats[]> {
   });
 }
 
-// Lightweight directory for the "Link to a Legacy Person" picker on
+// Lightweight directory for the "Link to an Originator" picker on
 // the Inheritor and Conservator forms.
 export interface PersonPickerEntry {
   id: string;
@@ -603,14 +603,14 @@ export async function listPeoplePicker(): Promise<PersonPickerEntry[]> {
   });
 }
 
-// Ensures a Legacy Person row exists for the given contributor row.
+// Ensures an Originator row exists for the given contributor row.
 // - If currentPersonId is set, returns it (already linked).
 // - Otherwise creates a new person row using the supplied displayName
 //   as first_name (callers can split it themselves if they have
 //   structured fields). Returns the new id.
 //
 // Used by the Inheritor / Conservator actions when the user checks
-// "Also save as Legacy Person" on the cross-role toggle section.
+// "Also save as Originator" on the cross-role toggle section.
 export async function ensureLinkedPerson(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   userId: string,
@@ -625,7 +625,7 @@ export async function ensureLinkedPerson(
   if (currentPersonId) return currentPersonId;
   const trimmed = displayName.trim();
   if (!trimmed) {
-    throw new Error('Cannot create a Legacy Person without a name.');
+    throw new Error('Cannot create an Originator without a name.');
   }
   // Split into first / last on the first whitespace so common names
   // ("Sarah Boot") land in the right columns. Single-word names go in
@@ -646,7 +646,7 @@ export async function ensureLinkedPerson(
     .select('id')
     .single();
   if (error) {
-    throw new Error(`Failed to auto-create Legacy Person: ${error.message}`);
+    throw new Error(`Failed to auto-create Originator: ${error.message}`);
   }
   return (data as { id: string }).id;
 }
@@ -956,7 +956,7 @@ export async function listInheritors(): Promise<InheritorWithStats[]> {
 // Resolve the right public URL for an Inheritor / Conservator row's
 // avatar. Photos are stored in whichever bucket they were uploaded
 // to: the role-specific bucket for standalone uploads, or the
-// people-photos bucket when the linked Legacy Person has its own
+// people-photos bucket when the linked Originator has its own
 // photo. We pick by whichever source actually has a non-null path
 // rather than by whether person_id happens to be set, so retro-
 // fitting a link onto a row with an existing role-bucket photo

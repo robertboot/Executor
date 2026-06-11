@@ -32,7 +32,7 @@ export default function RoleToggles({
         Also designate as
       </legend>
       <p className="text-xs text-muted leading-relaxed -mt-1">
-        A single Legacy Person can also be an Inheritor (future
+        A single Originator can also be an Inheritor (future
         recipient) and / or a Conservator (helper with archive
         access). Toggling these on writes the matching record on save
         — turning a toggle off only unlinks; the existing inheritor or

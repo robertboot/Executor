@@ -14,7 +14,7 @@ function s(v: FormDataEntryValue | null): string | null {
   return t.length === 0 ? null : t;
 }
 
-// Apply the cross-role toggles ("Also Legacy Person", "Also
+// Apply the cross-role toggles ("Also Originator", "Also
 // Conservator") to a freshly saved inheritor row. Returns the
 // resolved person_id (may have been auto-created) so the caller can
 // update the inheritor row if it wasn't previously linked.
@@ -41,9 +41,9 @@ async function applyCrossRoles({
   const alsoConservator = formData.get('also_conservator') === '1';
   const conservatorLevelRaw = s(formData.get('conservator_level'));
 
-  // The cross-role toggles all require a Legacy Person to anchor the
-  // shared identity. If any cross-role is requested or "Also Legacy
-  // Person" is checked, ensure a person exists and link this inheritor
+  // The cross-role toggles all require an Originator to anchor the
+  // shared identity. If any cross-role is requested or "Also
+  // Originator" is checked, ensure a person exists and link this inheritor
   // to it. Otherwise we leave the inheritor as-is.
   const needPerson = alsoPerson || alsoConservator;
   if (!needPerson) return currentPersonId;
@@ -132,7 +132,7 @@ export async function createInheritor(formData: FormData) {
 
   const supabase = await createSupabaseServerClient();
 
-  // If linked to a Legacy Person, the canonical name lives there;
+  // If linked to an Originator, the canonical name lives there;
   // snapshot it onto the inheritor row so the row stays usable if the
   // link is later removed.
   let displayName = s(formData.get('display_name'));
@@ -143,7 +143,7 @@ export async function createInheritor(formData: FormData) {
       .eq('id', personId)
       .eq('owner_id', user.id)
       .maybeSingle();
-    if (!p) throw new Error('Linked Legacy Person not found');
+    if (!p) throw new Error('Linked Originator not found');
     const row = p as {
       first_name: string;
       middle_name: string | null;
@@ -191,7 +191,7 @@ export async function createInheritor(formData: FormData) {
   if (error) throw new Error(`Failed to create inheritor: ${error.message}`);
 
   // Cross-role toggles run AFTER the inheritor row is in the DB so
-  // we have an id to link the (possibly new) Legacy Person to.
+  // we have an id to link the (possibly new) Originator to.
   await applyCrossRoles({
     supabase,
     userId: user.id,
@@ -246,7 +246,7 @@ export async function updateInheritor(formData: FormData) {
       .eq('id', personId)
       .eq('owner_id', user.id)
       .maybeSingle();
-    if (!p) throw new Error('Linked Legacy Person not found');
+    if (!p) throw new Error('Linked Originator not found');
     const row = p as {
       first_name: string;
       middle_name: string | null;
@@ -278,8 +278,8 @@ export async function updateInheritor(formData: FormData) {
   // Only touch profile_photo_path when an upload actually succeeded —
   // a null from uploadPhoto means the storage write failed, so we
   // preserve whatever's already on the row instead of wiping it. We
-  // also skip the upload entirely when this row is linked to a Legacy
-  // Person — the avatar comes from the person row.
+  // also skip the upload entirely when this row is linked to an
+  // Originator — the avatar comes from the person row.
   let photoFailed = false;
   const file = formData.get('profile_photo');
   if (!personId && file && file instanceof File && file.size > 0) {

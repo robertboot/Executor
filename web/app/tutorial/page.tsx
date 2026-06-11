@@ -47,7 +47,7 @@ export default async function TutorialPage() {
             number={3}
             title="Adding an Item"
             body="Tap the + button in the footer and choose Item. Pick which collection it belongs to, then fill in the details — name, photos, who it's connected to, who inherits it. Scan Item is faster if it's a barcoded or labeled object."
-            example="Each item can link back to Legacy People, Inheritors, and Conservators."
+            example="Each item can link back to Originators, Inheritors, and Conservators."
             illustration={<AddItemIllustration />}
           />
         </ol>

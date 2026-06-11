@@ -20,7 +20,7 @@ function s(v: FormDataEntryValue | null): string | null {
   return t.length === 0 ? null : t;
 }
 
-// Apply the cross-role toggles ("Also Legacy Person", "Also
+// Apply the cross-role toggles ("Also Originator", "Also
 // Inheritor") to a freshly saved conservator row. Mirrors the
 // inheritor-side helper.
 async function applyCrossRoles({
@@ -139,7 +139,7 @@ export async function createConservator(formData: FormData) {
 
   const supabase = await createSupabaseServerClient();
 
-  // When linking to a Legacy Person, snapshot their full name onto the
+  // When linking to an Originator, snapshot their full name onto the
   // conservator row so the row remains intelligible if the link is
   // later removed.
   let name = s(formData.get('name'));
@@ -150,7 +150,7 @@ export async function createConservator(formData: FormData) {
       .eq('id', personId)
       .eq('owner_id', user.id)
       .maybeSingle();
-    if (!p) throw new Error('Linked Legacy Person not found');
+    if (!p) throw new Error('Linked Originator not found');
     const row = p as {
       first_name: string;
       middle_name: string | null;
@@ -168,7 +168,7 @@ export async function createConservator(formData: FormData) {
   let photoFailed = false;
   const file = formData.get('profile_photo');
   // Skip the conservator-bucket upload when linked — the avatar is
-  // sourced from the linked Legacy Person.
+  // sourced from the linked Originator.
   if (!personId && file && file instanceof File && file.size > 0) {
     photoPath = await uploadPhoto(supabase, user.id, file);
     if (!photoPath) photoFailed = true;
@@ -245,7 +245,7 @@ export async function updateConservator(formData: FormData) {
       .eq('id', personId)
       .eq('owner_id', user.id)
       .maybeSingle();
-    if (!p) throw new Error('Linked Legacy Person not found');
+    if (!p) throw new Error('Linked Originator not found');
     const row = p as {
       first_name: string;
       middle_name: string | null;
@@ -276,7 +276,7 @@ export async function updateConservator(formData: FormData) {
   if (personId !== undefined) update.person_id = personId;
 
   // Skip the conservator-bucket upload when linked — the avatar comes
-  // from the linked Legacy Person row.
+  // from the linked Originator row.
   let photoFailed = false;
   const file = formData.get('profile_photo');
   if (!personId && file && file instanceof File && file.size > 0) {

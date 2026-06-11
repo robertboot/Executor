@@ -18,7 +18,7 @@ export default function NewPersonPage() {
 
       <div>
         <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-ink leading-tight">
-          Add a Legacy Person
+          Add an Originator
         </h1>
         <p className="text-muted text-sm mt-2">
           Their basic story. You can always edit or add more later.

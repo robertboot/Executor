@@ -22,7 +22,7 @@ export default async function PeoplePage() {
       <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
-            Legacy People
+            Originators
           </h1>
           <p className="text-muted text-sm sm:text-base mt-2 max-w-xl">
             The family, friends, makers, and previous owners behind every
@@ -34,7 +34,7 @@ export default async function PeoplePage() {
           className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors shrink-0"
         >
           <UserPlusIcon className="w-4 h-4" />
-          Add Legacy Person
+          Add Originator
         </Link>
       </header>
 
@@ -97,7 +97,7 @@ function HeroCard() {
           <div className="text-ink-soft text-sm sm:text-base mt-3 max-w-md leading-relaxed space-y-3">
             <p>An heirloom without a name is just an object.</p>
             <p>
-              Legacy People are the family members, friends, makers, and
+              Originators are the family members, friends, makers, and
               previous owners whose stories are inseparable from the
               items you preserve.
             </p>
@@ -105,7 +105,7 @@ function HeroCard() {
 
           <div className="mt-6">
             <div className="text-[11px] uppercase tracking-widest text-muted mb-3">
-              With Legacy People you can:
+              With Originators you can:
             </div>
             <ul className="space-y-2.5">
               {bullets.map((b) => (
@@ -128,7 +128,7 @@ function HeroCard() {
               className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
             >
               <UserPlusIcon className="w-4 h-4" />
-              Add Legacy Person
+              Add Originator
             </Link>
           </div>
         </div>
@@ -371,7 +371,7 @@ function ProvenanceOverviewCard({
       <p className="text-sm text-ink-soft mt-6 leading-relaxed">
         {peopleCount > 0
           ? 'These people anchor the stories behind every item in your archive.'
-          : 'Start by adding a Legacy Person — the first link in your archive’s human chain.'}
+          : 'Start by adding an Originator — the first link in your archive’s human chain.'}
       </p>
 
       <div className="mt-auto pt-6 flex justify-center text-gold-soft">
@@ -445,7 +445,7 @@ function TipBanner() {
         </span>
         <p className="text-sm text-ink-soft leading-relaxed">
           <span className="font-medium text-ink">Tip:</span> You can
-          connect a Legacy Person to an item directly from the
+          connect an Originator to an item directly from the
           item&rsquo;s detail page.
         </p>
       </div>

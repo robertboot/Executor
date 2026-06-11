@@ -27,7 +27,7 @@ const OPTIONS: Array<{
   },
   {
     href: '/people',
-    title: 'Legacy Person',
+    title: 'Originator',
     description: "Add someone connected to an item's story.",
     examples: 'Grandpa Joe, Aunt Martha, Original owner',
     icon: <PortraitIcon />,

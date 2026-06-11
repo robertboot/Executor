@@ -16,7 +16,7 @@ interface RoleDef {
 const ROLES: Record<RoleKey, RoleDef> = {
   legacy: {
     kicker: 'The Past',
-    title: 'Legacy Person',
+    title: 'Originator',
     description:
       "People who owned, made, or appear in your item's story. Capturing them keeps the provenance and context alive across generations.",
     examples: [
