@@ -194,7 +194,7 @@ function ThreeRolesExample() {
   return (
     <section className="space-y-4">
       <div>
-        <h2 className="font-serif text-2xl text-ink">
+        <h2 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
           One heirloom, three relationships
         </h2>
         <p className="text-muted text-sm max-w-2xl mt-1">
