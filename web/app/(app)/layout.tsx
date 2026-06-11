@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import Logo from '@/components/Logo';
 import PullToRefresh from '@/components/PullToRefresh';
 import CreateDrawer from '@/components/CreateDrawer';
+import FooterNav from '@/components/FooterNav';
 import SplashGate from '@/components/SplashGate';
 import { getCurrentUser } from '@/lib/supabase/server';
 
@@ -61,6 +62,7 @@ export default async function AppLayout({
           </main>
         </div>
       </PullToRefresh>
+      <FooterNav />
       <CreateDrawer />
     </>
   );

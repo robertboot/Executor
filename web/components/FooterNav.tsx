@@ -23,8 +23,24 @@ const LEFT_TABS: Tab[] = [
     ),
   },
   {
+    href: '/contributors',
+    label: 'Contributors',
+    // Lights up across the whole contributor hub.
+    matches: ['/contributors', '/people', '/inheritors', '/conservators'],
+    icon: (active) => (
+      // Two-person group
+      <Icon
+        active={active}
+        d="M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5M15 14h2c2.2 0 4 1.8 4 4"
+      />
+    ),
+  },
+];
+
+const RIGHT_TABS: Tab[] = [
+  {
     href: '/collections',
-    label: 'Collections',
+    label: 'My Collections',
     matches: ['/collections'],
     icon: (active) => (
       <Icon
@@ -33,30 +49,15 @@ const LEFT_TABS: Tab[] = [
       />
     ),
   },
-];
-
-const RIGHT_TABS: Tab[] = [
   {
-    href: '/inheritors',
-    label: 'Inheritors',
-    matches: ['/inheritors'],
+    href: '/scan',
+    label: 'Scan',
+    matches: ['/scan'],
     icon: (active) => (
-      // Key + person silhouette to evoke 'designated recipient'
+      // Scan frame
       <Icon
         active={active}
-        d="M7 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM1 19c0-3.3 2.7-6 6-6s6 2.7 6 6M14 14a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM17 11l5-5M19 8l2 2"
-      />
-    ),
-  },
-  {
-    href: '/conservators',
-    label: 'Conservators',
-    matches: ['/conservators'],
-    icon: (active) => (
-      // Shield-with-check: archive protection
-      <Icon
-        active={active}
-        d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l2 2 4-4"
+        d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M3 12h18"
       />
     ),
   },
@@ -70,10 +71,10 @@ export default function FooterNav() {
   return (
     <nav
       aria-label="Primary"
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-cream-soft/95 backdrop-blur border-t border-hairline"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-cream-soft/95 backdrop-blur border-t border-hairline"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <div className="grid grid-cols-5 h-16 items-center">
+      <div className="grid grid-cols-5 h-16 items-center max-w-2xl mx-auto">
         {LEFT_TABS.map((t) => (
           <TabLink key={t.href} tab={t} active={isActive(t.matches)} />
         ))}
