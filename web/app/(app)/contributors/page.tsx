@@ -32,6 +32,18 @@ export default async function ContributorsPage() {
       {/* Hero */}
       <HeroCard totalContributors={totalContributors} />
 
+      {/* One heirloom, three relationships — intro to the three roles */}
+      <div>
+        <h2 className="font-serif text-2xl text-ink">
+          One heirloom, three relationships
+        </h2>
+        <p className="text-muted text-sm max-w-2xl mt-1">
+          A single item can connect to all three contributor types — and
+          a single human can hold more than one of those roles. Here is
+          what that looks like for Grandpa Joe&rsquo;s pocket watch.
+        </p>
+      </div>
+
       {/* Three role cards */}
       <ul className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <li>
@@ -192,18 +204,7 @@ function ThreeRolesExample() {
   ];
 
   return (
-    <section className="space-y-4">
-      <div>
-        <h2 className="font-serif text-2xl text-ink">
-          One heirloom, three relationships
-        </h2>
-        <p className="text-muted text-sm max-w-2xl mt-1">
-          A single item can connect to all three contributor types — and
-          a single human can hold more than one of those roles. Here is
-          what that looks like for Grandpa Joe&rsquo;s pocket watch.
-        </p>
-      </div>
-
+    <section>
       <div className="bg-paper border border-hairline rounded-2xl p-6 sm:p-8 shadow-card">
         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-hairline">
           <span className="shrink-0 w-10 h-10 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
