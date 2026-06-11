@@ -17,7 +17,6 @@ import {
 } from '@/lib/people';
 import type { ItemPersonRole } from '@/lib/types';
 import { glyphForCategory } from '@/lib/categories';
-import DeletePersonButton from './DeletePersonButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,18 +55,12 @@ export default async function PersonProfilePage({
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-24">
       {photoFailed && <PhotoFailedBanner bucket="people-photos" />}
-      <div className="flex items-center justify-between gap-3">
+      <div>
         <Link
           href="/people"
           className="inline-flex items-center text-sm text-muted hover:text-ink"
         >
           ← All people
-        </Link>
-        <Link
-          href={`/people/${person.id}/edit`}
-          className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors"
-        >
-          Edit
         </Link>
       </div>
 
@@ -202,13 +195,14 @@ export default async function PersonProfilePage({
         )}
       </section>
 
-      {/* Delete (foot) */}
+      {/* Edit (foot) */}
       <section className="pt-6 border-t border-hairline">
-        <DeletePersonButton
-          id={person.id}
-          name={name}
-          itemCount={items.length}
-        />
+        <Link
+          href={`/people/${person.id}/edit`}
+          className="inline-flex items-center gap-1.5 px-4 h-10 rounded-lg bg-paper border border-hairline text-ink text-sm font-medium hover:bg-cream-soft transition-colors"
+        >
+          Edit
+        </Link>
       </section>
     </div>
   );

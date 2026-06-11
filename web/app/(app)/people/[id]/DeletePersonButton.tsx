@@ -15,7 +15,7 @@ export default function DeletePersonButton({
 }: {
   id: string;
   name: string;
-  itemCount: number;
+  itemCount?: number;
 }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -62,7 +62,7 @@ export default function DeletePersonButton({
               <h3 className="font-serif text-xl text-ink">Delete {name}?</h3>
               <p className="text-sm text-ink-soft mt-2 leading-relaxed">
                 This permanently removes {name} from your archive
-                {itemCount > 0
+                {itemCount && itemCount > 0
                   ? ` and unlinks them from ${itemCount} connected ${
                       itemCount === 1 ? 'item' : 'items'
                     }`

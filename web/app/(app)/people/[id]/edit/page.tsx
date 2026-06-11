@@ -5,6 +5,7 @@ import { displayName } from '@/lib/people';
 import { updatePerson } from '../../actions';
 import AvatarPicker from '@/components/AvatarPicker';
 import RoleToggles from '../../RoleToggles';
+import DeletePersonButton from '../DeletePersonButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -172,6 +173,10 @@ export default async function EditPersonPage({ params }: PageProps) {
           </button>
         </div>
       </form>
+
+      <section className="pt-6 mt-2 border-t border-hairline">
+        <DeletePersonButton id={person.id} name={displayName(person)} />
+      </section>
     </div>
   );
 }
