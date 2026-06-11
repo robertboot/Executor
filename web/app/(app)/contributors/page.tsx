@@ -15,7 +15,7 @@ export default async function ContributorsPage() {
     people.length + inheritors.length + conservators.length;
 
   return (
-    <div className="space-y-8 pb-24">
+    <div className="space-y-6 pb-24">
       {/* Header */}
       <header>
         <h1 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
@@ -119,7 +119,7 @@ function HeroCard({ totalContributors }: { totalContributors: number }) {
     <section className="overflow-hidden bg-paper border border-hairline rounded-2xl shadow-card">
       <div className="grid grid-cols-1 lg:grid-cols-2">
         {/* Copy */}
-        <div className="order-2 lg:order-1 p-6 sm:p-10 flex flex-col justify-center">
+        <div className="order-2 lg:order-1 p-6 sm:p-8 flex flex-col justify-center">
           <div className="w-16 h-16 rounded-full bg-gold-soft flex items-center justify-center text-gold-deep mb-4">
             <NetworkIcon className="w-8 h-8" />
           </div>
@@ -155,7 +155,7 @@ function HeroCard({ totalContributors }: { totalContributors: number }) {
         </div>
       </div>
 
-      <div className="px-6 sm:px-10 pb-6 sm:pb-10 pt-6 sm:pt-8">
+      <div className="px-6 sm:px-8 pb-6 sm:pb-8 pt-4 sm:pt-5">
         <ul className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {lenses.map((l) => (
             <li
@@ -232,7 +232,7 @@ function ThreeRolesExample() {
             <WatchIcon />
           </span>
           <div className="min-w-0">
-            <div className="text-[11px] uppercase tracking-widest text-muted">
+            <div className="text-[11px] font-bold uppercase tracking-widest text-[#C29A4E]">
               Example heirloom
             </div>
             <div className="font-serif text-lg text-ink leading-tight">
@@ -263,7 +263,7 @@ function ThreeRolesExample() {
                   <span className="shrink-0 w-10 h-10 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
                     {r.icon}
                   </span>
-                  <span className="text-[10px] uppercase tracking-widest text-muted">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#C29A4E]">
                     {r.kicker}
                   </span>
                 </div>
@@ -424,7 +424,7 @@ function ContributorCard({
           <div className="shrink-0 w-12 h-12 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
             {icon}
           </div>
-          <div className="text-[10px] uppercase tracking-widest text-muted">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-[#C29A4E]">
             {kicker}
           </div>
         </div>
