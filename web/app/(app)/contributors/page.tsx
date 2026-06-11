@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { listPeople, listInheritors, listConservators } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -35,6 +36,7 @@ export default async function ContributorsPage() {
         <li>
           <ContributorCard
             href="/people"
+            image="/contributors/legacy-people.png"
             kicker="Past · Provenance · Stories"
             title="Legacy People"
             description="Track the family, friends, and previous owners behind every heirloom."
@@ -48,6 +50,7 @@ export default async function ContributorsPage() {
         <li>
           <ContributorCard
             href="/inheritors"
+            image="/contributors/inheritors.png"
             kicker="Future · Succession · Bequests"
             title="Inheritors"
             description="Designate who should receive items, collections, and heirlooms in the future."
@@ -61,6 +64,7 @@ export default async function ContributorsPage() {
         <li>
           <ContributorCard
             href="/conservators"
+            image="/contributors/conservators.png"
             kicker="Present · Access · Audit"
             title="Conservators"
             description="Invite trusted people to view, edit, and preserve the archive together."
@@ -112,50 +116,67 @@ function HeroCard({ totalContributors }: { totalContributors: number }) {
   ];
 
   return (
-    <section className="bg-paper border border-hairline rounded-2xl p-6 sm:p-10 shadow-card">
-      <div className="flex flex-col items-center text-center">
-        <div className="w-16 h-16 rounded-full bg-gold-soft flex items-center justify-center text-gold-deep mb-4">
-          <NetworkIcon className="w-8 h-8" />
-        </div>
-        <h2 className="font-serif text-2xl sm:text-3xl text-ink">
-          Every heirloom has a human chain
-        </h2>
-        <p className="text-muted text-sm sm:text-base mt-3 max-w-2xl">
-          An item is more than an object — it is the people who owned it,
-          the people who will inherit it, and the people who help you
-          remember it. Contributors gives each of those relationships its
-          own place in your archive.
-        </p>
-        {totalContributors > 0 && (
-          <p className="text-xs text-muted mt-3">
-            You&rsquo;ve added{' '}
-            <span className="text-ink font-medium">{totalContributors}</span>{' '}
-            {totalContributors === 1 ? 'contributor' : 'contributors'} so
-            far.
+    <section className="overflow-hidden bg-paper border border-hairline rounded-2xl shadow-card">
+      <div className="grid grid-cols-1 lg:grid-cols-2">
+        {/* Copy */}
+        <div className="order-2 lg:order-1 p-6 sm:p-10 flex flex-col justify-center">
+          <div className="w-16 h-16 rounded-full bg-gold-soft flex items-center justify-center text-gold-deep mb-4">
+            <NetworkIcon className="w-8 h-8" />
+          </div>
+          <h2 className="font-serif text-2xl sm:text-3xl text-ink leading-tight">
+            Every heirloom has a human chain
+          </h2>
+          <p className="text-muted text-sm sm:text-base mt-3 max-w-xl">
+            An item is more than an object — it is the people who owned it,
+            the people who will inherit it, and the people who help you
+            remember it. Contributors gives each of those relationships its
+            own place in your archive.
           </p>
-        )}
+          {totalContributors > 0 && (
+            <p className="text-xs text-muted mt-3">
+              You&rsquo;ve added{' '}
+              <span className="text-ink font-medium">{totalContributors}</span>{' '}
+              {totalContributors === 1 ? 'contributor' : 'contributors'} so
+              far.
+            </p>
+          )}
+        </div>
+
+        {/* Heirloom photo */}
+        <div className="order-1 lg:order-2 relative min-h-[200px] sm:min-h-[260px] lg:min-h-[360px]">
+          <Image
+            src="/contributors/hero.png"
+            alt="An antique pocket watch, a framed family portrait, old books, and handwritten letters on a writing desk"
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="object-cover"
+            priority
+          />
+        </div>
       </div>
 
-      <ul className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8">
-        {lenses.map((l) => (
-          <li
-            key={l.title}
-            className="flex items-start gap-3 bg-cream-soft/50 border border-hairline rounded-xl p-4"
-          >
-            <span className="shrink-0 mt-0.5 w-9 h-9 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
-              {l.icon}
-            </span>
-            <div className="min-w-0">
-              <div className="font-serif text-base text-ink leading-tight">
-                {l.title}
+      <div className="px-6 sm:px-10 pb-6 sm:pb-10 pt-6 sm:pt-8">
+        <ul className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {lenses.map((l) => (
+            <li
+              key={l.title}
+              className="flex items-start gap-3 bg-cream-soft/50 border border-hairline rounded-xl p-4"
+            >
+              <span className="shrink-0 mt-0.5 w-9 h-9 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+                {l.icon}
+              </span>
+              <div className="min-w-0">
+                <div className="font-serif text-base text-ink leading-tight">
+                  {l.title}
+                </div>
+                <div className="text-xs text-ink-soft mt-1 leading-relaxed">
+                  {l.body}
+                </div>
               </div>
-              <div className="text-xs text-ink-soft mt-1 leading-relaxed">
-                {l.body}
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
@@ -220,7 +241,18 @@ function ThreeRolesExample() {
           </div>
         </div>
 
-        <ul className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <li>
+            <div className="relative h-full min-h-[180px] overflow-hidden rounded-xl border border-hairline bg-cream-soft">
+              <Image
+                src="/contributors/pocket-watch.png"
+                alt="Grandpa Joe's antique gold pocket watch"
+                fill
+                sizes="(max-width: 1024px) 100vw, 25vw"
+                className="object-cover"
+              />
+            </div>
+          </li>
           {roles.map((r) => (
             <li key={r.kicker}>
               <Link
@@ -299,13 +331,23 @@ function WhereToStart({
 
   if (suggestions.length === 0) {
     return (
-      <section className="bg-paper border border-hairline rounded-2xl p-5 sm:p-6 shadow-card">
-        <h2 className="font-serif text-xl text-ink">All three roles in play</h2>
-        <p className="text-ink-soft text-sm leading-relaxed mt-2 max-w-3xl">
-          You&rsquo;ve added contributors to all three sections — your
-          archive captures the past, future, and present of every item.
-          Keep refining each profile as new stories surface.
-        </p>
+      <section className="relative overflow-hidden bg-paper border border-hairline rounded-2xl p-5 sm:p-6 shadow-card">
+        <div className="relative z-10 flex items-start gap-4">
+          <span className="shrink-0 w-12 h-12 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+            <LeafIcon />
+          </span>
+          <div>
+            <h2 className="font-serif text-xl text-ink">
+              All three roles in play
+            </h2>
+            <p className="text-ink-soft text-sm leading-relaxed mt-2 max-w-3xl">
+              You&rsquo;ve added contributors to all three sections — your
+              archive captures the past, future, and present of every item.
+              Keep refining each profile as new stories surface.
+            </p>
+          </div>
+        </div>
+        <TreeWatermark className="pointer-events-none absolute -right-5 -bottom-7 w-40 h-40 text-forest/10" />
       </section>
     );
   }
@@ -351,6 +393,7 @@ function WhereToStart({
 
 function ContributorCard({
   href,
+  image,
   kicker,
   title,
   description,
@@ -361,6 +404,7 @@ function ContributorCard({
   icon,
 }: {
   href: string;
+  image: string;
   kicker: string;
   title: string;
   description: string;
@@ -373,34 +417,47 @@ function ContributorCard({
   return (
     <Link
       href={href}
-      className="group block h-full bg-paper border border-hairline rounded-2xl p-5 sm:p-6 shadow-card hover:shadow-raised hover:border-forest/30 transition-all"
+      className="group flex h-full flex-col overflow-hidden bg-paper border border-hairline rounded-2xl shadow-card hover:shadow-raised hover:border-forest/30 transition-all"
     >
-      <div className="flex items-center gap-3 mb-4">
-        <div className="shrink-0 w-12 h-12 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
-          {icon}
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="shrink-0 w-12 h-12 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+            {icon}
+          </div>
+          <div className="text-[10px] uppercase tracking-widest text-muted">
+            {kicker}
+          </div>
         </div>
-        <div className="text-[10px] uppercase tracking-widest text-muted">
-          {kicker}
+        <h2 className="font-serif text-2xl text-ink leading-tight">{title}</h2>
+        <p className="text-sm text-ink-soft mt-2 leading-relaxed">
+          {description}
+        </p>
+        <p className="text-xs italic text-muted mt-3 leading-relaxed">
+          &ldquo;{question}&rdquo;
+        </p>
+        <div className="mt-auto">
+          <div className="flex items-baseline gap-2 mt-5">
+            <span className="font-serif text-3xl text-ink leading-none">
+              {count}
+            </span>
+            <span className="text-xs text-muted uppercase tracking-wider">
+              {countLabel}
+            </span>
+          </div>
+          <span className="inline-flex items-center gap-1.5 mt-5 px-4 h-10 rounded-lg bg-forest text-cream text-sm font-medium group-hover:bg-forest-deep transition-colors">
+            {cta} →
+          </span>
         </div>
       </div>
-      <h2 className="font-serif text-2xl text-ink leading-tight">{title}</h2>
-      <p className="text-sm text-ink-soft mt-2 leading-relaxed">
-        {description}
-      </p>
-      <p className="text-xs italic text-muted mt-3 leading-relaxed">
-        &ldquo;{question}&rdquo;
-      </p>
-      <div className="flex items-baseline gap-2 mt-5">
-        <span className="font-serif text-3xl text-ink leading-none">
-          {count}
-        </span>
-        <span className="text-xs text-muted uppercase tracking-wider">
-          {countLabel}
-        </span>
+      <div className="relative h-24 w-full">
+        <Image
+          src={image}
+          alt=""
+          fill
+          sizes="(max-width: 1024px) 100vw, 33vw"
+          className="object-cover"
+        />
       </div>
-      <span className="inline-flex items-center gap-1.5 mt-5 px-4 h-10 rounded-lg bg-forest text-cream text-sm font-medium group-hover:bg-forest-deep transition-colors">
-        {cta} →
-      </span>
     </Link>
   );
 }
@@ -520,6 +577,33 @@ function PlusIcon({ className }: { className?: string }) {
       aria-hidden="true"
     >
       <path d="M10 4v12M4 10h12" />
+    </svg>
+  );
+}
+
+function LeafIcon() {
+  return svg('M5 18C5 10 10 6 18 6C18 14 13 18 5 18ZM8.5 15.5L16 8', 22);
+}
+
+function TreeWatermark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M50 96V52" />
+      <path d="M50 70 34 54M50 62 66 46M50 56 40 40M50 50 62 36M50 46V30" />
+      <circle cx="50" cy="26" r="16" />
+      <circle cx="34" cy="38" r="9" />
+      <circle cx="66" cy="40" r="10" />
+      <circle cx="40" cy="22" r="8" />
+      <circle cx="62" cy="22" r="8" />
     </svg>
   );
 }
