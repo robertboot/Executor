@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import {
   getPerson,
+  getPersonRoles,
   listPersonItems,
   personPhotoPublicUrl,
 } from '@/lib/api';
@@ -16,7 +17,7 @@ import {
 } from '@/lib/people';
 import type { ItemPersonRole } from '@/lib/types';
 import { glyphForCategory } from '@/lib/categories';
-import { deletePerson } from '../actions';
+import DeletePersonButton from './DeletePersonButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,7 +34,10 @@ export default async function PersonProfilePage({
   const person = await getPerson(id);
   if (!person) notFound();
 
-  const items = await listPersonItems(id);
+  const [items, roles] = await Promise.all([
+    listPersonItems(id),
+    getPersonRoles(id),
+  ]);
 
   const grouped = new Map<ItemPersonRole, typeof items>();
   for (const it of items) {
@@ -93,6 +97,17 @@ export default async function PersonProfilePage({
               {person.relationship}
             </div>
           )}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <RoleBadge>Originator</RoleBadge>
+            {roles.inheritor && <RoleBadge>Inheritor</RoleBadge>}
+            {roles.conservator && <RoleBadge>Conservator</RoleBadge>}
+            <Link
+              href={`/people/${person.id}/edit`}
+              className="text-xs text-forest underline hover:text-forest-deep"
+            >
+              Manage roles
+            </Link>
+          </div>
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-ink-soft">
             {dates && <span>{dates}</span>}
             {dates && person.side_of_family && (
@@ -189,17 +204,21 @@ export default async function PersonProfilePage({
 
       {/* Delete (foot) */}
       <section className="pt-6 border-t border-hairline">
-        <form action={deletePerson}>
-          <input type="hidden" name="id" value={person.id} />
-          <button
-            type="submit"
-            className="text-xs text-red-700 hover:text-red-900 underline"
-          >
-            Delete this person
-          </button>
-        </form>
+        <DeletePersonButton
+          id={person.id}
+          name={name}
+          itemCount={items.length}
+        />
       </section>
     </div>
+  );
+}
+
+function RoleBadge({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-gold-soft text-gold-deep text-xs font-medium">
+      {children}
+    </span>
   );
 }
 
