@@ -129,11 +129,8 @@ function HeroCard({ totalContributors }: { totalContributors: number }) {
       <div className="absolute inset-0 bg-white/50 pointer-events-none" aria-hidden />
       <div className="relative grid grid-cols-1 lg:grid-cols-2">
         {/* Copy */}
-        <div className="order-2 lg:order-1 p-6 sm:p-8 flex flex-col justify-center">
-          <div className="w-16 h-16 rounded-full bg-gold-soft flex items-center justify-center text-gold-deep mb-4">
-            <NetworkIcon className="w-8 h-8" />
-          </div>
-          <h2 className="font-serif text-2xl sm:text-3xl text-ink leading-tight">
+        <div className="order-2 lg:order-1 p-6 sm:p-8 flex flex-col justify-start">
+          <h2 className="font-serif text-4xl sm:text-5xl text-ink leading-tight">
             Every heirloom has a human chain
           </h2>
           <p className="text-muted text-sm sm:text-base mt-3 max-w-xl">
@@ -534,28 +531,6 @@ function ShieldIcon({ className }: { className?: string }) {
     >
       <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
       <path d="M9 12l2 2 4-4" />
-    </svg>
-  );
-}
-
-function NetworkIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      width={20}
-      height={20}
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="5" r="2.5" />
-      <circle cx="5" cy="18" r="2.5" />
-      <circle cx="19" cy="18" r="2.5" />
-      <path d="M12 7.5v3M12 10.5l-6 5.5M12 10.5l6 5.5M7.5 18h9" />
     </svg>
   );
 }
