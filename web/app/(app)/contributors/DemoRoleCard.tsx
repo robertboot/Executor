@@ -61,9 +61,7 @@ export default function DemoRoleCard({
         </span>
       </div>
 
-      <div className="text-sm italic text-muted">{tag}</div>
-
-      <div className="mt-1.5">
+      <div className="mt-0.5">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -71,6 +69,7 @@ export default function DemoRoleCard({
           className="group/name inline-flex items-center gap-1.5 rounded-lg bg-forest px-3.5 py-2 text-cream hover:bg-forest-deep transition-colors"
         >
           <span className="font-serif text-xl leading-none">{name}</span>
+          <span className="text-sm leading-none text-cream/75">({tag})</span>
           <svg
             viewBox="0 0 24 24"
             fill="none"
