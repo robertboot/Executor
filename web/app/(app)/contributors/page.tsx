@@ -98,24 +98,6 @@ export default async function ContributorsPage() {
 // ============================================================== //
 
 function HeroCard({ totalContributors }: { totalContributors: number }) {
-  const lenses = [
-    {
-      title: 'The Past',
-      body: 'Legacy People — the lives an item passed through before it reached you.',
-      icon: <ClockIcon />,
-    },
-    {
-      title: 'The Future',
-      body: 'Inheritors — the people you want each item to reach next.',
-      icon: <ArrowForwardIcon />,
-    },
-    {
-      title: 'The Present',
-      body: 'Conservators — the people who help you keep the archive alive today.',
-      icon: <ShieldIcon />,
-    },
-  ];
-
   return (
     <section className="relative overflow-hidden bg-paper border border-hairline rounded-2xl shadow-card">
       <Image
@@ -160,29 +142,6 @@ function HeroCard({ totalContributors }: { totalContributors: number }) {
             priority
           />
         </div>
-      </div>
-
-      <div className="relative px-6 sm:px-8 pb-6 sm:pb-8 pt-4 sm:pt-5">
-        <ul className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {lenses.map((l) => (
-            <li
-              key={l.title}
-              className="flex items-start gap-3 bg-cream-soft/50 border border-hairline rounded-xl p-4"
-            >
-              <span className="shrink-0 mt-0.5 w-9 h-9 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
-                {l.icon}
-              </span>
-              <div className="min-w-0">
-                <div className="font-serif text-base text-ink leading-tight">
-                  {l.title}
-                </div>
-                <div className="text-xs text-ink-soft mt-1 leading-relaxed">
-                  {l.body}
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
       </div>
     </section>
   );
@@ -533,14 +492,6 @@ function ShieldIcon({ className }: { className?: string }) {
       <path d="M9 12l2 2 4-4" />
     </svg>
   );
-}
-
-function ClockIcon() {
-  return svg('M12 7v5l3 2M5 12a7 7 0 1 0 14 0 7 7 0 0 0-14 0z', 18);
-}
-
-function ArrowForwardIcon() {
-  return svg('M4 12h16M14 6l6 6-6 6', 18);
 }
 
 function WatchIcon() {
