@@ -154,6 +154,7 @@ export default async function EditPersonPage({ params }: PageProps) {
         </Field>
 
         <RoleToggles
+          originator={person.is_originator}
           inheritor={roles.inheritor}
           conservator={roles.conservator}
         />

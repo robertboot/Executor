@@ -148,6 +148,7 @@ export interface Person {
   biography: string | null;
   profile_photo_path: string | null;
   confidence: Confidence;
+  is_originator: boolean;
   created_at: string;
   updated_at: string;
 }

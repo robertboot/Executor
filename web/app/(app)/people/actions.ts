@@ -222,6 +222,10 @@ export async function createPerson(formData: FormData) {
       death_date: asDate(formData.get('death_date')),
       biography: s(formData.get('biography')),
       profile_photo_path: profilePhotoPath,
+      is_originator:
+        formData.get('is_originator') === '1' ||
+        (formData.get('also_inheritor') !== '1' &&
+          formData.get('also_conservator') !== '1'),
     })
     .select('id')
     .single();
@@ -271,6 +275,27 @@ export async function updatePerson(formData: FormData) {
   const lastName = s(formData.get('last_name'));
   const displayName = fullName(firstName, middleName, lastName);
 
+  const isOriginator = formData.get('is_originator') === '1';
+  const alsoInheritor = formData.get('also_inheritor') === '1';
+  const alsoConservator = formData.get('also_conservator') === '1';
+
+  // No roles left → unlink any inheritor/conservator rows and delete the person.
+  if (!isOriginator && !alsoInheritor && !alsoConservator) {
+    await syncPersonRoles(supabase, user.id, id, formData, displayName);
+    const { error: delError } = await supabase
+      .from('people')
+      .delete()
+      .eq('id', id)
+      .eq('owner_id', user.id);
+    if (delError) {
+      throw new Error(`Failed to remove person: ${delError.message}`);
+    }
+    revalidatePath('/people');
+    revalidatePath('/inheritors');
+    revalidatePath('/conservators');
+    redirect('/people');
+  }
+
   const update: Record<string, unknown> = {
     first_name: firstName,
     middle_name: middleName,
@@ -281,6 +306,7 @@ export async function updatePerson(formData: FormData) {
     birth_date: asDate(formData.get('birth_date')),
     death_date: asDate(formData.get('death_date')),
     biography: s(formData.get('biography')),
+    is_originator: isOriginator,
   };
   if (newPhotoPath) update.profile_photo_path = newPhotoPath;
 

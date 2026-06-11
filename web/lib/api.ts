@@ -548,6 +548,7 @@ export async function listPeople(): Promise<PersonWithStats[]> {
   const { data, error } = await supabase
     .from('people')
     .select('*, item_people(id)')
+    .eq('is_originator', true)
     .order('first_name', { ascending: true });
   if (error) throw error;
   return (data ?? []).map((row) => {
@@ -642,6 +643,7 @@ export async function ensureLinkedPerson(
       email: extras?.email ?? null,
       relationship: extras?.relationship ?? null,
       profile_photo_path: extras?.profilePhotoPath ?? null,
+      is_originator: false,
     })
     .select('id')
     .single();

@@ -11,12 +11,15 @@ type Status = (typeof STATUS_OPTIONS)[number];
 type Level = (typeof LEVEL_OPTIONS)[number];
 
 export default function RoleToggles({
+  originator,
   inheritor,
   conservator,
 }: {
+  originator: boolean;
   inheritor: { id: string; status: Status } | null;
   conservator: { id: string; permission_level: Level } | null;
 }) {
+  const [isOriginator, setIsOriginator] = useState(originator);
   const [alsoInheritor, setAlsoInheritor] = useState(!!inheritor);
   const [inheritorStatus, setInheritorStatus] = useState<Status>(
     inheritor?.status ?? 'designated_heir',
@@ -26,18 +29,36 @@ export default function RoleToggles({
     conservator?.permission_level ?? 'viewer',
   );
 
+  const noRoles = !isOriginator && !alsoInheritor && !alsoConservator;
+
   return (
     <fieldset className="space-y-3 border-t border-hairline pt-6">
-      <legend className="font-serif text-lg text-ink">
-        Also designate as
-      </legend>
+      <legend className="font-serif text-lg text-ink">Roles</legend>
       <p className="text-xs text-muted leading-relaxed -mt-1">
-        A single Originator can also be an Inheritor (future
-        recipient) and / or a Conservator (helper with archive
-        access). Toggling these on writes the matching record on save
-        — turning a toggle off only unlinks; the existing inheritor or
-        conservator row is left for you to clean up from its own page.
+        This person appears in the sections you check below — they can be an
+        Originator, an Inheritor (future recipient), and / or a Conservator
+        (helper with archive access). Turning an Inheritor or Conservator
+        toggle off only unlinks the row; it&rsquo;s left for you to clean up
+        from its own page.
       </p>
+
+      {/* Originator toggle */}
+      <div className="bg-paper border border-hairline rounded-xl p-4">
+        <label className="flex items-center gap-3 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            name="is_originator"
+            value="1"
+            checked={isOriginator}
+            onChange={(e) => setIsOriginator(e.target.checked)}
+            className="h-4 w-4 accent-forest"
+          />
+          <span className="font-medium text-ink">Originator</span>
+          <span className="text-xs text-muted">
+            — appears in your Originators list
+          </span>
+        </label>
+      </div>
 
       {/* Inheritor toggle */}
       <div className="bg-paper border border-hairline rounded-xl p-4 space-y-3">
@@ -112,6 +133,13 @@ export default function RoleToggles({
           </div>
         )}
       </div>
+
+      {noRoles && (
+        <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-relaxed">
+          No roles selected — saving will remove this person from your
+          archive.
+        </p>
+      )}
     </fieldset>
   );
 }
