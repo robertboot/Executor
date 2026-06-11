@@ -19,16 +19,7 @@ export default async function PeoplePage() {
   return (
     <div className="space-y-8 pb-24">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
-            Originators
-          </h1>
-          <p className="text-muted text-sm sm:text-base mt-2 max-w-xl">
-            The family, friends, makers, and previous owners behind every
-            heirloom.
-          </p>
-        </div>
+      <header className="flex justify-end">
         <Link
           href="/people/new"
           className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors shrink-0"
