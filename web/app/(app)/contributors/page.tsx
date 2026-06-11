@@ -20,17 +20,17 @@ export default async function ContributorsPage() {
       {/* Hero */}
       <HeroCard totalContributors={totalContributors} />
 
-      {/* One heirloom, three relationships — intro to the three roles */}
-      <div>
-        <h2 className="font-serif text-2xl text-ink">
-          One heirloom, three relationships
-        </h2>
-        <p className="text-muted text-sm max-w-2xl mt-1">
-          A single item can connect to all three contributor types — and
-          a single human can hold more than one of those roles. Here is
-          what that looks like for Grandpa Joe&rsquo;s pocket watch.
+      {/* Contributors header */}
+      <header>
+        <h1 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
+          Contributors
+        </h1>
+        <p className="text-muted text-sm sm:text-base mt-2 max-w-2xl">
+          Everyone who shapes your archive — the people in your items&rsquo;
+          stories, the people who will receive them, and the people
+          helping you preserve the record.
         </p>
-      </div>
+      </header>
 
       {/* Three role cards */}
       <ul className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -192,7 +192,18 @@ function ThreeRolesExample() {
   ];
 
   return (
-    <section>
+    <section className="space-y-4">
+      <div>
+        <h2 className="font-serif text-2xl text-ink">
+          One heirloom, three relationships
+        </h2>
+        <p className="text-muted text-sm max-w-2xl mt-1">
+          A single item can connect to all three contributor types — and
+          a single human can hold more than one of those roles. Here is
+          what that looks like for Grandpa Joe&rsquo;s pocket watch.
+        </p>
+      </div>
+
       <div className="bg-paper border border-hairline rounded-2xl p-6 sm:p-8 shadow-card">
         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-hairline">
           <span className="shrink-0 w-10 h-10 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
