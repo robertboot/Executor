@@ -117,8 +117,16 @@ function HeroCard({ totalContributors }: { totalContributors: number }) {
   ];
 
   return (
-    <section className="overflow-hidden bg-paper border border-hairline rounded-2xl shadow-card">
-      <div className="grid grid-cols-1 lg:grid-cols-2">
+    <section className="relative overflow-hidden bg-paper border border-hairline rounded-2xl shadow-card">
+      <Image
+        src="/contributors/hero-bg.png"
+        alt=""
+        fill
+        sizes="100vw"
+        className="object-cover object-bottom pointer-events-none"
+        priority
+      />
+      <div className="relative grid grid-cols-1 lg:grid-cols-2">
         {/* Copy */}
         <div className="order-2 lg:order-1 p-6 sm:p-8 flex flex-col justify-center">
           <div className="w-16 h-16 rounded-full bg-gold-soft flex items-center justify-center text-gold-deep mb-4">
@@ -156,7 +164,7 @@ function HeroCard({ totalContributors }: { totalContributors: number }) {
         </div>
       </div>
 
-      <div className="px-6 sm:px-8 pb-6 sm:pb-8 pt-4 sm:pt-5">
+      <div className="relative px-6 sm:px-8 pb-6 sm:pb-8 pt-4 sm:pt-5">
         <ul className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {lenses.map((l) => (
             <li
