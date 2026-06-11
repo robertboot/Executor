@@ -108,7 +108,7 @@ function HeroCard({ totalContributors }: { totalContributors: number }) {
         className="object-cover object-bottom pointer-events-none"
         priority
       />
-      <div className="absolute inset-0 bg-white/70 pointer-events-none" aria-hidden />
+      <div className="absolute inset-0 bg-white/85 pointer-events-none" aria-hidden />
       <div className="relative grid grid-cols-1 lg:grid-cols-2">
         {/* Copy */}
         <div className="order-2 lg:order-1 p-6 sm:p-8 flex flex-col justify-start">
