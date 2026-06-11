@@ -39,12 +39,12 @@ export default async function ContributorsPage() {
             href="/people"
             image="/contributors/legacy-people.png"
             kicker="Past · Provenance · Stories"
-            title="Legacy People"
+            title="Originators"
             description="Track the family, friends, and previous owners behind every heirloom."
             question="Who is part of this item's story?"
             count={people.length}
             countLabel={people.length === 1 ? 'person' : 'people'}
-            cta="Manage Legacy People"
+            cta="Manage Originators"
             icon={<PeopleIcon />}
           />
         </li>
@@ -154,15 +154,15 @@ function HeroCard({ totalContributors }: { totalContributors: number }) {
 function ThreeRolesExample() {
   const roles = [
     {
-      kicker: 'Legacy Person',
+      kicker: 'Originator',
       name: 'Grandpa Joe',
       relationship: 'Grandpa, maternal side',
       body: "Joe carried this pocket watch every day for fifty years. He belongs to the watch's story.",
       blurb:
-        'In your archive, opening a Legacy Person shows their bio, the items and stories they appear in, and how they connect to the people who came after them.',
+        'In your archive, opening an Originator shows their bio, the items and stories they appear in, and how they connect to the people who came after them.',
       tag: 'Past',
       ctaHref: '/people',
-      ctaLabel: 'Add Legacy People',
+      ctaLabel: 'Add Originators',
       icon: <PeopleIcon />,
     },
     {
@@ -249,9 +249,9 @@ function ThreeRolesExample() {
         </ul>
 
         <p className="text-xs text-muted mt-6 pt-4 border-t border-hairline leading-relaxed">
-          The same person can appear in more than one section — a child
-          who inherits a portrait painted by their grandmother is both a
-          Legacy Person (subject) and an Inheritor (recipient).
+          The same person can appear in more than one section — the
+          grandparent an heirloom first came from might also be set to
+          inherit another, making them both an Originator and an Inheritor.
         </p>
       </div>
     </section>
@@ -275,7 +275,7 @@ function WhereToStart({
   if (peopleCount === 0) {
     suggestions.push({
       href: '/people/new',
-      title: 'Add your first Legacy Person',
+      title: 'Add your first Originator',
       body: 'A parent, grandparent, or original owner is usually the easiest place to start.',
     });
   }
