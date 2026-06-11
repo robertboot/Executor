@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { listPeople, listInheritors, listConservators } from '@/lib/api';
+import DemoRoleCard from './DemoRoleCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -189,26 +190,38 @@ function ThreeRolesExample() {
   const roles = [
     {
       kicker: 'Legacy Person',
-      title: 'Joe',
+      name: 'Grandpa Joe',
+      relationship: 'Grandpa, maternal side',
       body: "Joe carried this pocket watch every day for fifty years. He belongs to the watch's story.",
+      blurb:
+        'In your archive, opening a Legacy Person shows their bio, the items and stories they appear in, and how they connect to the people who came after them.',
       tag: 'Past',
-      href: '/people',
+      ctaHref: '/people',
+      ctaLabel: 'Add Legacy People',
       icon: <PeopleIcon />,
     },
     {
       kicker: 'Inheritor',
-      title: 'Sarah',
+      name: 'Sarah',
+      relationship: 'Granddaughter',
       body: "Sarah is designated to receive the watch one day. She belongs to the watch's future.",
+      blurb:
+        'In your archive, opening an Inheritor shows their bio and exactly which items, collections, and heirlooms are set to pass to them.',
       tag: 'Future',
-      href: '/inheritors',
+      ctaHref: '/inheritors',
+      ctaLabel: 'Add Inheritors',
       icon: <ScrollIcon />,
     },
     {
       kicker: 'Conservator',
-      title: 'Emily',
+      name: 'Emily',
+      relationship: 'Sister',
       body: 'Emily helps keep the archive accurate. She can edit the record today.',
+      blurb:
+        "In your archive, opening a Conservator shows their bio, their access level, and a record of what they've helped maintain.",
       tag: 'Present',
-      href: '/conservators',
+      ctaHref: '/conservators',
+      ctaLabel: 'Add Conservators',
       icon: <ShieldIcon />,
     },
   ];
@@ -255,30 +268,17 @@ function ThreeRolesExample() {
           </li>
           {roles.map((r) => (
             <li key={r.kicker}>
-              <Link
-                href={r.href}
-                className="group block h-full bg-cream-soft/50 border border-hairline rounded-xl p-5 hover:bg-gold-soft/30 hover:border-forest/30 transition-colors"
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="shrink-0 w-10 h-10 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
-                    {r.icon}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#C29A4E]">
-                    {r.kicker}
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-2 flex-wrap">
-                  <h3 className="font-serif text-xl text-ink leading-tight">
-                    {r.title}
-                  </h3>
-                  <span className="text-[10px] uppercase tracking-widest font-medium px-2 py-0.5 rounded bg-paper text-ink-soft border border-hairline">
-                    {r.tag}
-                  </span>
-                </div>
-                <p className="text-sm text-ink-soft mt-2 leading-relaxed">
-                  {r.body}
-                </p>
-              </Link>
+              <DemoRoleCard
+                icon={r.icon}
+                kicker={r.kicker}
+                name={r.name}
+                relationship={r.relationship}
+                tag={r.tag}
+                body={r.body}
+                blurb={r.blurb}
+                ctaHref={r.ctaHref}
+                ctaLabel={r.ctaLabel}
+              />
             </li>
           ))}
         </ul>

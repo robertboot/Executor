@@ -1,0 +1,136 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import Link from 'next/link';
+
+/**
+ * A role card in the "One heirloom, three relationships" example.
+ *
+ * The cards use sample people (Grandpa Joe, Sarah, Emily), so their names
+ * can't open a real contributor bio. Clicking a name instead opens a small
+ * dialog explaining what would happen with the user's own data.
+ */
+export default function DemoRoleCard({
+  icon,
+  kicker,
+  name,
+  relationship,
+  tag,
+  body,
+  blurb,
+  ctaHref,
+  ctaLabel,
+}: {
+  icon: React.ReactNode;
+  kicker: string;
+  name: string;
+  relationship: string;
+  tag: string;
+  body: string;
+  blurb: string;
+  ctaHref: string;
+  ctaLabel: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
+  return (
+    <div className="h-full bg-cream-soft/50 border border-hairline rounded-xl p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="shrink-0 w-10 h-10 rounded-full bg-gold-soft text-gold-deep flex items-center justify-center">
+          {icon}
+        </span>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-[#C29A4E]">
+          {kicker}
+        </span>
+      </div>
+
+      <div className="flex items-baseline gap-2 flex-wrap">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="font-serif text-xl text-ink leading-tight text-left hover:text-forest hover:underline underline-offset-2 transition-colors"
+        >
+          {name}
+        </button>
+        <span className="text-[10px] uppercase tracking-widest font-medium px-2 py-0.5 rounded bg-paper text-ink-soft border border-hairline">
+          {tag}
+        </span>
+      </div>
+
+      <div className="text-xs text-muted mt-1">{relationship}</div>
+
+      <p className="text-sm text-ink-soft mt-2 leading-relaxed">{body}</p>
+
+      {open &&
+        mounted &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${name} — sample profile`}
+          >
+            <div
+              className="absolute inset-0 bg-ink/40"
+              onClick={() => setOpen(false)}
+            />
+            <div className="relative w-full max-w-md bg-paper rounded-2xl border border-hairline shadow-raised p-6">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-[#C29A4E]">
+                Sample contributor
+              </div>
+              <h3 className="font-serif text-2xl text-ink mt-1 leading-tight">
+                {name}
+              </h3>
+              <div className="text-xs text-muted mt-0.5">
+                {relationship} · {kicker}
+              </div>
+
+              <p className="text-sm text-ink-soft mt-4 leading-relaxed">
+                {blurb}
+              </p>
+              <p className="text-xs text-muted mt-3 leading-relaxed">
+                {name} is part of this walkthrough, so there&rsquo;s no profile
+                to open yet — add your own {kicker.toLowerCase()}s to start
+                building these connections.
+              </p>
+
+              <div className="flex items-center justify-end gap-3 mt-6">
+                <button
+                  type="button"
+                  autoFocus
+                  onClick={() => setOpen(false)}
+                  className="px-4 h-10 rounded-lg border border-hairline text-sm text-ink-soft hover:bg-cream-soft transition-colors"
+                >
+                  Close
+                </button>
+                <Link
+                  href={ctaHref}
+                  className="inline-flex items-center gap-1.5 px-4 h-10 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
+                >
+                  {ctaLabel} →
+                </Link>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+    </div>
+  );
+}
