@@ -61,13 +61,28 @@ export default function DemoRoleCard({
         </span>
       </div>
 
-      <div className="flex items-baseline gap-2 flex-wrap">
+      <div className="flex items-center gap-2 flex-wrap">
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="font-serif text-xl text-ink leading-tight text-left hover:text-forest hover:underline underline-offset-2 transition-colors"
+          aria-label={`Open ${name}'s profile`}
+          className="group/name inline-flex items-center gap-1.5 rounded-lg border border-hairline bg-paper px-3 py-1.5 hover:border-forest/40 hover:bg-cream-soft transition-colors"
         >
-          {name}
+          <span className="font-serif text-xl text-ink leading-none">{name}</span>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            width="14"
+            height="14"
+            className="text-gold-deep transition-transform group-hover/name:translate-x-0.5"
+            aria-hidden="true"
+          >
+            <path d="M9 6l6 6-6 6" />
+          </svg>
         </button>
         <span className="text-[10px] uppercase tracking-widest font-medium px-2 py-0.5 rounded bg-paper text-ink-soft border border-hairline">
           {tag}
