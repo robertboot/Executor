@@ -40,8 +40,8 @@ export default function InheritorForm({
       {initial?.id && <input type="hidden" name="id" value={initial.id} />}
 
       <Field
-        label="Link to an Originator"
-        hint="Optional — sources the name and photo from an Originator record so updates stay in sync across the archive."
+        label="Link to a Contributor"
+        hint="Optional — sources the name and photo from a Contributor record so updates stay in sync across the archive."
       >
         <PersonPicker
           people={people}

@@ -93,7 +93,7 @@ export default function PersonPicker({
           onClick={() => setOpen(true)}
           className="w-full text-left bg-paper border border-hairline rounded-lg px-3 h-11 text-sm text-muted hover:border-ink/40 transition-colors"
         >
-          + Link to an existing Originator
+          + Link to an existing Contributor
         </button>
       )}
 
@@ -111,7 +111,7 @@ export default function PersonPicker({
             <ul className="max-h-72 overflow-y-auto">
               {filtered.length === 0 ? (
                 <li className="p-4 text-center text-xs text-muted">
-                  No matching Originators.
+                  No matching Contributors.
                 </li>
               ) : (
                 filtered.map((p) => (
@@ -146,7 +146,7 @@ export default function PersonPicker({
       )}
 
       <p className="text-[11px] text-muted leading-relaxed">
-        Linking sources the name and avatar from the Originator. Updates
+        Linking sources the name and avatar from the Contributor. Updates
         there propagate here automatically.
       </p>
     </div>
