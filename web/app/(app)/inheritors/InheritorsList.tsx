@@ -58,7 +58,7 @@ export default function InheritorsList({
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h2 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
-            Inheritors
+            Your Inheritors
           </h2>
           <p className="text-muted text-sm sm:text-base mt-2 max-w-xl">
             People designated to receive items, collections, and family
