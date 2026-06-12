@@ -57,7 +57,7 @@ export default function ConservatorsList({
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h2 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
-            Conservators
+            Your Conservators
           </h2>
           <p className="text-muted text-sm sm:text-base mt-2 max-w-xl">
             Invite trusted family members, historians, or caretakers to
