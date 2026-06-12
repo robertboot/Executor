@@ -123,7 +123,7 @@ export default function CreateDrawer() {
               aria-label="Create new"
               aria-expanded={active}
               onClick={startOpen}
-              className="-mt-7 inline-flex items-center justify-center w-16 h-16 rounded-full bg-forest text-cream shadow-raised border-4 border-cream hover:bg-forest-deep active:scale-95 transition-transform"
+              className="-mt-7 inline-flex items-center justify-center w-16 h-16 rounded-full bg-forest text-cream shadow-raised border-4 border-paper hover:bg-forest-deep active:scale-95 transition-transform"
             >
               <PlusIcon />
             </button>
@@ -384,7 +384,7 @@ function GalleriesIcon() {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <path d="M4 6h6v6H4zM14 6h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
     </svg>
   );
 }
