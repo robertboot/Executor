@@ -8,6 +8,7 @@ import {
   type ContributorRow,
 } from '@/lib/api';
 import DemoRoleCard from './DemoRoleCard';
+import ContributorTabs from '@/components/ContributorTabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,8 @@ export default async function ContributorsPage() {
 
   return (
     <div className="space-y-6 pb-24">
+      <ContributorTabs />
+
       {/* Hero */}
       <HeroCard totalContributors={totalContributors} />
 

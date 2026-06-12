@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { listConservators, listMyCollectionsRich } from '@/lib/api';
 import { getMyDisplayName } from '@/lib/me';
 import ConservatorsList from './ConservatorsList';
+import ContributorTabs from '@/components/ContributorTabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,8 @@ export default async function ConservatorsPage() {
 
   return (
     <div className="space-y-8 pb-24">
+      <ContributorTabs />
+
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>

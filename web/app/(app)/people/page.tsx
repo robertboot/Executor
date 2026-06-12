@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { listPeople } from '@/lib/api';
 import { getMyDisplayName } from '@/lib/me';
 import PeopleList from './PeopleList';
+import ContributorTabs from '@/components/ContributorTabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,8 @@ export default async function PeoplePage() {
 
   return (
     <div className="space-y-8 pb-24">
+      <ContributorTabs />
+
       <HeroCard />
 
       {people.length > 0 && <PeopleList people={people} />}

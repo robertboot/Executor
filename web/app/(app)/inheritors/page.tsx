@@ -4,6 +4,7 @@ import { listInheritors } from '@/lib/api';
 import { formatMoney } from '@/lib/format';
 import { getMyDisplayName } from '@/lib/me';
 import InheritorsList from './InheritorsList';
+import ContributorTabs from '@/components/ContributorTabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,8 @@ export default async function InheritorsPage() {
 
   return (
     <div className="space-y-8 pb-24">
+      <ContributorTabs />
+
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
