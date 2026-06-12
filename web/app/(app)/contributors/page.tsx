@@ -32,7 +32,7 @@ export default async function ContributorsPage() {
       {/* Contributors header */}
       <header>
         <h1 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
-          Contributors
+          Your Contributors
         </h1>
         <p className="text-muted text-sm sm:text-base mt-2 max-w-2xl">
           Everyone who shapes your archive — the people in your items&rsquo;
@@ -113,7 +113,6 @@ function AllContributors({ rows }: { rows: ContributorRow[] }) {
   return (
     <section className="space-y-3">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="font-serif text-2xl text-ink">All contributors</h2>
         <span className="text-xs text-muted">
           {rows.length} {rows.length === 1 ? 'person' : 'people'}
         </span>
