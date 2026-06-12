@@ -25,31 +25,21 @@ export default async function ConservatorsPage() {
     <div className="space-y-8 pb-24">
       <ContributorTabs />
 
-      {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
-            Conservators
-          </h1>
-          <p className="text-muted text-sm sm:text-base mt-2 max-w-xl">
-            Invite trusted family members, historians, or caretakers to
-            help preserve your archive.
-          </p>
-        </div>
-        <Link
-          href="/conservators/new"
-          className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors shrink-0"
-        >
-          <UserPlusIcon className="w-4 h-4" />
-          Invite Conservator
-        </Link>
-      </header>
-
       <HeroCard />
 
       {conservators.length > 0 && (
         <ConservatorsList conservators={conservators} />
       )}
+
+      <div>
+        <Link
+          href="/conservators/new"
+          className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
+        >
+          <UserPlusIcon className="w-4 h-4" />
+          Invite Conservator
+        </Link>
+      </div>
 
       <WorkflowAndOverviewRow myName={myName} summary={summary} />
 

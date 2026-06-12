@@ -54,8 +54,16 @@ export default function ConservatorsList({
 
   return (
     <section className="space-y-4 scroll-mt-24">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-        <h2 className="font-serif text-2xl text-ink">Your conservators</h2>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+          <h2 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
+            Conservators
+          </h2>
+          <p className="text-muted text-sm sm:text-base mt-2 max-w-xl">
+            Invite trusted family members, historians, or caretakers to
+            help preserve your archive.
+          </p>
+        </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:items-center">
           <label className="relative">
             <span className="sr-only">Search conservators</span>
