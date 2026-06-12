@@ -65,7 +65,7 @@ export default function PeopleList({
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h2 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
-            Originators
+            Your Originators
           </h2>
           <p className="text-muted text-sm sm:text-base mt-2 max-w-xl">
             The family, friends, makers, and previous owners behind every
