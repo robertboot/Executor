@@ -26,29 +26,19 @@ export default async function InheritorsPage() {
     <div className="space-y-8 pb-24">
       <ContributorTabs />
 
-      {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
-            Inheritors
-          </h1>
-          <p className="text-muted text-sm sm:text-base mt-2 max-w-xl">
-            People designated to receive items, collections, and family
-            heirlooms in the future.
-          </p>
-        </div>
+      <HeroCard />
+
+      {inheritors.length > 0 && <InheritorsList inheritors={inheritors} />}
+
+      <div>
         <Link
           href="/inheritors/new"
-          className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors shrink-0"
+          className="inline-flex items-center gap-2 px-5 h-11 rounded-lg bg-forest text-cream text-sm font-medium hover:bg-forest-deep transition-colors"
         >
           <PlusIcon className="w-4 h-4" />
           Add Inheritor
         </Link>
-      </header>
-
-      <HeroCard />
-
-      {inheritors.length > 0 && <InheritorsList inheritors={inheritors} />}
+      </div>
 
       <InheritorTypesSection />
 

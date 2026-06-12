@@ -55,8 +55,16 @@ export default function InheritorsList({
 
   return (
     <section id="your-inheritors" className="space-y-4 scroll-mt-24">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-        <h2 className="font-serif text-2xl text-ink">Your Inheritors</h2>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+          <h2 className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
+            Inheritors
+          </h2>
+          <p className="text-muted text-sm sm:text-base mt-2 max-w-xl">
+            People designated to receive items, collections, and family
+            heirlooms in the future.
+          </p>
+        </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:items-center">
           <label className="relative">
             <span className="sr-only">Search inheritors</span>
